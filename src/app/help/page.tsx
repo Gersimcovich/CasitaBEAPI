@@ -15,8 +15,8 @@ const faqs = [
         a: 'You can book directly through our website by selecting your desired property and dates, or through our listings on Airbnb, VRBO, and other major platforms. Once you submit a booking request, you\'ll receive a confirmation email within 24 hours.'
       },
       {
-        q: 'What is your cancellation policy?',
-        a: 'Cancellation policies vary by property. Please review the specific cancellation terms on your booking confirmation. Generally, we offer flexible, moderate, and strict cancellation options depending on the property.'
+        q: 'What is the cancellation policy?',
+        a: 'Our cancellation policy varies by property and is designed to balance flexibility for guests with protection for property owners. Please refer to your booking confirmation email for the specific cancellation terms that apply to your reservation. Common policies include: Flexible (full refund up to 24 hours before check-in), Moderate (full refund up to 5 days before check-in), and Firm (full refund up to 30 days before check-in, 50% refund up to 7 days before). Service fees may be non-refundable depending on the platform used for booking.'
       },
       {
         q: 'Can I modify my reservation?',
@@ -131,17 +131,17 @@ export default function HelpPage() {
       <section className="py-8 border-b border-[var(--casita-gray-100)]">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-6 md:gap-12">
-            <a href="tel:+13055551234" className="flex items-center gap-3 text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
+            <a href="tel:+17866947577" className="flex items-center gap-3 text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
               <div className="w-10 h-10 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center">
                 <Phone className="w-5 h-5 text-[var(--casita-orange)]" />
               </div>
-              <span>(305) 555-1234</span>
+              <span>(786) 694-7577</span>
             </a>
-            <a href="mailto:support@hellocasita.com" className="flex items-center gap-3 text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
+            <a href="mailto:hola@hellocasita.com" className="flex items-center gap-3 text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
               <div className="w-10 h-10 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center">
                 <Mail className="w-5 h-5 text-[var(--casita-orange)]" />
               </div>
-              <span>support@hellocasita.com</span>
+              <span>hola@hellocasita.com</span>
             </a>
             <div className="flex items-center gap-3 text-[var(--casita-gray-600)]">
               <div className="w-10 h-10 rounded-full bg-[var(--casita-turquoise)]/10 flex items-center justify-center">
@@ -224,7 +224,7 @@ export default function HelpPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="tel:+13055551234"
+                href="tel:+17866947577"
                 className="px-8 py-4 bg-[var(--casita-orange)] text-white font-semibold rounded-xl hover:bg-[var(--casita-orange)]/90 transition-all flex items-center justify-center gap-2"
               >
                 <Phone className="w-5 h-5" />
@@ -248,7 +248,7 @@ export default function HelpPage() {
           <div className="max-w-3xl mx-auto text-center text-sm text-[var(--casita-gray-500)]">
             <p>
               Casita Vacation Rentals LLC, a Florida limited liability company<br />
-              740 Ocean Drive, Miami Beach, Florida 33139
+              436 Ocean Dr, Miami Beach, FL 33139
             </p>
           </div>
         </div>

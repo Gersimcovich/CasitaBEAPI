@@ -113,6 +113,8 @@ h1, h2, h3, .font-serif {
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
+  /* Always show scrollbar to prevent layout shift */
+  overflow-y: scroll;
 }
 
 /* Animation utilities */
@@ -173,11 +175,16 @@ html {
   width: 100%;
 }
 
+.react-datepicker-popper {
+  z-index: 200 !important;
+}
+
 .react-datepicker {
   font-family: var(--font-sans) !important;
   border: 1px solid var(--casita-gray-200) !important;
   border-radius: 12px !important;
   box-shadow: 0 10px 40px rgba(0,0,0,0.1) !important;
+  z-index: 200 !important;
 }
 
 .react-datepicker__header {
@@ -194,6 +201,101 @@ html {
 
 .react-datepicker__day:hover {
   background: var(--casita-orange-light) !important;
+}
+
+/* Booked/unavailable dates styling */
+.react-datepicker__day--disabled,
+.react-datepicker__day--excluded {
+  color: var(--casita-gray-400) !important;
+  background: var(--casita-gray-100) !important;
+  text-decoration: line-through;
+  cursor: not-allowed !important;
+}
+
+.react-datepicker__day--disabled:hover,
+.react-datepicker__day--excluded:hover {
+  background: var(--casita-gray-100) !important;
+  color: var(--casita-gray-400) !important;
+}
+
+/* Custom booked-date class for visual distinction */
+.booked-date {
+  position: relative;
+  color: var(--casita-gray-400) !important;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--casita-gray-100),
+    var(--casita-gray-100) 2px,
+    white 2px,
+    white 4px
+  ) !important;
+}
+
+.booked-date::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 1px;
+  background: var(--casita-gray-400);
+}
+
+/* Available dates (not disabled) get a visible orange indicator */
+.react-datepicker__day:not(.react-datepicker__day--disabled):not(.react-datepicker__day--excluded):not(.react-datepicker__day--selected):not(.react-datepicker__day--in-range):not(.react-datepicker__day--outside-month):not(.booked-date) {
+  background: rgba(255, 107, 53, 0.15);
+  border-radius: 4px;
+  color: var(--casita-gray-900);
+}
+
+/* Booked/excluded dates get gray background with strikethrough */
+.react-datepicker__day--excluded,
+.booked-date {
+  background: var(--casita-gray-200) !important;
+  color: var(--casita-gray-400) !important;
+  text-decoration: line-through;
+  border-radius: 4px;
+}
+
+/* Date range selection styling */
+.react-datepicker__day--in-selecting-range {
+  background: var(--casita-orange-light) !important;
+  color: var(--casita-gray-900) !important;
+}
+
+/* Current day indicator */
+.react-datepicker__day--today {
+  font-weight: bold;
+  border: 2px solid var(--casita-orange) !important;
+  border-radius: 4px;
+}
+
+/* Month navigation styling */
+.react-datepicker__navigation {
+  top: 12px !important;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: var(--casita-gray-600) !important;
+}
+
+.react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+  border-color: var(--casita-orange) !important;
+}
+
+/* Current month text */
+.react-datepicker__current-month {
+  color: var(--casita-gray-900) !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  padding: 8px 0 !important;
+}
+
+/* Day names header */
+.react-datepicker__day-name {
+  color: var(--casita-gray-500) !important;
+  font-weight: 500 !important;
 }
 
 /* Glass morphism effect */

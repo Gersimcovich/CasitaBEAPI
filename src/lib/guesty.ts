@@ -1,11 +1,57 @@
-// Guesty Open API Integration
-// Documentation: https://docs.guesty.com/
-// Using aggressive caching to handle rate limits
+// Guesty Booking Engine API (BEAPI) Integration
+// Documentation: https://booking-api-docs.guesty.com/
+// Better rate limits than Open API: 5/sec, 275/min, 16,500/hour
+// Supports 3 API credentials with automatic failover when rate limited
 
-const GUESTY_CLIENT_ID = process.env.GUESTY_CLIENT_ID || '';
-const GUESTY_CLIENT_SECRET = process.env.GUESTY_CLIENT_SECRET || '';
-const GUESTY_API_URL = 'https://open-api.guesty.com/v1';
-const GUESTY_AUTH_URL = 'https://open-api.guesty.com/oauth2/token';
+// Set to true to skip API calls and use only fallback data (useful during development)
+const USE_FALLBACK_ONLY = process.env.GUESTY_USE_FALLBACK_ONLY === 'true';
+
+// Primary BEAPI credentials
+const GUESTY_BEAPI_CLIENT_ID = process.env.GUESTY_BEAPI_CLIENT_ID || '';
+const GUESTY_BEAPI_CLIENT_SECRET = process.env.GUESTY_BEAPI_CLIENT_SECRET || '';
+
+// Secondary BEAPI credentials (failover)
+const GUESTY_BEAPI_CLIENT_ID_2 = process.env.GUESTY_BEAPI_CLIENT_ID_2 || '';
+const GUESTY_BEAPI_CLIENT_SECRET_2 = process.env.GUESTY_BEAPI_CLIENT_SECRET_2 || '';
+
+// Tertiary BEAPI credentials (third fallback)
+const GUESTY_BEAPI_CLIENT_ID_3 = process.env.GUESTY_BEAPI_CLIENT_ID_3 || '';
+const GUESTY_BEAPI_CLIENT_SECRET_3 = process.env.GUESTY_BEAPI_CLIENT_SECRET_3 || '';
+
+const GUESTY_API_URL = 'https://booking.guesty.com/api';
+const GUESTY_AUTH_URL = 'https://booking.guesty.com/oauth2/token';
+
+// Open API credentials (fallback for calendar/pricing when BEAPI is rate limited)
+const GUESTY_OPEN_API_CLIENT_ID = process.env.GUESTY_CLIENT_ID || '';
+const GUESTY_OPEN_API_CLIENT_SECRET = process.env.GUESTY_CLIENT_SECRET || '';
+const GUESTY_OPEN_API_URL = 'https://open-api.guesty.com/v1';
+const GUESTY_OPEN_API_AUTH_URL = 'https://open-api.guesty.com/oauth2/token';
+
+// Open API token cache
+let openApiToken: { token: string; expiresAt: number } | null = null;
+
+// Track which API is currently active (1 = primary, 2 = secondary, 3 = tertiary)
+let activeApiIndex = 1;
+// Track when each API was rate limited (to try switching back later)
+let apiRateLimitedAt: { [key: number]: number | null } = { 1: null, 2: null, 3: null };
+const RATE_LIMIT_COOLDOWN = 5 * 60 * 1000; // 5 minutes before trying an API again
+
+// Global rate limit check - if all APIs are rate limited, don't even try
+function areAllApisRateLimited(): boolean {
+  const now = Date.now();
+  const api1Limited = apiRateLimitedAt[1] && (now - apiRateLimitedAt[1] < RATE_LIMIT_COOLDOWN);
+  const api2Limited = !hasTertiaryApi() || (apiRateLimitedAt[2] && (now - apiRateLimitedAt[2]! < RATE_LIMIT_COOLDOWN));
+  const api3Limited = !hasTertiaryApi() || (apiRateLimitedAt[3] && (now - apiRateLimitedAt[3]! < RATE_LIMIT_COOLDOWN));
+
+  if (!hasSecondaryApi()) return !!api1Limited;
+  if (!hasTertiaryApi()) return !!(api1Limited && api2Limited);
+  return !!(api1Limited && api2Limited && api3Limited);
+}
+
+// Backwards compatibility
+function areBothApisRateLimited(): boolean {
+  return areAllApisRateLimited();
+}
 
 interface GuestyToken {
   access_token: string;
@@ -19,24 +65,43 @@ interface GuestyListing {
   title: string;
   nickname?: string;
   propertyType: string;
+  roomType?: string;
   accommodates: number;
   bedrooms: number;
   bathrooms: number;
+  beds?: number;
   address: {
     full: string;
     city: string;
     country: string;
+    state?: string;
+    street?: string;
     lat: number;
     lng: number;
   };
-  prices: {
+  prices?: {
     basePrice: number;
     currency: string;
     cleaningFee?: number;
   };
+  // Dynamic pricing returned when searching with checkIn/checkOut dates
+  price?: {
+    value: number; // Total price for the stay
+    currency: string;
+  };
+  // Additional pricing details for date searches
+  accommodationFare?: number;
+  nightsCount?: number;
+  picture?: {
+    thumbnail: string;
+    regular: string;
+    large: string;
+    caption?: string;
+  };
   pictures: Array<{
     original: string;
-    thumbnail: string;
+    large?: string;
+    thumbnail?: string;
     caption?: string;
   }>;
   amenities: string[];
@@ -65,6 +130,7 @@ interface GuestyListing {
   type?: 'SINGLE' | 'MTL' | 'MTL_CHILD';
   parentId?: string | null;
   listingRooms?: Array<{ _id: string }>;
+  timezone?: string;
 }
 
 interface GuestyReservation {
@@ -107,6 +173,27 @@ interface GuestyGuest {
   phone?: string;
 }
 
+interface ReservationQuote {
+  _id: string;
+  listingId: string;
+  checkInDateLocalized: string;
+  checkOutDateLocalized: string;
+  guestsCount: number;
+  ratePlans: Array<{
+    _id: string;
+    name: string;
+    money: {
+      fareAccommodation: number;
+      fareCleaning: number;
+      totalFees: number;
+      totalTaxes: number;
+      subTotalPrice: number;
+      hostPayout: number;
+      currency: string;
+    };
+  }>;
+}
+
 interface CreateReservationResponse {
   _id: string;
   confirmationCode: string;
@@ -143,113 +230,365 @@ interface CalendarDay {
   currency: string;
 }
 
-// Token cache
-let cachedToken: { token: string; expiresAt: number } | null = null;
+// Token cache - BEAPI tokens last 24 hours (separate cache for each API)
+const cachedTokens: { [key: number]: { token: string; expiresAt: number } | null } = {
+  1: null,
+  2: null,
+  3: null,
+};
 
-// Listings cache - longer duration to reduce API calls
+// Listings cache - 4 hours (increased to reduce API calls during rate limiting)
 let cachedListings: { data: GuestyListing[]; expiresAt: number } | null = null;
-const LISTINGS_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+const LISTINGS_CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 hours
 
 // Individual listing cache
 const listingCache = new Map<string, { data: GuestyListing; expiresAt: number }>();
-const LISTING_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+const LISTING_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
-// Calendar cache
+// Calendar cache - increased to 1 hour to reduce API load
 const calendarCache = new Map<string, { data: CalendarDay[]; expiresAt: number }>();
-const CALENDAR_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CALENDAR_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
-// Request queue to prevent concurrent requests
-let requestQueue: Promise<unknown> = Promise.resolve();
-const REQUEST_DELAY = 500; // 500ms between requests
+// Quote cache
+const quoteCache = new Map<string, { data: ReservationQuote; expiresAt: number }>();
+const QUOTE_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes (quotes valid for 24h)
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
- * Queue a request to prevent rate limiting
+ * Check if Open API is available
  */
-async function queueRequest<T>(fn: () => Promise<T>): Promise<T> {
-  const execute = async (): Promise<T> => {
-    await sleep(REQUEST_DELAY);
-    return fn();
-  };
-
-  requestQueue = requestQueue.then(execute, execute);
-  return requestQueue as Promise<T>;
+function hasOpenApi(): boolean {
+  return !!(GUESTY_OPEN_API_CLIENT_ID && GUESTY_OPEN_API_CLIENT_SECRET);
 }
 
 /**
- * Get OAuth2 access token from Guesty
+ * Get Open API access token
  */
-async function getAccessToken(retryCount = 0): Promise<string> {
-  const MAX_RETRIES = 5;
-  const BASE_DELAY = 5000;
+async function getOpenApiAccessToken(): Promise<string> {
+  // Check cache
+  if (openApiToken && openApiToken.expiresAt > Date.now()) {
+    return openApiToken.token;
+  }
 
+  if (!hasOpenApi()) {
+    throw new Error('Open API credentials not configured');
+  }
+
+  const response = await fetch(GUESTY_OPEN_API_AUTH_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json',
+    },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: GUESTY_OPEN_API_CLIENT_ID,
+      client_secret: GUESTY_OPEN_API_CLIENT_SECRET,
+      scope: 'open-api',
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to get Open API access token: ${error}`);
+  }
+
+  const data = await response.json();
+  openApiToken = {
+    token: data.access_token,
+    expiresAt: Date.now() + (data.expires_in - 300) * 1000,
+  };
+
+  console.log('✅ Authenticated with Open API');
+  return data.access_token;
+}
+
+/**
+ * Make a request to Guesty Open API
+ */
+async function openApiFetch<T>(endpoint: string): Promise<T> {
+  const token = await getOpenApiAccessToken();
+
+  const response = await fetch(`${GUESTY_OPEN_API_URL}${endpoint}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Open API error: ${response.status} - ${error}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Get calendar data from Open API (fallback when BEAPI is rate limited)
+ * Uses the availability-pricing endpoint for dynamic pricing
+ */
+async function getCalendarFromOpenApi(
+  listingId: string,
+  from: string,
+  to: string,
+  cacheKey: string
+): Promise<CalendarDay[]> {
+  // Use the availability-pricing calendar endpoint for dynamic pricing
+  const data = await openApiFetch<{
+    status: number;
+    data: {
+      days: Array<{
+        date: string;
+        price: number;
+        currency: string;
+        status: string;
+        minNights: number;
+        blocks: {
+          m: boolean;  // manual block
+          r: boolean;  // reservation
+          b: boolean;  // blocked
+          bd: boolean; // blocked dates
+          sr: boolean; // soft reservation
+          abl: boolean;
+          a: boolean;
+          bw: boolean;
+          o: boolean;
+          pt: boolean;
+        };
+      }>;
+    };
+  }>(`/availability-pricing/api/calendar/listings/${listingId}?startDate=${from}&endDate=${to}`);
+
+  const calendar: CalendarDay[] = (data.data?.days || []).map(day => {
+    // Check if any block is active
+    const isBlocked = day.blocks && (
+      day.blocks.m || day.blocks.r || day.blocks.b ||
+      day.blocks.bd || day.blocks.sr || day.blocks.abl ||
+      day.blocks.a || day.blocks.bw || day.blocks.o || day.blocks.pt
+    );
+
+    return {
+      date: day.date,
+      status: isBlocked ? 'booked' : (day.status === 'available' ? 'available' : 'blocked'),
+      price: day.price,
+      minNights: day.minNights || 1,
+      currency: day.currency || 'USD',
+    };
+  });
+
+  // Cache the result
+  calendarCache.set(cacheKey, {
+    data: calendar,
+    expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
+  });
+
+  console.log(`✅ Got calendar with dynamic pricing from Open API for ${listingId}`);
+  return calendar;
+}
+
+/**
+ * Get credentials for the specified API index
+ */
+function getCredentials(apiIndex: number): { clientId: string; clientSecret: string } {
+  if (apiIndex === 3) {
+    return {
+      clientId: GUESTY_BEAPI_CLIENT_ID_3,
+      clientSecret: GUESTY_BEAPI_CLIENT_SECRET_3,
+    };
+  }
+  if (apiIndex === 2) {
+    return {
+      clientId: GUESTY_BEAPI_CLIENT_ID_2,
+      clientSecret: GUESTY_BEAPI_CLIENT_SECRET_2,
+    };
+  }
+  return {
+    clientId: GUESTY_BEAPI_CLIENT_ID,
+    clientSecret: GUESTY_BEAPI_CLIENT_SECRET,
+  };
+}
+
+/**
+ * Check if secondary API is available
+ */
+function hasSecondaryApi(): boolean {
+  return !!(GUESTY_BEAPI_CLIENT_ID_2 && GUESTY_BEAPI_CLIENT_SECRET_2);
+}
+
+/**
+ * Check if tertiary API is available
+ */
+function hasTertiaryApi(): boolean {
+  return !!(GUESTY_BEAPI_CLIENT_ID_3 && GUESTY_BEAPI_CLIENT_SECRET_3);
+}
+
+/**
+ * Switch to the next available API when rate limited
+ */
+function switchToOtherApi(): boolean {
+  const now = Date.now();
+
+  // Mark current API as rate limited
+  apiRateLimitedAt[activeApiIndex] = now;
+
+  // Try to find an API that has cooled down
+  const apiOrder = [1, 2, 3];
+  for (const apiIdx of apiOrder) {
+    if (apiIdx === activeApiIndex) continue;
+    if (apiIdx === 2 && !hasSecondaryApi()) continue;
+    if (apiIdx === 3 && !hasTertiaryApi()) continue;
+
+    const rateLimitedAt = apiRateLimitedAt[apiIdx];
+    if (!rateLimitedAt || now - rateLimitedAt >= RATE_LIMIT_COOLDOWN) {
+      console.log(`🔄 Switching to API ${apiIdx} BEAPI credentials due to rate limiting`);
+      activeApiIndex = apiIdx;
+      return true;
+    }
+  }
+
+  // All APIs are rate limited
+  const availableApis = [1];
+  if (hasSecondaryApi()) availableApis.push(2);
+  if (hasTertiaryApi()) availableApis.push(3);
+  console.warn(`⚠️ All ${availableApis.length} APIs rate limited`);
+  return false;
+}
+
+/**
+ * Get OAuth2 access token from Guesty BEAPI with automatic failover
+ */
+async function getAccessToken(retryCount = 0, attemptedApis: Set<number> = new Set()): Promise<string> {
+  const MAX_RETRIES = 2;
+  const BASE_DELAY = 1000;
+
+  // If all APIs are rate limited, throw immediately
+  if (areAllApisRateLimited()) {
+    throw new Error('RATE_LIMITED: All APIs are in cooldown');
+  }
+
+  // Periodically check if we can switch to a cooled-down API
+  const now = Date.now();
+  if (activeApiIndex !== 1 && apiRateLimitedAt[1] && now - apiRateLimitedAt[1] >= RATE_LIMIT_COOLDOWN) {
+    console.log('🔄 Cooldown expired, switching back to primary BEAPI credentials');
+    activeApiIndex = 1;
+    apiRateLimitedAt[1] = null;
+  }
+
+  // Get the right cached token for current API
+  const cachedToken = cachedTokens[activeApiIndex];
+
+  // Check cache - BEAPI tokens last 24 hours
   if (cachedToken && cachedToken.expiresAt > Date.now()) {
     return cachedToken.token;
   }
 
-  if (!GUESTY_CLIENT_ID || !GUESTY_CLIENT_SECRET) {
-    throw new Error('GUESTY_CLIENT_ID and GUESTY_CLIENT_SECRET must be configured in .env.local');
+  const { clientId, clientSecret } = getCredentials(activeApiIndex);
+
+  if (!clientId || !clientSecret) {
+    // If current API has no credentials, try switching
+    if (hasSecondaryApi() && activeApiIndex === 1) {
+      activeApiIndex = 2;
+      return getAccessToken(0, attemptedApis);
+    }
+    throw new Error('GUESTY_BEAPI_CLIENT_ID and GUESTY_BEAPI_CLIENT_SECRET must be configured in .env.local');
   }
+
+  attemptedApis.add(activeApiIndex);
 
   try {
     const response = await fetch(GUESTY_AUTH_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
       },
       body: new URLSearchParams({
         grant_type: 'client_credentials',
-        client_id: GUESTY_CLIENT_ID,
-        client_secret: GUESTY_CLIENT_SECRET,
-        scope: 'open-api',
+        client_id: clientId,
+        client_secret: clientSecret,
+        scope: 'booking_engine:api',
       }),
     });
 
     if (!response.ok) {
       const error = await response.text();
+      const isRateLimited = response.status === 429 || error.includes('TOO_MANY_REQUESTS');
 
-      if (error.includes('TOO_MANY_REQUESTS') && retryCount < MAX_RETRIES) {
-        const delay = BASE_DELAY * Math.pow(2, retryCount);
-        console.warn(`Rate limited on auth, retrying in ${delay / 1000}s (attempt ${retryCount + 1}/${MAX_RETRIES})`);
-        await sleep(delay);
-        return getAccessToken(retryCount + 1);
+      // If rate limited, try switching to other API
+      if (isRateLimited) {
+        console.warn(`⚠️ API ${activeApiIndex} rate limited on auth`);
+
+        // Try another API if we haven't exhausted all options
+        const maxApis = 1 + (hasSecondaryApi() ? 1 : 0) + (hasTertiaryApi() ? 1 : 0);
+        if (attemptedApis.size < maxApis) {
+          if (switchToOtherApi()) {
+            return getAccessToken(0, attemptedApis);
+          }
+        }
+
+        // If we can retry on current API, do so
+        if (retryCount < MAX_RETRIES) {
+          const delay = BASE_DELAY * Math.pow(2, retryCount);
+          console.warn(`Rate limited on auth, retrying in ${delay / 1000}s (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+          await sleep(delay);
+          return getAccessToken(retryCount + 1, attemptedApis);
+        }
       }
 
-      throw new Error(`Failed to get Guesty access token: ${error}`);
+      throw new Error(`Failed to get Guesty BEAPI access token: ${error}`);
     }
 
     const data: GuestyToken = await response.json();
 
-    cachedToken = {
+    // Cache token for the current API (expires in 24 hours, we refresh 5 min early)
+    const tokenData = {
       token: data.access_token,
       expiresAt: Date.now() + (data.expires_in - 300) * 1000,
     };
 
+    cachedTokens[activeApiIndex] = tokenData;
+
+    const apiNames = { 1: 'primary', 2: 'secondary', 3: 'tertiary' };
+    console.log(`✅ Authenticated with BEAPI ${apiNames[activeApiIndex as keyof typeof apiNames]} credentials`);
     return data.access_token;
   } catch (error) {
-    if (retryCount < MAX_RETRIES && error instanceof Error && !error.message.includes('Failed to get Guesty')) {
-      const delay = BASE_DELAY * Math.pow(2, retryCount);
-      console.warn(`Network error on auth, retrying in ${delay}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
-      await sleep(delay);
-      return getAccessToken(retryCount + 1);
+    // Network error - try other API if available
+    if (error instanceof Error && !error.message.includes('Failed to get Guesty')) {
+      const maxApis = 1 + (hasSecondaryApi() ? 1 : 0) + (hasTertiaryApi() ? 1 : 0);
+      if (attemptedApis.size < maxApis) {
+        console.warn(`Network error on API ${activeApiIndex}, trying other API`);
+        if (switchToOtherApi()) {
+          return getAccessToken(0, attemptedApis);
+        }
+      }
+
+      if (retryCount < MAX_RETRIES) {
+        const delay = BASE_DELAY * Math.pow(2, retryCount);
+        console.warn(`Network error on auth, retrying in ${delay}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+        await sleep(delay);
+        return getAccessToken(retryCount + 1, attemptedApis);
+      }
     }
     throw error;
   }
 }
 
 /**
- * Make an authenticated request to Guesty API with rate limit handling
+ * Make an authenticated request to Guesty BEAPI with automatic failover
  */
-async function guestyFetch<T>(
+async function beapiFetch<T>(
   endpoint: string,
   options: RequestInit = {},
-  retryCount = 0
+  retryCount = 0,
+  attemptedSwitch = false
 ): Promise<T> {
-  const MAX_RETRIES = 5;
-  const BASE_DELAY = 5000;
+  const MAX_RETRIES = 2;
+  const BASE_DELAY = 1000;
 
   const token = await getAccessToken();
 
@@ -260,31 +599,60 @@ async function guestyFetch<T>(
         ...options.headers,
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
-      cache: 'no-store',
     });
 
     if (!response.ok) {
       const error = await response.text();
+      const isRateLimited = response.status === 429 || error.includes('TOO_MANY_REQUESTS');
 
-      // Handle rate limiting
-      if ((response.status === 429 || error.includes('TOO_MANY_REQUESTS')) && retryCount < MAX_RETRIES) {
-        const delay = BASE_DELAY * Math.pow(2, retryCount);
-        console.warn(`Rate limited, retrying in ${delay / 1000}s (attempt ${retryCount + 1}/${MAX_RETRIES})`);
-        await sleep(delay);
-        return guestyFetch<T>(endpoint, options, retryCount + 1);
+      // Handle rate limiting (429) - try failover to other API
+      if (isRateLimited) {
+        console.warn(`⚠️ API ${activeApiIndex} rate limited on ${endpoint}`);
+
+        // Try switching to other API if we haven't already
+        const maxApis = 1 + (hasSecondaryApi() ? 1 : 0) + (hasTertiaryApi() ? 1 : 0);
+        if (!attemptedSwitch && maxApis > 1) {
+          // Clear current token cache to force re-auth
+          cachedTokens[activeApiIndex] = null;
+
+          if (switchToOtherApi()) {
+            const apiNames = { 1: 'primary', 2: 'secondary', 3: 'tertiary' };
+            console.log(`🔄 Retrying request with ${apiNames[activeApiIndex as keyof typeof apiNames]} API`);
+            return beapiFetch<T>(endpoint, options, 0, true);
+          }
+        }
+
+        // If we can still retry on current API, do so
+        if (retryCount < MAX_RETRIES) {
+          const delay = BASE_DELAY * Math.pow(2, retryCount);
+          console.warn(`Rate limited, retrying in ${delay / 1000}s (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+          await sleep(delay);
+          return beapiFetch<T>(endpoint, options, retryCount + 1, attemptedSwitch);
+        }
       }
 
-      throw new Error(`Guesty API error: ${response.status} - ${error}`);
+      throw new Error(`Guesty BEAPI error: ${response.status} - ${error}`);
     }
 
     return response.json();
   } catch (error) {
-    if (retryCount < MAX_RETRIES && error instanceof Error && !error.message.includes('Guesty API error')) {
-      const delay = BASE_DELAY * Math.pow(2, retryCount);
-      console.warn(`Network error, retrying in ${delay}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
-      await sleep(delay);
-      return guestyFetch<T>(endpoint, options, retryCount + 1);
+    // Network error - try other API if available
+    if (error instanceof Error && !error.message.includes('Guesty BEAPI error')) {
+      if (!attemptedSwitch && hasSecondaryApi()) {
+        console.warn(`Network error on API ${activeApiIndex}, trying failover`);
+        if (switchToOtherApi()) {
+          return beapiFetch<T>(endpoint, options, 0, true);
+        }
+      }
+
+      if (retryCount < MAX_RETRIES) {
+        const delay = BASE_DELAY * Math.pow(2, retryCount);
+        console.warn(`Network error, retrying in ${delay}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+        await sleep(delay);
+        return beapiFetch<T>(endpoint, options, retryCount + 1, attemptedSwitch);
+      }
     }
     throw error;
   }
@@ -301,7 +669,7 @@ function filterParentListings(listings: GuestyListing[]): GuestyListing[] {
 }
 
 /**
- * Get all listings with aggressive caching
+ * Get all listings with caching
  */
 export async function getListings(params?: {
   limit?: number;
@@ -309,16 +677,21 @@ export async function getListings(params?: {
   active?: boolean;
   useCache?: boolean;
   parentsOnly?: boolean;
+  checkIn?: string;
+  checkOut?: string;
+  minOccupancy?: number;
 }): Promise<GuestyListing[]> {
+  // If fallback mode is enabled, return empty array to trigger fallback in caller
+  if (USE_FALLBACK_ONLY) {
+    return [];
+  }
+
   const useCache = params?.useCache !== false;
   const parentsOnly = params?.parentsOnly !== false;
 
   // Check cache first
   if (useCache && cachedListings && cachedListings.expiresAt > Date.now() && !params?.skip) {
     let results = cachedListings.data;
-    if (params?.active !== undefined) {
-      results = results.filter(l => l.active === params.active);
-    }
     if (parentsOnly) {
       results = filterParentListings(results);
     }
@@ -328,18 +701,34 @@ export async function getListings(params?: {
     return results;
   }
 
+  // If both APIs are rate limited, immediately return stale cache or throw
+  if (areBothApisRateLimited()) {
+    if (cachedListings && cachedListings.data.length > 0) {
+      console.log('Both APIs rate limited - returning stale cached listings');
+      let results = cachedListings.data;
+      if (parentsOnly) {
+        results = filterParentListings(results);
+      }
+      if (params?.limit) {
+        results = results.slice(0, params.limit);
+      }
+      return results;
+    }
+    throw new Error('Both APIs rate limited and no cached data available');
+  }
+
   try {
     const searchParams = new URLSearchParams();
-    searchParams.set('limit', '100');
+    searchParams.set('limit', (params?.limit || 100).toString());
     if (params?.skip) searchParams.set('skip', params.skip.toString());
-    if (params?.active !== undefined) searchParams.set('active', params.active.toString());
+    if (params?.checkIn) searchParams.set('checkIn', params.checkIn);
+    if (params?.checkOut) searchParams.set('checkOut', params.checkOut);
+    if (params?.minOccupancy) searchParams.set('minOccupancy', params.minOccupancy.toString());
 
     const queryString = searchParams.toString();
     const endpoint = `/listings${queryString ? `?${queryString}` : ''}`;
 
-    const data = await queueRequest(() =>
-      guestyFetch<{ results: GuestyListing[] }>(endpoint)
-    );
+    const data = await beapiFetch<{ results: GuestyListing[] }>(endpoint);
 
     // Cache results
     if (!params?.skip) {
@@ -363,11 +752,8 @@ export async function getListings(params?: {
   } catch (error) {
     // Return cached data even if expired
     if (cachedListings && cachedListings.data.length > 0) {
-      console.warn('Guesty API error, returning cached data:', error);
+      console.warn('BEAPI error, returning cached data:', error);
       let results = cachedListings.data;
-      if (params?.active !== undefined) {
-        results = results.filter(l => l.active === params.active);
-      }
       if (parentsOnly) {
         results = filterParentListings(results);
       }
@@ -384,34 +770,53 @@ export async function getListings(params?: {
  * Get a single listing by ID with caching
  */
 export async function getListing(listingId: string): Promise<GuestyListing> {
+  // If fallback mode, return a minimal listing that triggers fallback handling
+  if (USE_FALLBACK_ONLY) {
+    // Return null-like to trigger fallback - caller should handle this
+    return null as unknown as GuestyListing;
+  }
+
   // Check cache
   const cached = listingCache.get(listingId);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.data;
   }
 
-  // Check if it's in the listings cache
-  if (cachedListings && cachedListings.expiresAt > Date.now()) {
-    const found = cachedListings.data.find(l => l._id === listingId);
-    if (found) {
-      listingCache.set(listingId, {
-        data: found,
-        expiresAt: Date.now() + LISTING_CACHE_DURATION,
-      });
-      return found;
-    }
+  // Check if it's in the listings cache (even if expired, for fallback)
+  const listingsData = cachedListings?.data || [];
+  const foundInListings = listingsData.find(l => l._id === listingId);
+
+  // If valid listings cache, use it
+  if (cachedListings && cachedListings.expiresAt > Date.now() && foundInListings) {
+    listingCache.set(listingId, {
+      data: foundInListings,
+      expiresAt: Date.now() + LISTING_CACHE_DURATION,
+    });
+    return foundInListings;
   }
 
-  const listing = await queueRequest(() =>
-    guestyFetch<GuestyListing>(`/listings/${listingId}`)
-  );
+  try {
+    const listing = await beapiFetch<GuestyListing>(`/listings/${listingId}`);
 
-  listingCache.set(listingId, {
-    data: listing,
-    expiresAt: Date.now() + LISTING_CACHE_DURATION,
-  });
+    listingCache.set(listingId, {
+      data: listing,
+      expiresAt: Date.now() + LISTING_CACHE_DURATION,
+    });
 
-  return listing;
+    return listing;
+  } catch (error) {
+    // Return stale cache if available when rate-limited
+    if (cached && cached.data) {
+      console.warn('BEAPI listing error, returning stale cache:', error);
+      return cached.data;
+    }
+    // Try from stale listings cache
+    if (foundInListings) {
+      console.warn('BEAPI listing error, returning from stale listings cache:', error);
+      return foundInListings;
+    }
+    throw error;
+  }
 }
 
 /**
@@ -427,72 +832,161 @@ export async function searchListings(params: {
   maxPrice?: number;
   parentsOnly?: boolean;
 }): Promise<GuestyListing[]> {
-  // Use cached listings and filter locally to reduce API calls
-  const listings = await getListings({ parentsOnly: params.parentsOnly });
+  // Helper to filter results locally
+  const filterResults = (listings: GuestyListing[]): GuestyListing[] => {
+    let results = listings;
 
-  return listings.filter(listing => {
-    if (params.city && listing.address?.city?.toLowerCase() !== params.city.toLowerCase()) {
-      return false;
+    // Filter by city locally
+    if (params.city) {
+      results = results.filter(listing =>
+        listing.address?.city?.toLowerCase().includes(params.city!.toLowerCase())
+      );
     }
-    if (params.country && listing.address?.country?.toLowerCase() !== params.country.toLowerCase()) {
-      return false;
+
+    // Filter by guest capacity locally
+    if (params.guests) {
+      results = results.filter(listing => listing.accommodates >= params.guests!);
     }
-    if (params.guests && listing.accommodates < params.guests) {
-      return false;
+
+    // Filter by price locally
+    if (params.minPrice) {
+      results = results.filter(listing => (listing.prices?.basePrice || 0) >= params.minPrice!);
     }
-    if (params.minPrice && listing.prices?.basePrice < params.minPrice) {
-      return false;
+    if (params.maxPrice) {
+      results = results.filter(listing => (listing.prices?.basePrice || 0) <= params.maxPrice!);
     }
-    if (params.maxPrice && listing.prices?.basePrice > params.maxPrice) {
-      return false;
+
+    if (params.parentsOnly !== false) {
+      results = filterParentListings(results);
     }
-    return true;
-  });
+
+    return results;
+  };
+
+  try {
+    // Build query params for BEAPI
+    const searchParams = new URLSearchParams();
+    searchParams.set('limit', '100');
+
+    if (params.checkIn) searchParams.set('checkIn', params.checkIn);
+    if (params.checkOut) searchParams.set('checkOut', params.checkOut);
+    if (params.guests) searchParams.set('minOccupancy', params.guests.toString());
+    if (params.minPrice) searchParams.set('minPrice', params.minPrice.toString());
+    if (params.maxPrice) searchParams.set('maxPrice', params.maxPrice.toString());
+
+    const endpoint = `/listings?${searchParams.toString()}`;
+    const data = await beapiFetch<{ results: GuestyListing[] }>(endpoint);
+
+    return filterResults(data.results);
+  } catch (error) {
+    // Return filtered stale cache if available when rate-limited
+    if (cachedListings && cachedListings.data.length > 0) {
+      console.warn('BEAPI search error, returning filtered stale cache:', error);
+      return filterResults(cachedListings.data);
+    }
+    throw error;
+  }
 }
 
 /**
- * Get calendar availability for a listing with caching
+ * Get calendar availability for a listing
+ * PRIORITY: Open API first (has dynamic pricing), then BEAPI, then cache
  */
 export async function getCalendar(
   listingId: string,
   from: string,
   to: string
 ): Promise<CalendarDay[]> {
+  // If fallback mode, return empty calendar (all dates available)
+  if (USE_FALLBACK_ONLY) {
+    return [];
+  }
+
   const cacheKey = `${listingId}-${from}-${to}`;
 
-  // Check cache
+  // Check cache first
   const cached = calendarCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.data;
   }
 
-  const data = await queueRequest(() =>
-    guestyFetch<{
-      results: Array<{
-        date: string;
-        status: string;
-        price: number;
-        minNights?: number;
-        currency: string;
-      }>;
-    }>(`/availability-pricing/api/calendar/listings/${listingId}?startDate=${from}&endDate=${to}`)
-  );
+  // STRATEGY: Try Open API first for dynamic pricing, then BEAPI for availability
+  // Open API /availability-pricing endpoint returns actual daily prices
+  // BEAPI calendar returns base price for all days
 
-  const calendar = data.results.map(day => ({
-    date: day.date,
-    status: day.status as 'available' | 'booked' | 'blocked',
-    price: day.price,
-    minNights: day.minNights,
-    currency: day.currency,
-  }));
+  // Step 1: Try Open API first (has dynamic pricing)
+  if (hasOpenApi()) {
+    try {
+      console.log('📅 Trying Open API for dynamic calendar pricing...');
+      const openApiCalendar = await getCalendarFromOpenApi(listingId, from, to, cacheKey);
+      if (openApiCalendar.length > 0) {
+        // Log pricing variety
+        const uniquePrices = new Set(openApiCalendar.map(d => d.price));
+        console.log(`✅ Open API: ${openApiCalendar.length} days, ${uniquePrices.size} unique prices`);
+        return openApiCalendar;
+      }
+    } catch (openApiError) {
+      console.warn('Open API calendar failed, trying BEAPI:', openApiError);
+    }
+  }
 
-  // Cache the result
-  calendarCache.set(cacheKey, {
-    data: calendar,
-    expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
-  });
+  // Step 2: Try BEAPI (for availability status, prices may be static)
+  if (!areBothApisRateLimited()) {
+    try {
+      console.log('📅 Trying BEAPI for calendar...');
+      const data = await beapiFetch<{
+        data: Array<{
+          date: string;
+          status: string;
+          price: number;
+          minNights?: number;
+          currency: string;
+        }>;
+      }>(`/listings/${listingId}/calendar?from=${from}&to=${to}`);
 
-  return calendar;
+      const rawDays = data.data || [];
+      if (rawDays.length > 0) {
+        const priceSample = rawDays.slice(0, 5).map(d => `${d.date}: $${d.price}`);
+        console.log(`📅 BEAPI Calendar: ${priceSample.join(', ')} ...`);
+
+        // Check if all prices are the same (BEAPI often returns base price)
+        const uniquePrices = new Set(rawDays.map(d => d.price));
+        if (uniquePrices.size === 1) {
+          console.warn(`⚠️ BEAPI: All ${rawDays.length} days have same price: $${rawDays[0]?.price} (base price)`);
+        } else {
+          console.log(`✅ BEAPI: Found ${uniquePrices.size} different price points`);
+        }
+      }
+
+      const calendar = rawDays.map(day => ({
+        date: day.date,
+        status: day.status as 'available' | 'booked' | 'blocked',
+        price: day.price,
+        minNights: day.minNights,
+        currency: day.currency || 'USD',
+      }));
+
+      // Cache the result
+      calendarCache.set(cacheKey, {
+        data: calendar,
+        expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
+      });
+
+      return calendar;
+    } catch (beapiError) {
+      console.warn('BEAPI calendar failed:', beapiError);
+    }
+  } else {
+    console.log('⚠️ All BEAPI credentials rate limited');
+  }
+
+  // Step 3: Return stale cache if available
+  if (cached && cached.data.length > 0) {
+    console.warn('All calendar APIs failed, returning stale cache');
+    return cached.data;
+  }
+
+  throw new Error('All APIs unavailable - calendar data not found');
 }
 
 /**
@@ -546,7 +1040,73 @@ export async function checkAvailability(
 }
 
 /**
- * Get a price quote for a reservation
+ * Create a reservation quote (BEAPI quote flow)
+ */
+export async function createQuote(params: {
+  listingId: string;
+  checkIn: string;
+  checkOut: string;
+  guestsCount: number;
+  coupons?: string[];
+}): Promise<ReservationQuote> {
+  // If fallback mode, return null to trigger estimated quote handling in caller
+  if (USE_FALLBACK_ONLY) {
+    return null as unknown as ReservationQuote;
+  }
+
+  const cacheKey = `${params.listingId}-${params.checkIn}-${params.checkOut}-${params.guestsCount}`;
+
+  // Check cache
+  const cached = quoteCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.data;
+  }
+
+  // If both APIs are rate limited, return stale cache or throw
+  if (areBothApisRateLimited()) {
+    if (cached && cached.data) {
+      console.log('Both APIs rate limited - returning stale cached quote');
+      return cached.data;
+    }
+    throw new Error('Both APIs rate limited - quotes unavailable');
+  }
+
+  try {
+    const requestBody: Record<string, unknown> = {
+      listingId: params.listingId,
+      checkInDateLocalized: params.checkIn,
+      checkOutDateLocalized: params.checkOut,
+      guestsCount: params.guestsCount,
+    };
+
+    if (params.coupons && params.coupons.length > 0) {
+      requestBody.coupons = params.coupons;
+    }
+
+    const quote = await beapiFetch<ReservationQuote>('/reservations/quotes', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    });
+
+    // Cache the quote
+    quoteCache.set(cacheKey, {
+      data: quote,
+      expiresAt: Date.now() + QUOTE_CACHE_DURATION,
+    });
+
+    return quote;
+  } catch (error) {
+    // Return stale cache if available when rate-limited
+    if (cached && cached.data) {
+      console.warn('BEAPI quote error, returning stale cache:', error);
+      return cached.data;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Get a price quote using the BEAPI quote flow
  */
 export async function getQuote(params: {
   listingId: string;
@@ -556,6 +1116,8 @@ export async function getQuote(params: {
 }): Promise<{
   available: boolean;
   quote: {
+    quoteId: string;
+    ratePlanId: string;
     nightsCount: number;
     pricePerNight: number;
     accommodation: number;
@@ -588,6 +1150,7 @@ export async function getQuote(params: {
       };
     }
 
+    // Check availability first
     const availability = await checkAvailability(
       params.listingId,
       params.checkIn,
@@ -607,23 +1170,50 @@ export async function getQuote(params: {
       };
     }
 
+    // Create quote via BEAPI
+    const quoteResponse = await createQuote({
+      listingId: params.listingId,
+      checkIn: params.checkIn,
+      checkOut: params.checkOut,
+      guestsCount: params.guestsCount,
+    });
+
+    const ratePlan = quoteResponse.ratePlans?.[0];
+    if (!ratePlan) {
+      return {
+        available: false,
+        quote: null,
+        unavailableDates: [],
+        listing: {
+          id: listing._id,
+          title: listing.title,
+          maxGuests: listing.accommodates,
+        },
+      };
+    }
+
+    const nightsCount = availability.nightsCount;
+    const accommodation = ratePlan.money.fareAccommodation;
+    const pricePerNight = nightsCount > 0 ? Math.round(accommodation / nightsCount) : 0;
+    const cleaningFee = ratePlan.money.fareCleaning;
+    // No service fee for direct bookings - that's the whole point of booking direct!
     const serviceFee = 0;
-    const total = availability.totalAccommodation +
-                  availability.cleaningFee +
-                  serviceFee +
-                  availability.taxes;
+    // Recalculate total without Guesty's service fees (accommodation + cleaning + taxes only)
+    const total = accommodation + cleaningFee + ratePlan.money.totalTaxes;
 
     return {
       available: true,
       quote: {
-        nightsCount: availability.nightsCount,
-        pricePerNight: availability.pricePerNight,
-        accommodation: availability.totalAccommodation,
-        cleaningFee: availability.cleaningFee,
+        quoteId: quoteResponse._id,
+        ratePlanId: ratePlan._id,
+        nightsCount,
+        pricePerNight,
+        accommodation,
+        cleaningFee,
         serviceFee,
-        taxes: availability.taxes,
+        taxes: ratePlan.money.totalTaxes,
         total,
-        currency: availability.currency,
+        currency: ratePlan.money.currency,
       },
       unavailableDates: [],
       listing: {
@@ -639,7 +1229,73 @@ export async function getQuote(params: {
 }
 
 /**
- * Create a reservation
+ * Create an instant reservation (confirmed booking with payment)
+ */
+export async function createInstantBooking(params: {
+  quoteId: string;
+  ratePlanId: string;
+  ccToken: string; // Stripe payment token (pm_xxx format)
+  guest: GuestyGuest;
+}): Promise<CreateReservationResponse> {
+  const requestBody = {
+    ratePlanId: params.ratePlanId,
+    ccToken: params.ccToken,
+    guest: {
+      firstName: params.guest.firstName,
+      lastName: params.guest.lastName,
+      email: params.guest.email,
+      phone: params.guest.phone,
+    },
+  };
+
+  return beapiFetch<CreateReservationResponse>(
+    `/reservations/quotes/${params.quoteId}/instant`,
+    {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    }
+  );
+}
+
+/**
+ * Create a booking inquiry (request to book, payment optional)
+ */
+export async function createInquiry(params: {
+  quoteId: string;
+  ratePlanId: string;
+  guest: GuestyGuest;
+  message?: string;
+  ccToken?: string;
+}): Promise<CreateReservationResponse> {
+  const requestBody: Record<string, unknown> = {
+    ratePlanId: params.ratePlanId,
+    guest: {
+      firstName: params.guest.firstName,
+      lastName: params.guest.lastName,
+      email: params.guest.email,
+      phone: params.guest.phone,
+    },
+  };
+
+  if (params.message) {
+    requestBody.message = params.message;
+  }
+
+  if (params.ccToken) {
+    requestBody.ccToken = params.ccToken;
+  }
+
+  return beapiFetch<CreateReservationResponse>(
+    `/reservations/quotes/${params.quoteId}/inquiry`,
+    {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+    }
+  );
+}
+
+/**
+ * Legacy function for backward compatibility - creates inquiry
  */
 export async function createReservation(params: {
   listingId: string;
@@ -650,68 +1306,31 @@ export async function createReservation(params: {
   status?: 'inquiry' | 'reserved' | 'confirmed';
   notes?: string;
 }): Promise<CreateReservationResponse> {
-  const status = params.status || 'inquiry';
-
-  const requestBody = {
+  // Create quote first
+  const quote = await createQuote({
     listingId: params.listingId,
-    checkInDateLocalized: params.checkIn,
-    checkOutDateLocalized: params.checkOut,
-    guest: {
-      firstName: params.guest.firstName,
-      lastName: params.guest.lastName,
-      email: params.guest.email,
-      phone: params.guest.phone,
-    },
+    checkIn: params.checkIn,
+    checkOut: params.checkOut,
     guestsCount: params.guestsCount,
-    status,
-    source: 'Direct - Casita Website',
-    notes: params.notes,
-  };
+  });
 
-  return queueRequest(() =>
-    guestyFetch<CreateReservationResponse>('/reservations', {
-      method: 'POST',
-      body: JSON.stringify(requestBody),
-    })
-  );
-}
+  const ratePlan = quote.ratePlans?.[0];
+  if (!ratePlan) {
+    throw new Error('No rate plan available for this booking');
+  }
 
-/**
- * Create an instant booking (confirmed reservation)
- */
-export async function createInstantBooking(params: {
-  listingId: string;
-  checkIn: string;
-  checkOut: string;
-  guest: GuestyGuest;
-  guestsCount: number;
-  notes?: string;
-}): Promise<CreateReservationResponse> {
-  return createReservation({
-    ...params,
-    status: 'confirmed',
+  // Create inquiry (default for BEAPI without payment token)
+  return createInquiry({
+    quoteId: quote._id,
+    ratePlanId: ratePlan._id,
+    guest: params.guest,
+    message: params.notes,
   });
 }
 
 /**
- * Create a booking inquiry (request to book)
- */
-export async function createInquiry(params: {
-  listingId: string;
-  checkIn: string;
-  checkOut: string;
-  guest: GuestyGuest;
-  guestsCount: number;
-  notes?: string;
-}): Promise<CreateReservationResponse> {
-  return createReservation({
-    ...params,
-    status: 'inquiry',
-  });
-}
-
-/**
- * Get reservations for a listing
+ * Get reservations - Note: BEAPI doesn't support listing reservations directly
+ * This is kept for backward compatibility but may need Open API for full functionality
  */
 export async function getReservations(
   listingId: string,
@@ -721,17 +1340,128 @@ export async function getReservations(
     toDate?: string;
   }
 ): Promise<GuestyReservation[]> {
-  const searchParams = new URLSearchParams();
-  searchParams.set('listingId', listingId);
-  if (params?.status) searchParams.set('status', params.status);
-  if (params?.fromDate) searchParams.set('checkIn[gte]', params.fromDate);
-  if (params?.toDate) searchParams.set('checkIn[lte]', params.toDate);
+  // BEAPI doesn't have a list reservations endpoint
+  // Return empty array - use Open API if you need this functionality
+  console.warn('getReservations is not fully supported in BEAPI. Use Open API for reservation management.');
+  return [];
+}
 
-  const endpoint = `/reservations?${searchParams.toString()}`;
-  const data = await queueRequest(() =>
-    guestyFetch<{ results: GuestyReservation[] }>(endpoint)
-  );
-  return data.results;
+/**
+ * Get reviews for a listing
+ */
+export interface GuestyReview {
+  _id: string;
+  listingId: string;
+  channelId: string;
+  reviewerName: string;
+  reviewDate: string;
+  publicReview?: string;
+  privateReview?: string;
+  rating?: number;
+  reviewResponse?: string;
+  reviewResponseDate?: string;
+}
+
+// Reviews cache
+const reviewsCache = new Map<string, { data: GuestyReview[]; expiresAt: number }>();
+const REVIEWS_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+
+export async function getReviews(listingId: string): Promise<GuestyReview[]> {
+  // Check cache
+  const cached = reviewsCache.get(listingId);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.data;
+  }
+
+  try {
+    const data = await beapiFetch<{ results: GuestyReview[] }>(
+      `/reviews?listingId=${listingId}&limit=10`
+    );
+
+    const reviews = data.results || [];
+
+    // Cache the result
+    reviewsCache.set(listingId, {
+      data: reviews,
+      expiresAt: Date.now() + REVIEWS_CACHE_DURATION,
+    });
+
+    return reviews;
+  } catch (error) {
+    // Return stale cache if available when rate-limited
+    if (cached && cached.data.length > 0) {
+      console.warn('BEAPI reviews error, returning stale cache:', error);
+      return cached.data;
+    }
+    console.error('Error fetching reviews:', error);
+    return [];
+  }
+}
+
+// Cities cache
+let cachedCities: { data: string[]; expiresAt: number } | null = null;
+const CITIES_CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 hours
+
+/**
+ * Get cities from listings
+ */
+export async function getCities(): Promise<string[]> {
+  // Check cache first
+  if (cachedCities && cachedCities.expiresAt > Date.now()) {
+    return cachedCities.data;
+  }
+
+  // If fallback mode, return hardcoded cities
+  if (USE_FALLBACK_ONLY) {
+    return ['Bal Harbour', 'Kissimmee', 'Miami', 'Miami Beach', 'Puerto Iguazú'];
+  }
+
+  try {
+    // BEAPI has a cities endpoint
+    const data = await beapiFetch<{
+      results: Array<{ city: string; country: string; state?: string }>;
+    }>('/listings/cities?limit=100');
+
+    const cities = data.results.map(item => item.city).filter(Boolean);
+
+    // Cache the result
+    cachedCities = {
+      data: cities,
+      expiresAt: Date.now() + CITIES_CACHE_DURATION,
+    };
+
+    return cities;
+  } catch (error) {
+    console.error('Error fetching cities:', error);
+
+    // Return stale cache if available
+    if (cachedCities && cachedCities.data.length > 0) {
+      console.warn('BEAPI cities error, returning stale cache');
+      return cachedCities.data;
+    }
+
+    // Fallback to extracting from listings (which will also use stale cache if rate-limited)
+    try {
+      const listings = await getListings({ useCache: true });
+      const citiesSet = new Set<string>();
+      listings.forEach(listing => {
+        if (listing.address?.city) {
+          citiesSet.add(listing.address.city);
+        }
+      });
+      const cities = Array.from(citiesSet).sort();
+
+      // Cache extracted cities
+      cachedCities = {
+        data: cities,
+        expiresAt: Date.now() + CITIES_CACHE_DURATION,
+      };
+
+      return cities;
+    } catch {
+      return ['Bal Harbour', 'Kissimmee', 'Miami', 'Miami Beach', 'Puerto Iguazú'];
+    }
+  }
 }
 
 // Beach-related amenities
@@ -745,7 +1475,7 @@ export const AMENITY_CATEGORIES = {
   popular: ['wifi', 'pool', 'air conditioning', 'kitchen', 'washer', 'dryer', 'parking', 'hot tub'],
   outdoor: ['pool', 'hot tub', 'bbq', 'grill', 'patio', 'balcony', 'garden', 'outdoor furniture', 'beach access', 'beach chairs'],
   kitchen: ['kitchen', 'refrigerator', 'microwave', 'oven', 'stove', 'dishwasher', 'coffee maker', 'toaster', 'cooking basics'],
-  entertainment: ['tv', 'cable tv', 'streaming', 'netflix', 'wifi', 'game room', 'books', 'board games'],
+  entertainment: ['tv', 'cable tv', 'streaming', 'netflix', 'wifi', 'game room', 'books', 'board games', 'game console'],
   safety: ['smoke detector', 'carbon monoxide detector', 'fire extinguisher', 'first aid kit', 'security cameras'],
   accessibility: ['elevator', 'wheelchair accessible', 'step-free entry'],
   family: ['crib', 'high chair', 'kids toys', 'baby monitor', 'childproofing'],
@@ -779,6 +1509,224 @@ function estimateBeachDistance(listing: GuestyListing): number {
   return 2000;
 }
 
+// Miami Art Deco Historic District boundaries (approximate)
+// Ocean Drive: 5th St to 15th St (roughly 100-1500 block)
+// Collins Ave: 5th St to 23rd St
+// Washington Ave: 5th St to 23rd St
+const ART_DECO_STREETS = ['ocean dr', 'ocean drive', 'collins ave', 'collins avenue', 'washington ave', 'washington avenue'];
+const ART_DECO_CROSS_STREETS_MIN = 5;
+const ART_DECO_CROSS_STREETS_MAX = 23;
+
+// Famous/iconic streets in Miami Beach
+const ICONIC_STREETS: Record<string, string> = {
+  'ocean dr': 'Ocean Drive',
+  'ocean drive': 'Ocean Drive',
+  'collins ave': 'Collins Avenue',
+  'collins avenue': 'Collins Avenue',
+  'lincoln rd': 'Lincoln Road',
+  'lincoln road': 'Lincoln Road',
+  'espanola way': 'Española Way',
+  'española way': 'Española Way',
+  'indian creek': 'Indian Creek',
+  'collins canal': 'Collins Canal',
+  'bay rd': 'Bay Road',
+  'bay road': 'Bay Road',
+  'alton rd': 'Alton Road',
+  'alton road': 'Alton Road',
+};
+
+// Neighborhood mapping based on location
+const NEIGHBORHOODS: Record<string, { minStreet?: number; maxStreet?: number; cities: string[] }> = {
+  'South Beach': { minStreet: 1, maxStreet: 23, cities: ['miami beach'] },
+  'Mid-Beach': { minStreet: 24, maxStreet: 63, cities: ['miami beach'] },
+  'North Beach': { minStreet: 64, maxStreet: 87, cities: ['miami beach'] },
+  'Surfside': { cities: ['surfside'] },
+  'Bal Harbour': { cities: ['bal harbour', 'bal harbor'] },
+  'Sunny Isles': { cities: ['sunny isles', 'sunny isles beach'] },
+  'Downtown Miami': { cities: ['miami'] },
+};
+
+/**
+ * Parse street number from address
+ */
+function parseStreetNumber(address: string): number | null {
+  const match = address.match(/^(\d+)\s/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
+/**
+ * Determine if address is in the Art Deco Historic District
+ */
+function isInArtDecoDistrict(address: string, city: string): boolean {
+  const addressLower = address.toLowerCase();
+  const cityLower = city.toLowerCase();
+
+  // Must be in Miami Beach
+  if (!cityLower.includes('miami beach')) return false;
+
+  // Check if on one of the Art Deco district streets
+  const isOnArtDecoStreet = ART_DECO_STREETS.some(street => addressLower.includes(street));
+  if (!isOnArtDecoStreet) return false;
+
+  // Check street number range (5th to 23rd street area)
+  const streetNum = parseStreetNumber(address);
+  if (streetNum === null) return true; // Assume yes if we can't parse
+
+  // Ocean Drive Art Deco is roughly 100-1500 block (5th to 15th St)
+  if (addressLower.includes('ocean dr') || addressLower.includes('ocean drive')) {
+    return streetNum >= 100 && streetNum <= 1500;
+  }
+
+  // Collins and Washington: roughly up to 2300 block
+  return streetNum >= 100 && streetNum <= 2300;
+}
+
+/**
+ * Get the iconic street name if on one
+ */
+function getIconicStreet(address: string): string | null {
+  const addressLower = address.toLowerCase();
+  for (const [pattern, name] of Object.entries(ICONIC_STREETS)) {
+    if (addressLower.includes(pattern)) {
+      return name;
+    }
+  }
+  return null;
+}
+
+/**
+ * Determine neighborhood based on address and city
+ */
+function determineNeighborhood(address: string, city: string): string | undefined {
+  const cityLower = city.toLowerCase();
+  const streetNum = parseStreetNumber(address);
+
+  for (const [neighborhood, config] of Object.entries(NEIGHBORHOODS)) {
+    // Check if city matches
+    if (config.cities.some(c => cityLower.includes(c))) {
+      // If no street range specified, it's a city-level match
+      if (config.minStreet === undefined || config.maxStreet === undefined) {
+        return neighborhood;
+      }
+
+      // For Miami Beach, determine by street number
+      if (cityLower.includes('miami beach') && streetNum !== null) {
+        // Convert address number to approximate street
+        // Ocean Drive: ~100 per block, Collins: similar
+        const approxStreet = Math.floor(streetNum / 100);
+        if (approxStreet >= config.minStreet && approxStreet <= config.maxStreet) {
+          return neighborhood;
+        }
+      }
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Determine location-based perks for a property
+ */
+function getLocationPerks(listing: GuestyListing): string[] {
+  const perks: string[] = [];
+  const address = listing.address?.full || '';
+  const city = listing.address?.city || '';
+
+  // Check for Art Deco District
+  if (isInArtDecoDistrict(address, city)) {
+    perks.push('Art Deco District');
+  }
+
+  // Check for iconic street
+  const iconicStreet = getIconicStreet(address);
+  if (iconicStreet) {
+    perks.push(iconicStreet);
+  }
+
+  // Check for waterfront/bay views from amenities or description
+  const amenitiesLower = (listing.amenities || []).map(a => a.toLowerCase());
+  const description = (listing.publicDescription?.summary || '').toLowerCase();
+
+  if (amenitiesLower.some(a => a.includes('bay view')) || description.includes('bay view')) {
+    perks.push('Bay View');
+  }
+
+  if (amenitiesLower.some(a => a.includes('city view') || a.includes('skyline')) || description.includes('skyline')) {
+    perks.push('City Skyline');
+  }
+
+  if (amenitiesLower.some(a => a.includes('pool')) || description.includes('rooftop pool')) {
+    if (description.includes('rooftop')) {
+      perks.push('Rooftop Pool');
+    }
+  }
+
+  // Historic building indicator
+  if (description.includes('historic') || description.includes('1920s') || description.includes('1930s') || description.includes('1940s')) {
+    perks.push('Historic Building');
+  }
+
+  // Walk to beach
+  if (description.includes('steps from the beach') || description.includes('walk to beach') || description.includes('steps to beach')) {
+    perks.push('Steps to Beach');
+  }
+
+  return perks;
+}
+
+/**
+ * Determine property type based on location and listing data
+ * Properties on Ocean Drive in Miami Beach are typically Boutique Hotels, not apartments
+ */
+function determinePropertyType(listing: GuestyListing): 'boutique-hotel' | 'luxury-villa' | 'beach-house' | 'mountain-retreat' | 'city-apartment' | 'historic-estate' {
+  const address = (listing.address?.full || '').toLowerCase();
+  const city = (listing.address?.city || '').toLowerCase();
+  const guestyType = (listing.propertyType || '').toLowerCase();
+  const title = (listing.title || '').toLowerCase();
+
+  // Ocean Drive properties in Miami Beach are typically boutique hotels
+  if (city.includes('miami beach') && (address.includes('ocean dr') || address.includes('ocean drive'))) {
+    return 'boutique-hotel';
+  }
+
+  // Collins Avenue in Art Deco district - likely boutique hotels
+  if (city.includes('miami beach') && isInArtDecoDistrict(listing.address?.full || '', listing.address?.city || '')) {
+    // Check if it's a hotel-style property
+    if (listing.type === 'MTL' || (listing.listingRooms && listing.listingRooms.length > 0)) {
+      return 'boutique-hotel';
+    }
+  }
+
+  // Check title for hotel indicators
+  if (title.includes('hotel') || title.includes('suite') || title.includes('boutique')) {
+    return 'boutique-hotel';
+  }
+
+  // Bal Harbour/Sunny Isles high-rises are typically luxury apartments
+  if (city.includes('bal harbour') || city.includes('sunny isles')) {
+    if (guestyType === 'apartment' || address.includes('collins ave') || address.includes('collins avenue')) {
+      return 'luxury-villa'; // Treat as luxury
+    }
+  }
+
+  // Fall back to the standard mapping
+  const typeMap: Record<string, 'boutique-hotel' | 'luxury-villa' | 'beach-house' | 'mountain-retreat' | 'city-apartment' | 'historic-estate'> = {
+    apartment: 'city-apartment',
+    house: 'luxury-villa',
+    villa: 'luxury-villa',
+    hotel: 'boutique-hotel',
+    'boutique hotel': 'boutique-hotel',
+    cottage: 'mountain-retreat',
+    cabin: 'mountain-retreat',
+    castle: 'historic-estate',
+    estate: 'historic-estate',
+    beach: 'beach-house',
+    beachfront: 'beach-house',
+  };
+
+  return typeMap[guestyType] || 'boutique-hotel';
+}
+
 export function normalizeAmenity(amenity: string): string {
   return amenity
     .toLowerCase()
@@ -795,22 +1743,42 @@ export function convertGuestyToProperty(listing: GuestyListing) {
   const roomsAvailable = listing.listingRooms?.length || (listing.type === 'MTL' ? 1 : undefined);
   const childListings = listing.listingRooms?.map(room => room._id);
 
+  // Get price - prefer dynamic price from date search, fallback to base price
+  // When searching with checkIn/checkOut, Guesty returns calculated pricing in listing.price
+  // or listing.accommodationFare / listing.nightsCount
+  let pricePerNight = listing.prices?.basePrice || 0;
+
+  // If dynamic pricing is available from date search, calculate per-night rate
+  if (listing.price?.value && listing.nightsCount && listing.nightsCount > 0) {
+    pricePerNight = Math.round(listing.price.value / listing.nightsCount);
+  } else if (listing.accommodationFare && listing.nightsCount && listing.nightsCount > 0) {
+    pricePerNight = Math.round(listing.accommodationFare / listing.nightsCount);
+  }
+
+  // Determine location-based data
+  const address = listing.address?.full || '';
+  const city = listing.address?.city || '';
+  const neighborhood = determineNeighborhood(address, city);
+  const locationPerks = getLocationPerks(listing);
+
   return {
     id: listing._id,
     name: listing.title || listing.nickname || '',
     slug: listing._id,
     description: listing.publicDescription?.summary || '',
     shortDescription: listing.publicDescription?.space || listing.publicDescription?.summary?.slice(0, 150) || '',
-    type: mapPropertyType(listing.propertyType),
-    images: listing.pictures?.map((p) => p.original) || [],
+    type: determinePropertyType(listing),
+    images: (listing.pictures?.map((p) => p.original || p.large).filter((img): img is string => !!img)) || [],
     price: {
-      perNight: listing.prices?.basePrice || 0,
-      currency: listing.prices?.currency || 'USD',
+      perNight: pricePerNight,
+      cleaningFee: listing.prices?.cleaningFee, // Cache real cleaning fee from Guesty
+      currency: listing.price?.currency || listing.prices?.currency || 'USD',
     },
     location: {
-      address: listing.address?.full || '',
-      city: listing.address?.city || '',
+      address,
+      city,
       country: listing.address?.country || '',
+      neighborhood,
       coordinates: {
         lat: listing.address?.lat || 0,
         lng: listing.address?.lng || 0,
@@ -827,6 +1795,8 @@ export function convertGuestyToProperty(listing: GuestyListing) {
     distanceToBeach,
     roomsAvailable,
     childListings,
+    locationPerks,
+    reviews: undefined, // Will be populated from fallback data if available
     policies: {
       checkIn: listing.terms?.checkIn?.from || '3:00 PM',
       checkOut: listing.terms?.checkOut?.from || '11:00 AM',
@@ -853,23 +1823,4 @@ function mapPropertyType(guestyType: string): 'boutique-hotel' | 'luxury-villa' 
   return typeMap[guestyType?.toLowerCase()] || 'boutique-hotel';
 }
 
-/**
- * Get unique cities from listings (uses cached listings)
- */
-export async function getCities(): Promise<string[]> {
-  try {
-    const listings = await getListings({ active: true });
-    const citiesSet = new Set<string>();
-    listings.forEach((listing) => {
-      if (listing.address?.city) {
-        citiesSet.add(listing.address.city);
-      }
-    });
-    return Array.from(citiesSet).sort();
-  } catch (error) {
-    console.error('Error fetching cities:', error);
-    return ['Miami Beach', 'Bal Harbour', 'Sunny Isles', 'Miami', 'Fort Lauderdale'];
-  }
-}
-
-export type { GuestyListing, GuestyReservation, GuestyGuest, CreateReservationResponse, CalendarDay };
+export type { GuestyListing, GuestyReservation, GuestyGuest, CreateReservationResponse, CalendarDay, ReservationQuote };

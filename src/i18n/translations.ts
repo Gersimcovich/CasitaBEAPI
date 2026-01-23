@@ -1,59 +1,12 @@
 export type Locale = 'en' | 'es' | 'pt';
-export type Currency = 'USD' | 'ARS' | 'COP' | 'BRL' | 'MXN' | 'CAD';
-
-export interface Country {
-  code: string;
-  name: string;
-  nameLocal: string;
-  currency: Currency;
-  locale: Locale;
-  flag: string;
-}
-
-export const countries: Country[] = [
-  { code: 'US', name: 'United States', nameLocal: 'United States', currency: 'USD', locale: 'en', flag: '🇺🇸' },
-  { code: 'CA', name: 'Canada', nameLocal: 'Canada', currency: 'CAD', locale: 'en', flag: '🇨🇦' },
-  { code: 'MX', name: 'Mexico', nameLocal: 'México', currency: 'MXN', locale: 'es', flag: '🇲🇽' },
-  { code: 'AR', name: 'Argentina', nameLocal: 'Argentina', currency: 'ARS', locale: 'es', flag: '🇦🇷' },
-  { code: 'CO', name: 'Colombia', nameLocal: 'Colombia', currency: 'COP', locale: 'es', flag: '🇨🇴' },
-  { code: 'BR', name: 'Brazil', nameLocal: 'Brasil', currency: 'BRL', locale: 'pt', flag: '🇧🇷' },
-];
-
-export const currencySymbols: Record<Currency, string> = {
-  USD: '$',
-  CAD: 'CA$',
-  MXN: 'MX$',
-  ARS: 'AR$',
-  COP: 'COP$',
-  BRL: 'R$',
-};
-
-export const currencyNames: Record<Currency, string> = {
-  USD: 'US Dollar',
-  CAD: 'Canadian Dollar',
-  MXN: 'Mexican Peso',
-  ARS: 'Argentine Peso',
-  COP: 'Colombian Peso',
-  BRL: 'Brazilian Real',
-};
-
-// Approximate exchange rates (should be fetched from API in production)
-export const exchangeRates: Record<Currency, number> = {
-  USD: 1,
-  CAD: 1.36,
-  MXN: 17.15,
-  ARS: 875,
-  COP: 3950,
-  BRL: 4.97,
-};
 
 export const translations = {
   en: {
     // Navigation
     nav: {
-      properties: 'Properties',
+      properties: 'Stays',
       destinations: 'Destinations',
-      about: 'About',
+      about: 'Who We Are',
       contact: 'Contact',
       partner: 'Partner with Us',
       login: 'Log in',
@@ -170,7 +123,7 @@ export const translations = {
       support: 'Support',
       helpCenter: 'Help Center',
       safetyInfo: 'Safety Information',
-      cancellationOptions: 'Cancellation Options',
+      cancellationOptions: 'Cancellation Policy',
       legal: 'Legal',
       terms: 'Terms of Service',
       privacy: 'Privacy Policy',
@@ -236,9 +189,9 @@ export const translations = {
   es: {
     // Navigation
     nav: {
-      properties: 'Propiedades',
+      properties: 'Estadías',
       destinations: 'Destinos',
-      about: 'Nosotros',
+      about: 'Quiénes Somos',
       contact: 'Contacto',
       partner: 'Asóciate',
       login: 'Iniciar sesión',
@@ -355,7 +308,7 @@ export const translations = {
       support: 'Soporte',
       helpCenter: 'Centro de Ayuda',
       safetyInfo: 'Información de Seguridad',
-      cancellationOptions: 'Opciones de Cancelación',
+      cancellationOptions: 'Política de Cancelación',
       legal: 'Legal',
       terms: 'Términos de Servicio',
       privacy: 'Política de Privacidad',
@@ -421,9 +374,9 @@ export const translations = {
   pt: {
     // Navigation
     nav: {
-      properties: 'Propriedades',
+      properties: 'Estadias',
       destinations: 'Destinos',
-      about: 'Sobre',
+      about: 'Quem Somos',
       contact: 'Contato',
       partner: 'Seja Parceiro',
       login: 'Entrar',
@@ -540,7 +493,7 @@ export const translations = {
       support: 'Suporte',
       helpCenter: 'Central de Ajuda',
       safetyInfo: 'Informações de Segurança',
-      cancellationOptions: 'Opções de Cancelamento',
+      cancellationOptions: 'Política de Cancelamento',
       legal: 'Legal',
       terms: 'Termos de Serviço',
       privacy: 'Política de Privacidade',

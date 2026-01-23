@@ -16,12 +16,30 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const subjectLabels: Record<string, string> = {
+    general: 'General Inquiry',
+    booking: 'Booking Question',
+    partner: 'Partnership Opportunity',
+    support: 'Guest Support'
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Build email body with form data
+    const subject = `${subjectLabels[formData.subject]} from ${formData.name}`;
+    const body = `Name: ${formData.name}
+Email: ${formData.email}
+Phone: ${formData.phone || 'Not provided'}
+Subject: ${subjectLabels[formData.subject]}
+
+Message:
+${formData.message}`;
+
+    // Open mailto link to send email directly
+    const mailtoLink = `mailto:hola@hellocasita.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
 
     setSubmitted(true);
     setIsSubmitting(false);
@@ -32,8 +50,30 @@ export default function ContactPage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-28 pb-16 bg-gradient-to-br from-[var(--casita-gray-50)] to-white">
-        <div className="container mx-auto px-4">
+      <section className="pt-28 pb-16 bg-gradient-to-br from-[var(--casita-gray-50)] to-white relative overflow-hidden">
+        {/* Hotel illustration decorations */}
+        <img
+          src="/hotel-illustration-1.png"
+          alt=""
+          className="absolute left-4 md:left-10 top-24 w-20 md:w-28 lg:w-36 h-auto opacity-20 rounded-xl"
+        />
+        <img
+          src="/hotel-illustration-2.png"
+          alt=""
+          className="absolute right-4 md:right-10 top-24 w-20 md:w-28 lg:w-36 h-auto opacity-20 rounded-xl"
+        />
+        <img
+          src="/hotel-illustration-3.png"
+          alt=""
+          className="absolute left-[15%] bottom-4 w-16 md:w-24 h-auto opacity-15 rounded-xl hidden md:block"
+        />
+        <img
+          src="/hotel-illustration-5.png"
+          alt=""
+          className="absolute right-[15%] bottom-4 w-16 md:w-24 h-auto opacity-15 rounded-xl hidden md:block"
+        />
+
+        <div className="container mx-auto px-4 relative">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-[var(--casita-gray-900)] mb-6">
               Contact <span className="text-[var(--casita-orange)]">Us</span>
@@ -64,8 +104,8 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Address</h3>
                     <p className="text-[var(--casita-gray-600)]">
-                      740 Ocean Drive<br />
-                      Miami Beach, Florida 33139
+                      436 Ocean Dr<br />
+                      Miami Beach, FL 33139
                     </p>
                   </div>
                 </div>
@@ -76,8 +116,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Phone</h3>
-                    <a href="tel:+13055551234" className="text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
-                      (305) 555-1234
+                    <a href="tel:+17866947577" className="text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
+                      (786) 694-7577
                     </a>
                   </div>
                 </div>
@@ -88,8 +128,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Email</h3>
-                    <a href="mailto:hello@hellocasita.com" className="text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
-                      hello@hellocasita.com
+                    <a href="mailto:hola@hellocasita.com" className="text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
+                      hola@hellocasita.com
                     </a>
                   </div>
                 </div>
@@ -152,6 +192,19 @@ export default function ContactPage() {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full px-4 py-3 rounded-xl border border-[var(--casita-gray-200)] focus:border-[var(--casita-orange)] focus:ring-2 focus:ring-[var(--casita-orange)]/20 outline-none transition-all"
                       placeholder="your@email.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">
+                      Phone <span className="text-[var(--casita-gray-400)]">(optional)</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-[var(--casita-gray-200)] focus:border-[var(--casita-orange)] focus:ring-2 focus:ring-[var(--casita-orange)]/20 outline-none transition-all"
+                      placeholder="(786) 694-7577"
                     />
                   </div>
 

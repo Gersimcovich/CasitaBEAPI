@@ -7,10 +7,11 @@ import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Button from '@/components/ui/Button';
-import { Property } from '@/types';
+import { Property, PropertyReview } from '@/types';
 import { useLocale } from '@/contexts/LocaleContext';
+import { useCart } from '@/contexts/CartContext';
 import {
-  Heart,
+  ShoppingCart,
   Share2,
   Star,
   MapPin,
@@ -58,6 +59,7 @@ import {
   Music,
   Gamepad2,
   BookOpen,
+  Quote,
 } from 'lucide-react';
 import BookingWidget from '@/components/booking/BookingWidget';
 import dynamic from 'next/dynamic';
@@ -234,7 +236,7 @@ export default function PropertyPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showGallery, setShowGallery] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const { cartItem, hasCartItem } = useCart();
 
   // Fetch property from API
   useEffect(() => {
@@ -413,17 +415,12 @@ export default function PropertyPage() {
               <Share2 className="w-5 h-5" />
               <span>{t.property.share}</span>
             </button>
-            <button
-              onClick={() => setIsWishlisted(!isWishlisted)}
-              className="flex items-center gap-2 text-[var(--casita-gray-700)] hover:text-[var(--casita-gray-900)]"
-            >
-              <Heart
-                className={`w-5 h-5 ${
-                  isWishlisted ? 'fill-red-500 text-red-500' : ''
-                }`}
-              />
-              <span>{isWishlisted ? t.property.saved : t.property.save}</span>
-            </button>
+            {hasCartItem && cartItem?.propertyId === property.id && (
+              <div className="flex items-center gap-2 text-[var(--casita-orange)]">
+                <ShoppingCart className="w-5 h-5" />
+                <span>In Your Cart</span>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -575,6 +572,7 @@ export default function PropertyPage() {
                     lat={property.location.coordinates.lat}
                     lng={property.location.coordinates.lng}
                     title={property.name}
+                    city={property.location.city}
                   />
                 </div>
 
@@ -592,6 +590,73 @@ export default function PropertyPage() {
                 </div>
               </div>
             )}
+
+            {/* Guest Reviews Section */}
+            {property.reviews && property.reviews.length > 0 && (
+              <div className="mb-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <h2 className="font-serif text-2xl font-semibold text-[var(--casita-gray-900)]">
+                    Guest Reviews
+                  </h2>
+                  <div className="flex items-center gap-1 bg-[var(--casita-orange)] text-white px-3 py-1 rounded-full text-sm">
+                    <Star className="w-4 h-4 fill-white" />
+                    <span className="font-medium">{property.rating}</span>
+                    <span className="opacity-80">({property.reviewCount})</span>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  {property.reviews.map((review: PropertyReview) => (
+                    <div
+                      key={review.id}
+                      className="bg-[var(--casita-cream)] rounded-xl p-5 relative"
+                    >
+                      <Quote className="w-8 h-8 text-[var(--casita-orange)] opacity-20 absolute top-4 right-4" />
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 bg-[var(--casita-orange)] rounded-full flex items-center justify-center text-white font-semibold">
+                          {review.reviewerName.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-medium text-[var(--casita-gray-900)]">
+                            {review.reviewerName}
+                          </p>
+                          <div className="flex items-center gap-2 text-sm text-[var(--casita-gray-500)]">
+                            <div className="flex items-center gap-0.5">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-3 h-3 ${
+                                    i < review.rating
+                                      ? 'text-[var(--casita-orange)] fill-[var(--casita-orange)]'
+                                      : 'text-[var(--casita-gray-300)]'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span>•</span>
+                            <span>
+                              {new Date(review.date).toLocaleDateString('en-US', {
+                                month: 'short',
+                                year: 'numeric',
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-[var(--casita-gray-600)] text-sm leading-relaxed">
+                        "{review.content}"
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {property.reviewCount > (property.reviews?.length || 0) && (
+                  <p className="text-center text-[var(--casita-gray-500)] text-sm mt-4">
+                    Showing {property.reviews.length} of {property.reviewCount} reviews
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Booking Sidebar */}
@@ -603,6 +668,10 @@ export default function PropertyPage() {
               maxGuests={property.maxGuests}
               rating={property.rating}
               reviewCount={property.reviewCount}
+              propertyName={property.name}
+              propertyImage={property.images[0] || ''}
+              propertySlug={property.slug || property.id}
+              propertyLocation={`${property.location.city}, ${property.location.country}`}
             />
           </div>
         </div>

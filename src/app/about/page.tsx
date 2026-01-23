@@ -2,7 +2,7 @@
 
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { Star, Home, Users, Award, Heart, MapPin, Phone, Mail } from 'lucide-react';
+import { Star, Home, Users, Award, Heart, MapPin, Phone, Mail, Target } from 'lucide-react';
 
 export default function AboutPage() {
   return (
@@ -18,9 +18,9 @@ export default function AboutPage() {
           className="absolute -left-8 md:left-4 bottom-0 w-24 md:w-36 h-auto opacity-20 pointer-events-none"
         />
         <img
-          src="/parrot.png"
+          src="/wave.webp"
           alt=""
-          className="absolute right-4 md:right-12 top-20 w-16 md:w-24 h-auto opacity-25 pointer-events-none"
+          className="absolute right-4 md:right-12 top-24 w-20 md:w-32 h-auto opacity-20 pointer-events-none"
         />
         <div className="container mx-auto px-4 relative">
           <div className="max-w-3xl mx-auto text-center">
@@ -65,12 +65,12 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Our Story */}
+      {/* Who We Are */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold text-[var(--casita-gray-900)] mb-6 text-center">
-              Our Story
+              Who We Are
             </h2>
             <div className="prose prose-lg mx-auto text-[var(--casita-gray-600)]">
               <p className="mb-6">
@@ -176,19 +176,62 @@ export default function AboutPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-center gap-3 text-[var(--casita-gray-600)]">
                 <MapPin className="w-5 h-5 text-[var(--casita-orange)]" />
-                <span>740 Ocean Drive, Miami Beach, Florida 33139</span>
+                <span>436 Ocean Dr, Miami Beach, FL 33139</span>
               </div>
               <div className="flex items-center justify-center gap-3 text-[var(--casita-gray-600)]">
                 <Phone className="w-5 h-5 text-[var(--casita-orange)]" />
-                <a href="tel:+13055551234" className="hover:text-[var(--casita-orange)] transition-colors">
-                  (305) 555-1234
+                <a href="tel:+17866947577" className="hover:text-[var(--casita-orange)] transition-colors">
+                  (786) 694-7577
                 </a>
               </div>
               <div className="flex items-center justify-center gap-3 text-[var(--casita-gray-600)]">
                 <Mail className="w-5 h-5 text-[var(--casita-orange)]" />
-                <a href="mailto:hello@hellocasita.com" className="hover:text-[var(--casita-orange)] transition-colors">
-                  hello@hellocasita.com
+                <a href="mailto:hola@hellocasita.com" className="hover:text-[var(--casita-orange)] transition-colors">
+                  hola@hellocasita.com
                 </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Mission */}
+      <section className="py-16 bg-gradient-to-br from-[var(--casita-orange)]/5 to-[var(--casita-turquoise)]/5">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center">
+                <Target className="w-6 h-6 text-[var(--casita-orange)]" />
+              </div>
+              <h2 className="text-3xl font-bold text-[var(--casita-gray-900)]">
+                Our Mission
+              </h2>
+            </div>
+            <div className="bg-white rounded-2xl p-8 shadow-sm">
+              <p className="text-xl text-center text-[var(--casita-gray-700)] leading-relaxed mb-6">
+                To redefine boutique hospitality by creating unforgettable stays that blend the warmth
+                of home with the excellence of a luxury hotel—while maximizing returns for property owners
+                and setting new standards for the short-term rental industry.
+              </p>
+              <div className="grid md:grid-cols-3 gap-6 pt-6 border-t border-[var(--casita-gray-200)]">
+                <div className="text-center">
+                  <h4 className="font-semibold text-[var(--casita-gray-900)] mb-2">For Guests</h4>
+                  <p className="text-sm text-[var(--casita-gray-600)]">
+                    Curated stays with hotel-quality service and the comfort of home
+                  </p>
+                </div>
+                <div className="text-center">
+                  <h4 className="font-semibold text-[var(--casita-gray-900)] mb-2">For Owners</h4>
+                  <p className="text-sm text-[var(--casita-gray-600)]">
+                    Hassle-free property management with industry-leading returns
+                  </p>
+                </div>
+                <div className="text-center">
+                  <h4 className="font-semibold text-[var(--casita-gray-900)] mb-2">For Communities</h4>
+                  <p className="text-sm text-[var(--casita-gray-600)]">
+                    Responsible hosting that respects neighborhoods and local regulations
+                  </p>
+                </div>
               </div>
             </div>
           </div>

@@ -138,9 +138,9 @@ export default function TermsPage() {
             </p>
             <div className="bg-[var(--casita-gray-50)] rounded-xl p-6 text-[var(--casita-gray-600)]">
               <p className="font-semibold text-[var(--casita-gray-900)]">Casita Vacation Rentals LLC</p>
-              <p>740 Ocean Drive</p>
-              <p>Miami Beach, Florida 33139</p>
-              <p className="mt-2">Email: hello@hellocasita.com</p>
+              <p>436 Ocean Dr</p>
+              <p>Miami Beach, FL 33139</p>
+              <p className="mt-2">Email: hola@hellocasita.com</p>
             </div>
 
           </div>

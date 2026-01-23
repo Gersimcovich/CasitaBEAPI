@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -38,13 +38,60 @@ export default function PartnerPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [totalReviews, setTotalReviews] = useState(60777); // Default fallback
+  const [totalGuestsHosted, setTotalGuestsHosted] = useState(182331); // Default fallback
+
+  // Fetch stats on mount (cached for 24 hours on server)
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/stats');
+        const data = await response.json();
+        if (data.success) {
+          if (data.data.totalReviews) {
+            setTotalReviews(data.data.totalReviews);
+          }
+          if (data.data.totalGuestsHosted) {
+            setTotalGuestsHosted(data.data.totalGuestsHosted);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+        // Keep default values
+      }
+    }
+    fetchStats();
+  }, []);
+
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    setSubmitError(null);
+
+    try {
+      const response = await fetch('/api/partner', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setIsSubmitted(true);
+      } else {
+        setSubmitError(result.error || 'Failed to submit. Please try again.');
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setSubmitError('Failed to submit. Please try again or email us at info@hellocasita.com');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -52,23 +99,20 @@ export default function PartnerPage() {
       <Header />
 
       {/* Hero Section - Superhost Focus */}
-      <section className="relative pt-28 pb-20 bg-gradient-to-br from-[var(--casita-black)] via-[var(--casita-gray-900)] to-[var(--casita-gray-800)] overflow-hidden">
-        {/* Decorative elements */}
+      <section className="relative pt-28 pb-20 overflow-hidden">
+        {/* YouTube Video Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 right-10 w-64 h-64 bg-[var(--casita-orange)]/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 left-10 w-48 h-48 bg-[var(--casita-orange)]/5 rounded-full blur-2xl" />
-          {/* Palm tree */}
-          <img
-            src="/palm.webp"
-            alt=""
-            className="absolute -left-8 md:left-4 bottom-0 w-28 md:w-40 h-auto opacity-15"
-          />
-          {/* Wave */}
-          <img
-            src="/wave.webp"
-            alt=""
-            className="absolute right-4 md:right-12 bottom-10 w-20 md:w-32 h-auto opacity-20"
-          />
+          <div className="absolute inset-0 scale-150">
+            <iframe
+              src="https://www.youtube.com/embed/MWLCxiaRk9k?autoplay=1&mute=1&loop=1&playlist=MWLCxiaRk9k&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&start=12"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] min-w-full min-h-full"
+              style={{ border: 'none' }}
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+            />
+          </div>
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-black/70" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -154,13 +198,13 @@ export default function PartnerPage() {
             {/* Visual stats card */}
             <div className="bg-gradient-to-br from-[var(--casita-gray-50)] to-white rounded-3xl p-8 border border-[var(--casita-gray-100)]">
               <div className="text-center mb-8">
-                <div className="inline-flex items-center gap-2 bg-[#FF5A5F]/10 px-4 py-2 rounded-full mb-4">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#FF5A5F">
-                    <path d="M12.001 18.275c-1.577 1.582-3.277 2.48-4.574 2.48-1.91 0-2.927-1.393-2.927-3.406 0-2.896 2.058-5.447 5.407-7.481-.148-.42-.265-.843-.265-1.298 0-1.236.672-2.265 1.732-2.265.838 0 1.393.557 1.393 1.393 0 .82-.573 1.54-1.73 2.29.556 1.16 1.408 2.616 2.246 3.777 1.015-1.455 1.73-3.043 1.73-4.37 0-1.02-.425-1.687-1.08-2.012.395-.377 1.066-.606 1.636-.606 1.05 0 1.877.869 1.877 2.133 0 1.87-1.18 3.95-2.686 5.782.656.787 1.345 1.508 2.017 2.116 1.263.574 2.246-.132 2.246-.132l.115.82s-1.05.984-2.722.574c-.92.837-1.895 1.54-2.818 1.98.787.787 1.73 1.295 2.588 1.295 1.23 0 2.083-.787 2.686-1.672l.672.41c-.836 1.32-2.147 2.197-3.555 2.197-1.247 0-2.475-.656-3.458-1.706-.885.377-1.788.59-2.686.59-.28 0-.558-.017-.836-.066.41.443.854.82 1.313 1.148l-.427.656c-.656-.46-1.263-.984-1.804-1.557l-.016-.017zm2.065-3.638c-.77-1.05-1.525-2.246-2.148-3.458-2.64 1.787-4.305 3.917-4.305 6.24 0 1.426.623 2.344 1.895 2.344.984 0 2.263-.672 3.703-2.066-.41-.64-.836-1.33-1.247-2.05l.82-.476c.345.59.705 1.165 1.066 1.722.738-.77 1.443-1.623 2.05-2.507l.82.476c-.558.935-1.197 1.838-1.886 2.69.935-.492 1.853-1.115 2.722-1.87-.837-.788-1.722-1.69-2.557-2.608l.656-.557c.476.525.968 1.033 1.46 1.524.754-.885 1.393-1.837 1.887-2.804-.82.033-1.722-.132-2.476-.525-.345.607-.722 1.214-1.115 1.79l-.656-.442c.377-.557.737-1.115 1.066-1.673-.788-.984-1.607-2.165-2.362-3.425-2.41 1.64-4.14 3.572-4.997 5.618l-.82-.345c.935-2.214 2.787-4.255 5.34-5.978-.59-1.21-1.132-2.443-1.558-3.54-.131.083-.262.148-.41.197.656 1.214 1.345 2.493 2.017 3.703 2.033-1.197 4.354-2.066 6.847-2.066l.083.902c-2.28.033-4.404.82-6.273 1.936.573 1.115 1.197 2.28 1.853 3.36 1.115.525 2.312.656 3.36.525.082-.197.148-.41.213-.623l.853.263c-.066.213-.148.443-.23.656 1.05-.197 1.935-.656 2.525-1.296l.59.672c-.885.934-2.213 1.508-3.638 1.64-.607 1.033-1.313 2.017-2.066 2.934.984.984 2.017 1.804 3.017 2.394l-.41.787c-1.082-.623-2.197-1.508-3.246-2.558-.984.754-2.017 1.393-3.033 1.886.394.574.803 1.115 1.197 1.607l-.656.525c-.295-.377-.59-.77-.885-1.18-.952.394-1.92.624-2.854.624-.295 0-.59-.017-.869-.05.328.377.672.72 1.016 1.033l-.525.59z"/>
-                  </svg>
-                  <span className="text-[#FF5A5F] font-medium text-sm">You're a Superhost!</span>
-                </div>
-                <div className="text-5xl font-bold text-[var(--casita-gray-900)] mb-2">60,777</div>
+                {/* Airbnb Superhost Badge */}
+                <img
+                  src="/airbnb-superhost.png"
+                  alt="Airbnb Superhost"
+                  className="h-24 md:h-32 w-auto mx-auto mb-4"
+                />
+                <div className="text-5xl font-bold text-[var(--casita-gray-900)] mb-2">{totalReviews.toLocaleString()}</div>
                 <div className="text-[var(--casita-gray-500)]">reviews</div>
               </div>
 
@@ -173,10 +217,10 @@ export default function PartnerPage() {
                   </div>
                 </div>
                 <div className="bg-white rounded-xl p-4 border border-[var(--casita-gray-100)]">
-                  <div className="text-sm text-[var(--casita-gray-500)] mb-2">Transaction History</div>
+                  <div className="text-sm text-[var(--casita-gray-500)] mb-2">Guests Hosted</div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[var(--casita-gray-700)]">Paid Out</span>
-                    <span className="text-green-600 font-semibold">$50,183,094</span>
+                    <span className="text-[var(--casita-gray-700)]">Total</span>
+                    <span className="text-green-600 font-semibold">{totalGuestsHosted.toLocaleString()} guests</span>
                   </div>
                 </div>
               </div>
@@ -232,6 +276,7 @@ export default function PartnerPage() {
                 Bilingual guest support via instant messaging, helping connect with guests, increase 5-star reviews, and grow bookings without extra hires.
               </p>
               <ul className="space-y-2 text-sm text-[var(--casita-gray-600)]">
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Human & AI customer service</li>
                 <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> English & Spanish support</li>
                 <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Proactive issue resolution</li>
                 <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Review management</li>
@@ -528,6 +573,12 @@ export default function PartnerPage() {
                   />
                 </div>
               </div>
+
+              {submitError && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                  {submitError}
+                </div>
+              )}
 
               <div className="mt-8">
                 <button

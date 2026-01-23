@@ -9,12 +9,14 @@ export interface Property {
   images: string[];
   price: {
     perNight: number;
+    cleaningFee?: number; // Cached from Guesty API
     currency: string;
   };
   location: {
     address: string;
     city: string;
     country: string;
+    neighborhood?: string; // e.g., "South Beach", "Art Deco District"
     coordinates: {
       lat: number;
       lng: number;
@@ -33,11 +35,23 @@ export interface Property {
   roomsAvailable?: number; // Number of rooms/units available at this property
   childListings?: string[]; // IDs of child listings (rooms) for multi-unit properties
   parentId?: string | null; // Parent listing ID if this is a child room
+  locationPerks?: string[]; // Location-based perks like "Ocean Drive", "Art Deco District", "Waterfront"
+  reviews?: PropertyReview[]; // Positive reviews to display on property page (up to 10)
   policies: {
     checkIn: string;
     checkOut: string;
     cancellation: string;
   };
+}
+
+// Simplified review for display on property pages
+export interface PropertyReview {
+  id: string;
+  reviewerName: string;
+  date: string; // ISO date string
+  rating: number;
+  content: string;
+  source?: string; // e.g., "Airbnb", "VRBO", "Direct"
 }
 
 export type PropertyType =
