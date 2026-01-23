@@ -1555,6 +1555,76 @@ function parseStreetNumber(address: string): number | null {
 }
 
 /**
+ * Generate a location-based display name from address
+ * Uses street intersection / approximate location instead of property title
+ * Examples:
+ *   "1200 Collins Ave, Miami Beach" -> "Collins Ave & 12th St"
+ *   "760 Ocean Drive, Miami Beach" -> "Ocean Dr & 8th St"
+ *   "123 Main Street, Kissimmee" -> "Main St, Kissimmee"
+ */
+function generateLocationTitle(address: string, city: string): string {
+  if (!address) return city || 'Property';
+
+  // Parse address parts
+  const parts = address.split(',').map(p => p.trim());
+  const streetPart = parts[0] || '';
+
+  // Extract street number and name
+  const streetMatch = streetPart.match(/^(\d+)\s+(.+)$/);
+  let streetNumber = 0;
+  let streetName = streetPart;
+
+  if (streetMatch) {
+    streetNumber = parseInt(streetMatch[1], 10);
+    streetName = streetMatch[2];
+  }
+
+  // Abbreviate common street types
+  const abbreviateStreet = (name: string): string => {
+    return name
+      .replace(/\bStreet\b/gi, 'St')
+      .replace(/\bAvenue\b/gi, 'Ave')
+      .replace(/\bDrive\b/gi, 'Dr')
+      .replace(/\bBoulevard\b/gi, 'Blvd')
+      .replace(/\bRoad\b/gi, 'Rd')
+      .replace(/\bLane\b/gi, 'Ln')
+      .replace(/\bCourt\b/gi, 'Ct')
+      .replace(/\bPlace\b/gi, 'Pl')
+      .replace(/\bTerrace\b/gi, 'Ter')
+      .replace(/\bCircle\b/gi, 'Cir');
+  };
+
+  streetName = abbreviateStreet(streetName);
+
+  // For Miami Beach addresses, calculate approximate cross street
+  const cityLower = city.toLowerCase();
+  if (cityLower.includes('miami beach') || cityLower.includes('bal harbour') || cityLower.includes('sunny isles')) {
+    // Miami Beach uses a grid system - address numbers roughly = street * 100
+    // e.g., 1200 Collins Ave is near 12th Street
+    if (streetNumber > 0) {
+      const crossStreet = Math.round(streetNumber / 100);
+      if (crossStreet > 0 && crossStreet <= 200) {
+        // Format cross street with ordinal suffix
+        const getOrdinal = (n: number): string => {
+          const s = ['th', 'st', 'nd', 'rd'];
+          const v = n % 100;
+          return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        };
+
+        return `${streetName} & ${getOrdinal(crossStreet)} St`;
+      }
+    }
+  }
+
+  // For other cities, just use street name and city
+  if (streetName.length > 25) {
+    streetName = streetName.substring(0, 22) + '...';
+  }
+
+  return `${streetName}, ${city}`;
+}
+
+/**
  * Determine if address is in the Art Deco Historic District
  */
 function isInArtDecoDistrict(address: string, city: string): boolean {
@@ -1761,9 +1831,12 @@ export function convertGuestyToProperty(listing: GuestyListing) {
   const neighborhood = determineNeighborhood(address, city);
   const locationPerks = getLocationPerks(listing);
 
+  // Use location-based title (street intersection) instead of property name
+  const locationTitle = generateLocationTitle(address, city);
+
   return {
     id: listing._id,
-    name: listing.title || listing.nickname || '',
+    name: locationTitle,
     slug: listing._id,
     description: listing.publicDescription?.summary || '',
     shortDescription: listing.publicDescription?.space || listing.publicDescription?.summary?.slice(0, 150) || '',
