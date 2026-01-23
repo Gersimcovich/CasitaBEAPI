@@ -323,13 +323,15 @@ export default function HomeContent({ properties }: HomeContentProps) {
       <section className="py-12 bg-white border-y border-[var(--casita-gray-100)] relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6 md:gap-8">
-            {/* Hosted Guests */}
+            {/* Happy Guests */}
             <div className="flex flex-col items-center text-center group">
               <div className="w-16 h-16 mb-3 rounded-2xl bg-[var(--casita-orange)]/10 flex items-center justify-center group-hover:bg-[var(--casita-orange)]/20 transition-colors">
                 <Users className="w-8 h-8 text-[var(--casita-orange)]" />
               </div>
-              <h3 className="font-semibold text-[var(--casita-gray-900)]">{totalGuestsHosted.toLocaleString()}+</h3>
-              <p className="text-sm text-[var(--casita-gray-500)] mt-1">Happy guests hosted</p>
+              <h3 className="font-semibold text-[var(--casita-gray-900)]">Happy Guests</h3>
+              <span className="mt-1 px-3 py-1 bg-[var(--casita-orange)]/10 rounded-full text-sm font-medium text-[var(--casita-orange)]">
+                {totalGuestsHosted.toLocaleString()}+
+              </span>
             </div>
 
             {/* No Fees */}
@@ -374,7 +376,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
                 <PawPrint className="w-8 h-8 text-[var(--casita-coral)]" />
               </div>
               <h3 className="font-semibold text-[var(--casita-gray-900)]">Pet Friendly</h3>
-              <p className="text-sm text-[var(--casita-gray-500)] mt-1">Bring your furry friends</p>
+              <p className="text-sm text-[var(--casita-gray-500)] mt-1">Bring your furry friends on selected properties</p>
             </div>
 
             {/* 24/7 Customer Service */}
