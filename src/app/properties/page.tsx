@@ -49,6 +49,7 @@ function PropertiesContent() {
   const urlGuests = searchParams.get('guests') ? parseInt(searchParams.get('guests')!) : null;
   const urlMinPrice = searchParams.get('minPrice') ? parseInt(searchParams.get('minPrice')!) : null;
   const urlMaxPrice = searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice')!) : null;
+  const urlPetFriendly = searchParams.get('petFriendly') === 'true';
 
   const sortOptions: { value: SortOption; label: string }[] = [
     { value: 'recommended', label: t.properties.recommended },
@@ -76,6 +77,7 @@ function PropertiesContent() {
   const [showGuestPicker, setShowGuestPicker] = useState(false);
   const [guests, setGuests] = useState(urlGuests || 2);
   const [rooms, setRooms] = useState(1);
+  const [petFriendlyFilter, setPetFriendlyFilter] = useState(urlPetFriendly);
 
   // Fetch all available cities on mount
   useEffect(() => {
@@ -150,6 +152,11 @@ function PropertiesContent() {
 
     // Guest capacity filter
     if (guestFilter && property.maxGuests < guestFilter) {
+      return false;
+    }
+
+    // Pet friendly filter
+    if (petFriendlyFilter && !property.petFriendly) {
       return false;
     }
 

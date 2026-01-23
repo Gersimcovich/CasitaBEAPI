@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Calendar, Users, Minus, Plus, X, DollarSign } from 'lucide-react';
+import { Search, MapPin, Calendar, Users, Minus, Plus, X, DollarSign, PawPrint } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -19,6 +19,7 @@ interface SearchParams {
   rooms: number;
   minPrice: number | null;
   maxPrice: number | null;
+  petFriendly: boolean;
 }
 
 // Price range presets for quick selection
@@ -40,6 +41,7 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
   const [rooms, setRooms] = useState(1);
   const [minPrice, setMinPrice] = useState<number | null>(null);
   const [maxPrice, setMaxPrice] = useState<number | null>(null);
+  const [petFriendly, setPetFriendly] = useState(false);
   const [showGuestPicker, setShowGuestPicker] = useState(false);
   const [showPricePicker, setShowPricePicker] = useState(false);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -116,6 +118,7 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
       rooms,
       minPrice,
       maxPrice,
+      petFriendly,
     });
     // Navigate to search results
     const params = new URLSearchParams();
@@ -126,6 +129,7 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
     params.set('rooms', rooms.toString());
     if (minPrice !== null) params.set('minPrice', minPrice.toString());
     if (maxPrice !== null) params.set('maxPrice', maxPrice.toString());
+    if (petFriendly) params.set('petFriendly', 'true');
     window.location.href = `/properties?${params.toString()}`;
   };
 
@@ -539,6 +543,36 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                 </button>
               </div>
             )}
+          </div>
+
+          {/* Divider */}
+          <div className="hidden md:block w-px h-16 bg-[var(--casita-gray-100)]" />
+          <div className="md:hidden border-t border-[var(--casita-gray-100)]" />
+
+          {/* Pet Friendly Toggle */}
+          <div className="flex-shrink-0">
+            <button
+              onClick={() => setPetFriendly(!petFriendly)}
+              className={`p-5 flex items-center gap-3 transition-all duration-200 ${
+                petFriendly
+                  ? 'bg-[var(--casita-orange)]/10'
+                  : 'hover:bg-[var(--casita-gray-50)]'
+              }`}
+            >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                petFriendly
+                  ? 'bg-[var(--casita-orange)] text-white'
+                  : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-500)]'
+              }`}>
+                <PawPrint className="w-5 h-5" />
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-bold text-[var(--casita-gray-500)] uppercase tracking-wider">Pets</p>
+                <p className={`text-sm font-medium ${petFriendly ? 'text-[var(--casita-orange)]' : 'text-[var(--casita-gray-900)]'}`}>
+                  {petFriendly ? 'Yes' : 'No'}
+                </p>
+              </div>
+            </button>
           </div>
 
           {/* Search Button */}

@@ -31,6 +31,7 @@ export interface Property {
   isFeatured?: boolean;
   isNew?: boolean;
   isBeachfront?: boolean;
+  petFriendly?: boolean;
   distanceToBeach?: number; // in meters
   roomsAvailable?: number; // Number of rooms/units available at this property
   childListings?: string[]; // IDs of child listings (rooms) for multi-unit properties

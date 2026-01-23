@@ -1813,6 +1813,12 @@ export function convertGuestyToProperty(listing: GuestyListing) {
   const roomsAvailable = listing.listingRooms?.length || (listing.type === 'MTL' ? 1 : undefined);
   const childListings = listing.listingRooms?.map(room => room._id);
 
+  // Check if property is pet-friendly from amenities
+  const amenitiesLower = (listing.amenities || []).map(a => a.toLowerCase());
+  const petFriendly = amenitiesLower.some(a =>
+    a.includes('pet') || a.includes('dog') || a.includes('cat') || a === 'pets allowed'
+  );
+
   // Get price - prefer dynamic price from date search, fallback to base price
   // When searching with checkIn/checkOut, Guesty returns calculated pricing in listing.price
   // or listing.accommodationFare / listing.nightsCount
@@ -1865,6 +1871,7 @@ export function convertGuestyToProperty(listing: GuestyListing) {
     bathrooms: listing.bathrooms || 1,
     isFeatured: false,
     isBeachfront,
+    petFriendly,
     distanceToBeach,
     roomsAvailable,
     childListings,

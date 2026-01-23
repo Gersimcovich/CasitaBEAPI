@@ -17,6 +17,7 @@ import {
   BedDouble,
   SlidersHorizontal,
   Bitcoin,
+  PawPrint,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Property } from '@/types';
@@ -304,7 +305,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
       {/* Casual Benefits Strip */}
       <section className="py-12 bg-white border-y border-[var(--casita-gray-100)] relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 md:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6 md:gap-8">
             {/* Budget Search */}
             <div className="flex flex-col items-center text-center group">
               <div className="w-16 h-16 mb-3 rounded-2xl bg-[var(--casita-orange)]/10 flex items-center justify-center group-hover:bg-[var(--casita-orange)]/20 transition-colors">
@@ -350,10 +351,19 @@ export default function HomeContent({ properties }: HomeContentProps) {
               <p className="text-sm text-[var(--casita-gray-500)] mt-1">Same day reservations guaranteed</p>
             </div>
 
-            {/* 24/7 Customer Service */}
+            {/* Pet Friendly */}
             <div className="flex flex-col items-center text-center group">
               <div className="w-16 h-16 mb-3 rounded-2xl bg-[var(--casita-coral)]/10 flex items-center justify-center group-hover:bg-[var(--casita-coral)]/20 transition-colors">
-                <Headphones className="w-8 h-8 text-[var(--casita-coral)]" />
+                <PawPrint className="w-8 h-8 text-[var(--casita-coral)]" />
+              </div>
+              <h3 className="font-semibold text-[var(--casita-gray-900)]">Pet Friendly</h3>
+              <p className="text-sm text-[var(--casita-gray-500)] mt-1">Bring your furry friends</p>
+            </div>
+
+            {/* 24/7 Customer Service */}
+            <div className="flex flex-col items-center text-center group">
+              <div className="w-16 h-16 mb-3 rounded-2xl bg-[var(--casita-turquoise)]/10 flex items-center justify-center group-hover:bg-[var(--casita-turquoise)]/20 transition-colors">
+                <Headphones className="w-8 h-8 text-[var(--casita-turquoise)]" />
               </div>
               <h3 className="font-semibold text-[var(--casita-gray-900)]">24/7 Support</h3>
               <p className="text-sm text-[var(--casita-gray-500)] mt-1">WhatsApp, message, email or call</p>
