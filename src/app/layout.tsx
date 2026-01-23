@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Cormorant_Garamond } from "next/font/google";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { CartProvider } from "@/contexts/CartContext";
-import { ChatBotProvider } from "@/contexts/ChatBotContext";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
-import ChatBotWidget from "@/components/chat/ChatBotWidget";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -77,11 +75,8 @@ export default function RootLayout({
       <body className="antialiased">
         <LocaleProvider>
           <CartProvider>
-            <ChatBotProvider>
-              {children}
-              <ChatBotWidget />
-              <WhatsAppButton />
-            </ChatBotProvider>
+            {children}
+            <WhatsAppButton />
           </CartProvider>
         </LocaleProvider>
       </body>
