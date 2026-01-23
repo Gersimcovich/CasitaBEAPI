@@ -23,6 +23,18 @@ import {
   Users,
   Minus,
   Plus,
+  Bed,
+  Bath,
+  Dog,
+  Waves,
+  Home,
+  Building,
+  Wifi,
+  Car,
+  Snowflake,
+  Tv,
+  UtensilsCrossed,
+  Dumbbell,
 } from 'lucide-react';
 import { Property, SortOption } from '@/types';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -78,6 +90,13 @@ function PropertiesContent() {
   const [guests, setGuests] = useState(urlGuests || 2);
   const [rooms, setRooms] = useState(1);
   const [petFriendlyFilter, setPetFriendlyFilter] = useState(urlPetFriendly);
+
+  // Advanced filters
+  const [minBedrooms, setMinBedrooms] = useState(0);
+  const [minBathrooms, setMinBathrooms] = useState(0);
+  const [beachfrontOnly, setBeachfrontOnly] = useState(false);
+  const [propertyType, setPropertyType] = useState<string | null>(null);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
   // Fetch all available cities on mount
   useEffect(() => {
@@ -160,6 +179,35 @@ function PropertiesContent() {
       return false;
     }
 
+    // Bedrooms filter
+    if (minBedrooms > 0 && property.bedrooms < minBedrooms) {
+      return false;
+    }
+
+    // Bathrooms filter
+    if (minBathrooms > 0 && property.bathrooms < minBathrooms) {
+      return false;
+    }
+
+    // Beachfront filter
+    if (beachfrontOnly && (property.distanceToBeach === undefined || property.distanceToBeach > 100)) {
+      return false;
+    }
+
+    // Property type filter
+    if (propertyType && property.type !== propertyType) {
+      return false;
+    }
+
+    // Amenities filter
+    if (selectedAmenities.length > 0) {
+      const propertyAmenities = property.amenities?.map(a => a.toLowerCase()) || [];
+      const hasAllAmenities = selectedAmenities.every(amenity =>
+        propertyAmenities.some(pa => pa.includes(amenity.toLowerCase()))
+      );
+      if (!hasAllAmenities) return false;
+    }
+
     if (property.price.perNight < priceRange[0] || property.price.perNight > priceRange[1]) {
       return false;
     }
@@ -200,12 +248,42 @@ function PropertiesContent() {
     setMinRating(0);
     setSearchQuery('');
     setSelectedLocation(null);
+    setMinBedrooms(0);
+    setMinBathrooms(0);
+    setPetFriendlyFilter(false);
+    setBeachfrontOnly(false);
+    setPropertyType(null);
+    setSelectedAmenities([]);
   };
 
   const activeFiltersCount =
     (priceRange[0] > 0 || priceRange[1] < 2000 ? 1 : 0) +
     (minRating > 0 ? 1 : 0) +
-    (selectedLocation ? 1 : 0);
+    (selectedLocation ? 1 : 0) +
+    (minBedrooms > 0 ? 1 : 0) +
+    (minBathrooms > 0 ? 1 : 0) +
+    (petFriendlyFilter ? 1 : 0) +
+    (beachfrontOnly ? 1 : 0) +
+    (propertyType ? 1 : 0) +
+    selectedAmenities.length;
+
+  // Amenity options
+  const amenityOptions = [
+    { id: 'wifi', label: 'WiFi', icon: Wifi },
+    { id: 'parking', label: 'Parking', icon: Car },
+    { id: 'ac', label: 'A/C', icon: Snowflake },
+    { id: 'tv', label: 'TV', icon: Tv },
+    { id: 'kitchen', label: 'Kitchen', icon: UtensilsCrossed },
+    { id: 'gym', label: 'Gym', icon: Dumbbell },
+  ];
+
+  const toggleAmenity = (amenityId: string) => {
+    setSelectedAmenities(prev =>
+      prev.includes(amenityId)
+        ? prev.filter(a => a !== amenityId)
+        : [...prev, amenityId]
+    );
+  };
 
   // Handle search with all parameters
   const handleSearch = () => {
@@ -359,58 +437,112 @@ function PropertiesContent() {
             </button>
           </div>
 
-          {/* Row 2: Location chips and controls */}
+          {/* Row 2: Quick filters and controls */}
           <div className="flex flex-col lg:flex-row gap-3 pt-3 border-t border-[var(--casita-gray-100)]">
-            {/* Location chips - scrollable on mobile */}
+            {/* Quick filter chips - scrollable on mobile */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-hide flex-1">
-              {allCities.length > 0 && (
-                <>
-                  <button
-                    onClick={() => setSelectedLocation(null)}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                      selectedLocation === null
-                        ? 'bg-[var(--casita-orange)] text-white'
-                        : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-200)]'
-                    }`}
-                  >
-                    <MapPin className="w-3.5 h-3.5" />
-                    All
-                  </button>
-                  {allCities.map((location) => (
-                    <button
-                      key={location}
-                      onClick={() => setSelectedLocation(selectedLocation === location ? null : location)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                        selectedLocation === location
-                          ? 'bg-[var(--casita-orange)] text-white'
-                          : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-200)]'
-                      }`}
-                    >
-                      {location}
-                    </button>
-                  ))}
-                </>
-              )}
-            </div>
+              {/* Bedrooms */}
+              <div className="relative flex-shrink-0">
+                <button
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                    minBedrooms > 0
+                      ? 'bg-[var(--casita-orange)] text-white'
+                      : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-200)]'
+                  }`}
+                  onClick={() => setMinBedrooms(minBedrooms > 0 ? 0 : 1)}
+                >
+                  <Bed className="w-3.5 h-3.5" />
+                  {minBedrooms > 0 ? `${minBedrooms}+ Beds` : 'Beds'}
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+              </div>
 
-            {/* Controls */}
-            <div className="flex items-center gap-2">
+              {/* Bathrooms */}
+              <div className="relative flex-shrink-0">
+                <button
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                    minBathrooms > 0
+                      ? 'bg-[var(--casita-orange)] text-white'
+                      : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-200)]'
+                  }`}
+                  onClick={() => setMinBathrooms(minBathrooms > 0 ? 0 : 1)}
+                >
+                  <Bath className="w-3.5 h-3.5" />
+                  {minBathrooms > 0 ? `${minBathrooms}+ Baths` : 'Baths'}
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+              </div>
+
+              {/* Pet Friendly */}
               <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  showFilters || activeFiltersCount > 0
+                onClick={() => setPetFriendlyFilter(!petFriendlyFilter)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+                  petFriendlyFilter
                     ? 'bg-[var(--casita-orange)] text-white'
                     : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-200)]'
                 }`}
               >
+                <Dog className="w-3.5 h-3.5" />
+                Pet Friendly
+              </button>
+
+              {/* Beachfront */}
+              <button
+                onClick={() => setBeachfrontOnly(!beachfrontOnly)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+                  beachfrontOnly
+                    ? 'bg-[var(--casita-orange)] text-white'
+                    : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-200)]'
+                }`}
+              >
+                <Waves className="w-3.5 h-3.5" />
+                Beachfront
+              </button>
+
+              {/* Property Type */}
+              <div className="relative flex-shrink-0">
+                <select
+                  value={propertyType || ''}
+                  onChange={(e) => setPropertyType(e.target.value || null)}
+                  className={`appearance-none px-3 py-1.5 pr-7 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
+                    propertyType
+                      ? 'bg-[var(--casita-orange)] text-white'
+                      : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-200)]'
+                  }`}
+                >
+                  <option value="">Property Type</option>
+                  <option value="apartment">Apartment</option>
+                  <option value="house">House</option>
+                  <option value="condo">Condo</option>
+                  <option value="villa">Villa</option>
+                  <option value="townhouse">Townhouse</option>
+                </select>
+                <ChevronDown className={`absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none ${propertyType ? 'text-white' : 'text-[var(--casita-gray-400)]'}`} />
+              </div>
+
+              {/* All Filters button */}
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
+                  showFilters || activeFiltersCount > 0
+                    ? 'bg-[var(--casita-gray-900)] text-white'
+                    : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-200)]'
+                }`}
+              >
                 <SlidersHorizontal className="w-4 h-4" />
+                All Filters
                 {activeFiltersCount > 0 && (
-                  <span className="bg-white text-[var(--casita-orange)] w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center">
+                  <span className={`w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center ${
+                    showFilters ? 'bg-white text-[var(--casita-gray-900)]' : 'bg-[var(--casita-orange)] text-white'
+                  }`}>
                     {activeFiltersCount}
                   </span>
                 )}
               </button>
+            </div>
 
+            {/* Sort and View Controls */}
+            <div className="flex items-center gap-2 flex-shrink-0">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
@@ -496,8 +628,8 @@ function PropertiesContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         <div className="flex gap-8">
           {showFilters && (
-            <div className="w-72 flex-shrink-0 hidden md:block">
-              <div className="bg-white rounded-2xl shadow-sm border border-[var(--casita-gray-100)] p-6 sticky top-4">
+            <div className="w-80 flex-shrink-0 hidden md:block">
+              <div className="bg-white rounded-2xl shadow-sm border border-[var(--casita-gray-100)] p-6 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="font-semibold text-lg">{t.properties.filters}</h3>
                   {activeFiltersCount > 0 && (
@@ -510,7 +642,8 @@ function PropertiesContent() {
                   )}
                 </div>
 
-                <div className="mb-6">
+                {/* Price Range */}
+                <div className="mb-6 pb-6 border-b border-[var(--casita-gray-100)]">
                   <h4 className="font-medium mb-3">{t.properties.pricePerNight}</h4>
                   <div className="flex items-center gap-3">
                     <div className="flex-1">
@@ -539,9 +672,140 @@ function PropertiesContent() {
                   </div>
                 </div>
 
+                {/* Bedrooms */}
+                <div className="mb-6 pb-6 border-b border-[var(--casita-gray-100)]">
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <Bed className="w-4 h-4 text-[var(--casita-gray-500)]" />
+                    Bedrooms
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {[0, 1, 2, 3, 4, 5].map((num) => (
+                      <button
+                        key={num}
+                        onClick={() => setMinBedrooms(num)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          minBedrooms === num
+                            ? 'bg-[var(--casita-orange)] text-white'
+                            : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-200)]'
+                        }`}
+                      >
+                        {num === 0 ? 'Any' : num === 5 ? '5+' : num}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Bathrooms */}
+                <div className="mb-6 pb-6 border-b border-[var(--casita-gray-100)]">
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <Bath className="w-4 h-4 text-[var(--casita-gray-500)]" />
+                    Bathrooms
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {[0, 1, 2, 3, 4].map((num) => (
+                      <button
+                        key={num}
+                        onClick={() => setMinBathrooms(num)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          minBathrooms === num
+                            ? 'bg-[var(--casita-orange)] text-white'
+                            : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-200)]'
+                        }`}
+                      >
+                        {num === 0 ? 'Any' : num === 4 ? '4+' : num}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Property Type */}
+                <div className="mb-6 pb-6 border-b border-[var(--casita-gray-100)]">
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <Home className="w-4 h-4 text-[var(--casita-gray-500)]" />
+                    Property Type
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: null, label: 'Any' },
+                      { value: 'apartment', label: 'Apartment' },
+                      { value: 'house', label: 'House' },
+                      { value: 'condo', label: 'Condo' },
+                      { value: 'villa', label: 'Villa' },
+                    ].map((type) => (
+                      <button
+                        key={type.value || 'any'}
+                        onClick={() => setPropertyType(type.value)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          propertyType === type.value
+                            ? 'bg-[var(--casita-orange)] text-white'
+                            : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-200)]'
+                        }`}
+                      >
+                        {type.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Special Features */}
+                <div className="mb-6 pb-6 border-b border-[var(--casita-gray-100)]">
+                  <h4 className="font-medium mb-3">Special Features</h4>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-[var(--casita-gray-50)]">
+                      <input
+                        type="checkbox"
+                        checked={petFriendlyFilter}
+                        onChange={() => setPetFriendlyFilter(!petFriendlyFilter)}
+                        className="w-5 h-5 rounded border-[var(--casita-gray-300)] text-[var(--casita-orange)] focus:ring-[var(--casita-orange)]"
+                      />
+                      <Dog className="w-4 h-4 text-[var(--casita-gray-500)]" />
+                      <span className="text-sm">Pet Friendly</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-[var(--casita-gray-50)]">
+                      <input
+                        type="checkbox"
+                        checked={beachfrontOnly}
+                        onChange={() => setBeachfrontOnly(!beachfrontOnly)}
+                        className="w-5 h-5 rounded border-[var(--casita-gray-300)] text-[var(--casita-orange)] focus:ring-[var(--casita-orange)]"
+                      />
+                      <Waves className="w-4 h-4 text-[var(--casita-gray-500)]" />
+                      <span className="text-sm">Beachfront</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Amenities */}
+                <div className="mb-6 pb-6 border-b border-[var(--casita-gray-100)]">
+                  <h4 className="font-medium mb-3">Amenities</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {amenityOptions.map((amenity) => {
+                      const Icon = amenity.icon;
+                      const isSelected = selectedAmenities.includes(amenity.id);
+                      return (
+                        <button
+                          key={amenity.id}
+                          onClick={() => toggleAmenity(amenity.id)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            isSelected
+                              ? 'bg-[var(--casita-orange)] text-white'
+                              : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-200)]'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4" />
+                          {amenity.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Rating */}
                 <div>
-                  <h4 className="font-medium mb-3">{t.properties.minRating}</h4>
-                  <div className="flex gap-2">
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <Star className="w-4 h-4 text-[var(--casita-gray-500)]" />
+                    {t.properties.minRating}
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
                     {[0, 3, 4, 4.5].map((rating) => (
                       <button
                         key={rating}
