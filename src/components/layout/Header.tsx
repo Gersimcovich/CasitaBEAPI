@@ -170,7 +170,7 @@ export default function Header() {
 
               {/* Deals */}
               <Link
-                href="/properties?deals=true"
+                href="/deals"
                 className="flex items-center gap-2 px-4 py-2 text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] hover:bg-[var(--casita-cream)] rounded-lg transition-colors font-medium"
               >
                 <Tag className="w-4 h-4" />
@@ -445,7 +445,7 @@ export default function Header() {
                   )}
                 </div>
                 <Link
-                  href="/properties?deals=true"
+                  href="/deals"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-cream)] rounded-xl font-medium"
                 >

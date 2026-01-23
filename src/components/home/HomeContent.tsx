@@ -295,15 +295,15 @@ export default function HomeContent({ properties }: HomeContentProps) {
 
   return (
     <>
-      {/* Hero Section - Clean solid orange background */}
-      <section className="relative flex items-center justify-center bg-[var(--casita-orange)] overflow-visible z-20">
+      {/* Hero Section - Clean white background */}
+      <section className="relative flex items-center justify-center bg-white overflow-visible z-20">
         {/* Content */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 pb-10 md:pb-12 text-center overflow-visible">
           <div className="animate-fade-in">
-            <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+            <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--casita-gray-900)] mb-4 leading-tight">
               {t.hero.title}
             </h1>
-            <p className="text-base md:text-lg text-white/90 font-medium mb-8">
+            <p className="text-base md:text-lg text-[var(--casita-gray-600)] font-medium mb-8">
               {t.hero.subtitle}
             </p>
           </div>
@@ -321,7 +321,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
       {/* Casual Benefits Strip */}
       <section className="py-12 bg-white border-y border-[var(--casita-gray-100)] relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 md:gap-8">
             {/* No Fees */}
             <div className="flex flex-col items-center text-center group">
               <div className="w-16 h-16 mb-3 rounded-2xl bg-[var(--casita-turquoise)]/10 flex items-center justify-center group-hover:bg-[var(--casita-turquoise)]/20 transition-colors">
@@ -356,6 +356,15 @@ export default function HomeContent({ properties }: HomeContentProps) {
               </div>
               <h3 className="font-semibold text-[var(--casita-gray-900)]">Pet Friendly</h3>
               <p className="text-sm text-[var(--casita-gray-500)] mt-1">On selected properties</p>
+            </div>
+
+            {/* Pay Over Time */}
+            <div className="flex flex-col items-center text-center group">
+              <div className="w-16 h-16 mb-3 rounded-2xl bg-[var(--casita-coral)]/10 flex items-center justify-center group-hover:bg-[var(--casita-coral)]/20 transition-colors">
+                <Calendar className="w-8 h-8 text-[var(--casita-coral)]" />
+              </div>
+              <h3 className="font-semibold text-[var(--casita-gray-900)]">Pay Over Time</h3>
+              <p className="text-sm text-[var(--casita-gray-500)] mt-1">Klarna & Affirm</p>
             </div>
 
             {/* Hosted Stays */}
