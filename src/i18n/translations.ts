@@ -118,8 +118,8 @@ export const translations = {
     },
     // CTA
     cta: {
-      title: 'Ready to Book Your Stay?',
-      subtitle: 'Browse our collection of vacation rentals and boutique hotels.',
+      title: 'Most Reviewed Superhost in USA',
+      subtitle: 'We have the biggest Airbnb account by reviews. Book direct here.',
       exploreAll: 'Explore All Properties',
     },
     // Footer
@@ -361,8 +361,8 @@ export const translations = {
     },
     // CTA
     cta: {
-      title: '¿Listo para Reservar tu Estadía?',
-      subtitle: 'Explora nuestra colección de alquileres vacacionales y hoteles boutique.',
+      title: 'El Superhost Más Reseñado en USA',
+      subtitle: 'Tenemos la cuenta de Airbnb más grande por reseñas. Reserva directo aquí.',
       exploreAll: 'Explorar Todas las Propiedades',
     },
     // Footer

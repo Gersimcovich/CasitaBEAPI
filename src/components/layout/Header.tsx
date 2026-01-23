@@ -101,21 +101,23 @@ export default function Header() {
       } ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center flex-shrink-0">
-            <Image
-              src="/casita-logo.png"
-              alt="Casita"
-              width={120}
-              height={40}
-              className="h-8 lg:h-10 w-auto"
-              priority
-            />
-          </Link>
+        <div className="flex items-center h-16 lg:h-20">
+          {/* Logo - Fixed width for balance */}
+          <div className="w-[120px] flex-shrink-0">
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/casita-logo.png"
+                alt="Casita"
+                width={120}
+                height={40}
+                className="h-8 lg:h-10 w-auto"
+                priority
+              />
+            </Link>
+          </div>
 
-          {/* Desktop Navigation - Centered */}
-          <nav className="hidden lg:flex items-center justify-center flex-1 px-8">
+          {/* Desktop Navigation - True center with flex-1 */}
+          <nav className="hidden lg:flex items-center justify-center flex-1">
             <div className="flex items-center space-x-1">
               {/* Stays */}
               <Link
@@ -188,8 +190,8 @@ export default function Header() {
             </div>
           </nav>
 
-          {/* Right Side Actions */}
-          <div className="hidden lg:flex items-center space-x-3">
+          {/* Right Side Actions - Match logo width for balance */}
+          <div className="hidden lg:flex items-center justify-end space-x-3 w-[200px] flex-shrink-0">
             {/* Partner CTA - Always visible */}
             <Link
               href="/partner"

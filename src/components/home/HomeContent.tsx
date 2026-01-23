@@ -373,7 +373,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
                 <Users className="w-8 h-8 text-[var(--casita-orange)]" />
               </div>
               <h3 className="font-semibold text-[var(--casita-gray-900)]">Hosted Stays</h3>
-              <p className="text-sm text-[var(--casita-gray-500)] mt-1">{totalGuestsHosted.toLocaleString()}+ since 2018</p>
+              <p className="text-sm text-[var(--casita-gray-500)] mt-1">{totalGuestsHosted.toLocaleString()}+</p>
             </div>
           </div>
         </div>

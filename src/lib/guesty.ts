@@ -3,8 +3,196 @@
 // Better rate limits than Open API: 5/sec, 275/min, 16,500/hour
 // Supports 3 API credentials with automatic failover when rate limited
 
+import { promises as fs } from 'fs';
+import path from 'path';
+
 // Set to true to skip API calls and use only fallback data (useful during development)
 const USE_FALLBACK_ONLY = process.env.GUESTY_USE_FALLBACK_ONLY === 'true';
+
+// ============================================================================
+// PERSISTENT DATA STORAGE
+// Save last known good data from BEAPI to files for fallback when APIs fail
+// ============================================================================
+
+const DATA_DIR = path.join(process.cwd(), '.guesty-cache');
+
+interface PersistedListings {
+  listings: GuestyListing[];
+  savedAt: string;
+}
+
+interface PersistedCalendar {
+  [listingId: string]: {
+    days: CalendarDay[];
+    savedAt: string;
+  };
+}
+
+interface PersistedRates {
+  [listingId: string]: {
+    [dateRange: string]: {
+      pricePerNight: number;
+      total: number;
+      currency: string;
+      savedAt: string;
+    };
+  };
+}
+
+// Ensure data directory exists
+async function ensureDataDir(): Promise<void> {
+  try {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+  } catch {
+    // Directory may already exist
+  }
+}
+
+// Save listings to persistent storage
+async function saveListingsToDisk(listings: GuestyListing[]): Promise<void> {
+  try {
+    await ensureDataDir();
+    const data: PersistedListings = {
+      listings,
+      savedAt: new Date().toISOString(),
+    };
+    await fs.writeFile(
+      path.join(DATA_DIR, 'listings.json'),
+      JSON.stringify(data, null, 2)
+    );
+    console.log(`💾 Saved ${listings.length} listings to disk`);
+  } catch (error) {
+    console.error('Failed to save listings to disk:', error);
+  }
+}
+
+// Load listings from persistent storage
+async function loadListingsFromDisk(): Promise<GuestyListing[] | null> {
+  try {
+    const filePath = path.join(DATA_DIR, 'listings.json');
+    const fileContent = await fs.readFile(filePath, 'utf-8');
+    const data: PersistedListings = JSON.parse(fileContent);
+    console.log(`📂 Loaded ${data.listings.length} listings from disk (saved: ${data.savedAt})`);
+    return data.listings;
+  } catch {
+    return null;
+  }
+}
+
+// Save calendar data to persistent storage
+async function saveCalendarToDisk(listingId: string, days: CalendarDay[]): Promise<void> {
+  try {
+    await ensureDataDir();
+    const filePath = path.join(DATA_DIR, 'calendar.json');
+
+    // Load existing calendar data
+    let allCalendars: PersistedCalendar = {};
+    try {
+      const existing = await fs.readFile(filePath, 'utf-8');
+      allCalendars = JSON.parse(existing);
+    } catch {
+      // File doesn't exist yet
+    }
+
+    // Update with new data
+    allCalendars[listingId] = {
+      days,
+      savedAt: new Date().toISOString(),
+    };
+
+    await fs.writeFile(filePath, JSON.stringify(allCalendars, null, 2));
+    console.log(`💾 Saved calendar for ${listingId} to disk (${days.length} days)`);
+  } catch (error) {
+    console.error('Failed to save calendar to disk:', error);
+  }
+}
+
+// Load calendar data from persistent storage
+async function loadCalendarFromDisk(listingId: string): Promise<CalendarDay[] | null> {
+  try {
+    const filePath = path.join(DATA_DIR, 'calendar.json');
+    const fileContent = await fs.readFile(filePath, 'utf-8');
+    const allCalendars: PersistedCalendar = JSON.parse(fileContent);
+
+    const calendarData = allCalendars[listingId];
+    if (calendarData) {
+      console.log(`📂 Loaded calendar for ${listingId} from disk (saved: ${calendarData.savedAt})`);
+      return calendarData.days;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// Save rates/pricing to persistent storage
+async function saveRatesToDisk(
+  listingId: string,
+  checkIn: string,
+  checkOut: string,
+  pricePerNight: number,
+  total: number,
+  currency: string
+): Promise<void> {
+  try {
+    await ensureDataDir();
+    const filePath = path.join(DATA_DIR, 'rates.json');
+
+    // Load existing rates data
+    let allRates: PersistedRates = {};
+    try {
+      const existing = await fs.readFile(filePath, 'utf-8');
+      allRates = JSON.parse(existing);
+    } catch {
+      // File doesn't exist yet
+    }
+
+    // Update with new data
+    if (!allRates[listingId]) {
+      allRates[listingId] = {};
+    }
+
+    const dateRange = `${checkIn}_${checkOut}`;
+    allRates[listingId][dateRange] = {
+      pricePerNight,
+      total,
+      currency,
+      savedAt: new Date().toISOString(),
+    };
+
+    await fs.writeFile(filePath, JSON.stringify(allRates, null, 2));
+    console.log(`💾 Saved rates for ${listingId} (${checkIn} - ${checkOut}) to disk`);
+  } catch (error) {
+    console.error('Failed to save rates to disk:', error);
+  }
+}
+
+// Load rates from persistent storage
+async function loadRatesFromDisk(
+  listingId: string,
+  checkIn: string,
+  checkOut: string
+): Promise<{ pricePerNight: number; total: number; currency: string } | null> {
+  try {
+    const filePath = path.join(DATA_DIR, 'rates.json');
+    const fileContent = await fs.readFile(filePath, 'utf-8');
+    const allRates: PersistedRates = JSON.parse(fileContent);
+
+    const dateRange = `${checkIn}_${checkOut}`;
+    const rateData = allRates[listingId]?.[dateRange];
+    if (rateData) {
+      console.log(`📂 Loaded rates for ${listingId} from disk (saved: ${rateData.savedAt})`);
+      return {
+        pricePerNight: rateData.pricePerNight,
+        total: rateData.total,
+        currency: rateData.currency,
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 // Primary BEAPI credentials
 const GUESTY_BEAPI_CLIENT_ID = process.env.GUESTY_BEAPI_CLIENT_ID || '';
@@ -237,21 +425,43 @@ const cachedTokens: { [key: number]: { token: string; expiresAt: number } | null
   3: null,
 };
 
-// Listings cache - 12 hours (properties rarely change)
+// AGGRESSIVE CACHING to minimize API calls and prevent rate limiting
+// Listings cache - 24 hours (properties rarely change, this is the main data)
 let cachedListings: { data: GuestyListing[]; expiresAt: number } | null = null;
-const LISTINGS_CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
+const LISTINGS_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours - properties don't change often
 
-// Individual listing cache - 6 hours
+// Individual listing cache - 12 hours
 const listingCache = new Map<string, { data: GuestyListing; expiresAt: number }>();
-const LISTING_CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
+const LISTING_CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
 
-// Calendar cache - 6 hours (availability doesn't change that frequently)
+// Calendar cache - 4 hours (balance between freshness and API calls)
 const calendarCache = new Map<string, { data: CalendarDay[]; expiresAt: number }>();
-const CALENDAR_CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
+const CALENDAR_CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 hours
 
-// Quote cache - 2 hours (quotes valid for 24h in Guesty)
+// Quote cache - 2 hours (quotes valid for 24h in Guesty, but prices can change)
 const quoteCache = new Map<string, { data: ReservationQuote; expiresAt: number }>();
-const QUOTE_CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
+const QUOTE_CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 hours
+
+// Request deduplication - prevent multiple simultaneous requests for same data
+const pendingRequests = new Map<string, Promise<unknown>>();
+
+/**
+ * Deduplicate requests - if a request is already in flight, return the same promise
+ */
+function deduplicateRequest<T>(key: string, requestFn: () => Promise<T>): Promise<T> {
+  const pending = pendingRequests.get(key);
+  if (pending) {
+    console.log(`🔄 Deduplicating request: ${key}`);
+    return pending as Promise<T>;
+  }
+
+  const promise = requestFn().finally(() => {
+    pendingRequests.delete(key);
+  });
+
+  pendingRequests.set(key, promise);
+  return promise;
+}
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -669,7 +879,147 @@ function filterParentListings(listings: GuestyListing[]): GuestyListing[] {
 }
 
 /**
- * Get all listings with caching
+ * Get listings from Open API (fallback when BEAPI is rate limited)
+ * Open API has different rate limits and can serve as backup
+ */
+async function getListingsFromOpenApi(): Promise<GuestyListing[]> {
+  if (!hasOpenApi()) {
+    throw new Error('Open API not configured');
+  }
+
+  console.log('📡 Fetching listings from Open API (BEAPI fallback)...');
+
+  const data = await openApiFetch<{
+    results: Array<{
+      _id: string;
+      title: string;
+      nickname?: string;
+      propertyType: string;
+      roomType?: string;
+      accommodates: number;
+      bedrooms: number;
+      bathrooms: number;
+      beds?: number;
+      address: {
+        full: string;
+        city: string;
+        country: string;
+        state?: string;
+        street?: string;
+        lat: number;
+        lng: number;
+      };
+      prices?: {
+        basePrice: number;
+        currency: string;
+        cleaningFee?: number;
+      };
+      picture?: {
+        thumbnail: string;
+        regular: string;
+        large: string;
+      };
+      pictures: Array<{
+        original: string;
+        large?: string;
+        thumbnail?: string;
+      }>;
+      amenities: string[];
+      publicDescription?: {
+        summary: string;
+        space?: string;
+      };
+      terms?: {
+        checkIn?: { from?: string; to?: string };
+        checkOut?: { from?: string; to?: string };
+        cancellationPolicy?: string;
+      };
+      reviews?: {
+        count?: number;
+        avg?: number;
+      };
+      active?: boolean;
+      type?: 'SINGLE' | 'MTL' | 'MTL_CHILD';
+      parentId?: string | null;
+      listingRooms?: Array<{ _id: string }>;
+    }>;
+    count: number;
+  }>('/listings?limit=100&fields=_id,title,nickname,propertyType,roomType,accommodates,bedrooms,bathrooms,beds,address,prices,picture,pictures,amenities,publicDescription,terms,reviews,active,type,parentId,listingRooms');
+
+  console.log(`✅ Open API returned ${data.results?.length || 0} listings`);
+
+  // Convert Open API format to match BEAPI GuestyListing format
+  return (data.results || []).map(listing => ({
+    ...listing,
+    timezone: undefined,
+  })) as GuestyListing[];
+}
+
+// Track if a background refresh is already in progress
+let isRefreshingListings = false;
+
+/**
+ * Background refresh listings - does NOT block the main request
+ */
+async function refreshListingsInBackground(): Promise<void> {
+  if (isRefreshingListings) {
+    console.log('🔄 Background refresh already in progress, skipping');
+    return;
+  }
+
+  isRefreshingListings = true;
+  console.log('🔄 Starting background listings refresh...');
+
+  try {
+    // Try BEAPI first
+    if (!areBothApisRateLimited()) {
+      try {
+        const data = await beapiFetch<{ results: GuestyListing[] }>('/listings?limit=100');
+        if (data.results && data.results.length > 0) {
+          cachedListings = {
+            data: data.results,
+            expiresAt: Date.now() + LISTINGS_CACHE_DURATION,
+          };
+          await saveListingsToDisk(data.results);
+          console.log(`✅ Background refresh: ${data.results.length} listings from BEAPI`);
+          return;
+        }
+      } catch (e) {
+        console.warn('⚠️ Background BEAPI refresh failed:', e);
+      }
+    }
+
+    // Try Open API as fallback
+    if (hasOpenApi()) {
+      try {
+        const openApiListings = await getListingsFromOpenApi();
+        if (openApiListings.length > 0) {
+          cachedListings = {
+            data: openApiListings,
+            expiresAt: Date.now() + LISTINGS_CACHE_DURATION,
+          };
+          await saveListingsToDisk(openApiListings);
+          console.log(`✅ Background refresh: ${openApiListings.length} listings from Open API`);
+        }
+      } catch (e) {
+        console.warn('⚠️ Background Open API refresh failed:', e);
+      }
+    }
+  } finally {
+    isRefreshingListings = false;
+  }
+}
+
+/**
+ * Get all listings - ALWAYS returns immediately from cache/disk
+ *
+ * PRODUCTION STRATEGY (never blocks, never rate limits):
+ * 1. Return from memory cache (instant)
+ * 2. Return from disk cache (fast)
+ * 3. If data is stale (>12h), trigger background refresh (non-blocking)
+ * 4. Only call API directly if NO cached data exists at all
+ *
+ * This ensures user requests NEVER wait for API calls!
  */
 export async function getListings(params?: {
   limit?: number;
@@ -689,9 +1039,9 @@ export async function getListings(params?: {
   const useCache = params?.useCache !== false;
   const parentsOnly = params?.parentsOnly !== false;
 
-  // Check cache first
-  if (useCache && cachedListings && cachedListings.expiresAt > Date.now() && !params?.skip) {
-    let results = cachedListings.data;
+  // Helper to filter and limit results
+  const processResults = (listings: GuestyListing[]): GuestyListing[] => {
+    let results = listings;
     if (parentsOnly) {
       results = filterParentListings(results);
     }
@@ -699,71 +1049,119 @@ export async function getListings(params?: {
       results = results.slice(0, params.limit);
     }
     return results;
+  };
+
+  // STEP 1: Check memory cache first (instant)
+  if (useCache && cachedListings && cachedListings.data.length > 0 && !params?.skip) {
+    const isExpired = cachedListings.expiresAt < Date.now();
+    console.log(`📦 Returning ${cachedListings.data.length} listings from memory${isExpired ? ' (stale, refreshing in background)' : ''}`);
+
+    // If stale, trigger background refresh but still return cached data immediately
+    if (isExpired) {
+      refreshListingsInBackground().catch(() => {});
+    }
+
+    return processResults(cachedListings.data);
   }
 
-  // If both APIs are rate limited, immediately return stale cache or throw
-  if (areBothApisRateLimited()) {
+  // STEP 2: Check disk cache (fast)
+  const diskListings = await loadListingsFromDisk();
+  if (diskListings && diskListings.length > 0) {
+    // Load into memory cache
+    cachedListings = {
+      data: diskListings,
+      expiresAt: Date.now() + LISTINGS_CACHE_DURATION,
+    };
+
+    // Check age and trigger background refresh if stale
+    try {
+      const filePath = path.join(DATA_DIR, 'listings.json');
+      const stats = await fs.stat(filePath);
+      const ageMs = Date.now() - stats.mtime.getTime();
+      const ageHours = ageMs / (1000 * 60 * 60);
+
+      console.log(`📂 Returning ${diskListings.length} listings from disk (${ageHours.toFixed(1)}h old)`);
+
+      // If older than 12 hours, refresh in background
+      if (ageHours > 12) {
+        console.log('⏰ Data is stale, triggering background refresh...');
+        refreshListingsInBackground().catch(() => {});
+      }
+    } catch {
+      // Couldn't check age, still return data
+    }
+
+    return processResults(diskListings);
+  }
+
+  // STEP 3: NO cached data at all - we MUST fetch (first run only)
+  console.log('⚠️ No cached data found - fetching from API (first run)...');
+
+  // Use request deduplication for first-run scenario
+  const cacheKey = `listings-first-run`;
+
+  return deduplicateRequest(cacheKey, async () => {
+    // Try BEAPI first
+    if (!areBothApisRateLimited()) {
+      try {
+        const data = await beapiFetch<{ results: GuestyListing[] }>('/listings?limit=100');
+
+        // Cache to memory
+        if (!params?.skip) {
+          cachedListings = {
+            data: data.results,
+            expiresAt: Date.now() + LISTINGS_CACHE_DURATION,
+          };
+
+          // SAVE TO DISK for persistence across restarts
+          await saveListingsToDisk(data.results);
+          console.log(`✅ BEAPI returned ${data.results.length} listings - saved to disk`);
+        }
+
+        return processResults(data.results);
+      } catch (beapiError) {
+        console.warn('⚠️ BEAPI failed:', beapiError);
+        // Continue to Open API fallback
+      }
+    } else {
+      console.log('⚠️ All BEAPI credentials rate limited');
+    }
+
+    // STEP 4: Try Open API as fallback
+    if (hasOpenApi()) {
+      try {
+        const openApiListings = await getListingsFromOpenApi();
+
+        if (!params?.skip && openApiListings.length > 0) {
+          cachedListings = {
+            data: openApiListings,
+            expiresAt: Date.now() + LISTINGS_CACHE_DURATION,
+          };
+          // Save Open API results to disk too
+          await saveListingsToDisk(openApiListings);
+          console.log(`✅ Open API returned ${openApiListings.length} listings - saved to disk`);
+        }
+
+        return processResults(openApiListings);
+      } catch (openApiError) {
+        console.warn('⚠️ Open API also failed:', openApiError);
+      }
+    }
+
+    // STEP 5: Return disk data as last resort (even if stale)
+    if (diskListings && diskListings.length > 0) {
+      console.log('📦 All APIs failed - returning stale disk data');
+      return processResults(diskListings);
+    }
+
+    // STEP 6: Return memory cache as absolute last resort
     if (cachedListings && cachedListings.data.length > 0) {
-      console.log('Both APIs rate limited - returning stale cached listings');
-      let results = cachedListings.data;
-      if (parentsOnly) {
-        results = filterParentListings(results);
-      }
-      if (params?.limit) {
-        results = results.slice(0, params.limit);
-      }
-      return results;
-    }
-    throw new Error('Both APIs rate limited and no cached data available');
-  }
-
-  try {
-    const searchParams = new URLSearchParams();
-    searchParams.set('limit', (params?.limit || 100).toString());
-    if (params?.skip) searchParams.set('skip', params.skip.toString());
-    if (params?.checkIn) searchParams.set('checkIn', params.checkIn);
-    if (params?.checkOut) searchParams.set('checkOut', params.checkOut);
-    if (params?.minOccupancy) searchParams.set('minOccupancy', params.minOccupancy.toString());
-
-    const queryString = searchParams.toString();
-    const endpoint = `/listings${queryString ? `?${queryString}` : ''}`;
-
-    const data = await beapiFetch<{ results: GuestyListing[] }>(endpoint);
-
-    // Cache results
-    if (!params?.skip) {
-      cachedListings = {
-        data: data.results,
-        expiresAt: Date.now() + LISTINGS_CACHE_DURATION,
-      };
+      console.log('📦 Returning stale memory cache');
+      return processResults(cachedListings.data);
     }
 
-    let results = data.results;
-
-    if (parentsOnly) {
-      results = filterParentListings(results);
-    }
-
-    if (params?.limit && params.limit < results.length) {
-      results = results.slice(0, params.limit);
-    }
-
-    return results;
-  } catch (error) {
-    // Return cached data even if expired
-    if (cachedListings && cachedListings.data.length > 0) {
-      console.warn('BEAPI error, returning cached data:', error);
-      let results = cachedListings.data;
-      if (parentsOnly) {
-        results = filterParentListings(results);
-      }
-      if (params?.limit) {
-        results = results.slice(0, params.limit);
-      }
-      return results;
-    }
-    throw error;
-  }
+    throw new Error('All APIs unavailable and no cached data');
+  });
 }
 
 /**
@@ -890,7 +1288,8 @@ export async function searchListings(params: {
 
 /**
  * Get calendar availability for a listing
- * PRIORITY: Open API first (has dynamic pricing), then BEAPI, then cache
+ * STRATEGY: Memory cache -> Disk cache -> Open API -> BEAPI -> Stale cache
+ * Saves all successful results to disk for persistence
  */
 export async function getCalendar(
   listingId: string,
@@ -904,25 +1303,36 @@ export async function getCalendar(
 
   const cacheKey = `${listingId}-${from}-${to}`;
 
-  // Check cache first
+  // STEP 1: Check memory cache first (fastest)
   const cached = calendarCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
+    console.log(`📦 Calendar for ${listingId} from memory cache`);
     return cached.data;
   }
 
-  // STRATEGY: Try Open API first for dynamic pricing, then BEAPI for availability
-  // Open API /availability-pricing endpoint returns actual daily prices
-  // BEAPI calendar returns base price for all days
+  // STEP 2: Check disk cache
+  const diskCalendar = await loadCalendarFromDisk(listingId);
+  if (diskCalendar && diskCalendar.length > 0) {
+    // Load to memory cache
+    calendarCache.set(cacheKey, {
+      data: diskCalendar,
+      expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
+    });
+    console.log(`📂 Calendar for ${listingId} loaded from disk`);
+    return diskCalendar;
+  }
 
-  // Step 1: Try Open API first (has dynamic pricing)
+  // STEP 3: Try Open API first (has dynamic pricing)
   if (hasOpenApi()) {
     try {
       console.log('📅 Trying Open API for dynamic calendar pricing...');
       const openApiCalendar = await getCalendarFromOpenApi(listingId, from, to, cacheKey);
       if (openApiCalendar.length > 0) {
-        // Log pricing variety
         const uniquePrices = new Set(openApiCalendar.map(d => d.price));
         console.log(`✅ Open API: ${openApiCalendar.length} days, ${uniquePrices.size} unique prices`);
+
+        // Save to disk for persistence
+        await saveCalendarToDisk(listingId, openApiCalendar);
         return openApiCalendar;
       }
     } catch (openApiError) {
@@ -930,7 +1340,7 @@ export async function getCalendar(
     }
   }
 
-  // Step 2: Try BEAPI (for availability status, prices may be static)
+  // STEP 4: Try BEAPI (for availability status)
   if (!areBothApisRateLimited()) {
     try {
       console.log('📅 Trying BEAPI for calendar...');
@@ -949,7 +1359,6 @@ export async function getCalendar(
         const priceSample = rawDays.slice(0, 5).map(d => `${d.date}: $${d.price}`);
         console.log(`📅 BEAPI Calendar: ${priceSample.join(', ')} ...`);
 
-        // Check if all prices are the same (BEAPI often returns base price)
         const uniquePrices = new Set(rawDays.map(d => d.price));
         if (uniquePrices.size === 1) {
           console.warn(`⚠️ BEAPI: All ${rawDays.length} days have same price: $${rawDays[0]?.price} (base price)`);
@@ -966,11 +1375,14 @@ export async function getCalendar(
         currency: day.currency || 'USD',
       }));
 
-      // Cache the result
+      // Cache to memory
       calendarCache.set(cacheKey, {
         data: calendar,
         expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
       });
+
+      // Save to disk for persistence
+      await saveCalendarToDisk(listingId, calendar);
 
       return calendar;
     } catch (beapiError) {
@@ -980,9 +1392,9 @@ export async function getCalendar(
     console.log('⚠️ All BEAPI credentials rate limited');
   }
 
-  // Step 3: Return stale cache if available
+  // STEP 5: Return stale memory cache if available
   if (cached && cached.data.length > 0) {
-    console.warn('All calendar APIs failed, returning stale cache');
+    console.warn('All calendar APIs failed, returning stale memory cache');
     return cached.data;
   }
 
@@ -1201,6 +1613,16 @@ export async function getQuote(params: {
     // Recalculate total without Guesty's service fees (accommodation + cleaning + taxes only)
     const total = accommodation + cleaningFee + ratePlan.money.totalTaxes;
 
+    // Save rates to disk for persistence
+    await saveRatesToDisk(
+      params.listingId,
+      params.checkIn,
+      params.checkOut,
+      pricePerNight,
+      total,
+      ratePlan.money.currency
+    );
+
     return {
       available: true,
       quote: {
@@ -1224,6 +1646,32 @@ export async function getQuote(params: {
     };
   } catch (error) {
     console.error('Error getting quote:', error);
+
+    // Try to load rates from disk as fallback
+    const diskRates = await loadRatesFromDisk(params.listingId, params.checkIn, params.checkOut);
+    if (diskRates) {
+      console.log('📂 Using rates from disk cache as fallback');
+      // Return a partial quote from disk data
+      // Note: This won't have a valid quoteId for booking, but shows pricing
+      return {
+        available: true,
+        quote: {
+          quoteId: 'disk-cache', // Indicates this needs refresh for actual booking
+          ratePlanId: 'disk-cache',
+          nightsCount: Math.ceil((new Date(params.checkOut).getTime() - new Date(params.checkIn).getTime()) / (1000 * 60 * 60 * 24)),
+          pricePerNight: diskRates.pricePerNight,
+          accommodation: diskRates.total * 0.85, // Estimate
+          cleaningFee: diskRates.total * 0.1, // Estimate
+          serviceFee: 0,
+          taxes: diskRates.total * 0.05, // Estimate
+          total: diskRates.total,
+          currency: diskRates.currency,
+        },
+        unavailableDates: [],
+        listing: null,
+      };
+    }
+
     throw error;
   }
 }
