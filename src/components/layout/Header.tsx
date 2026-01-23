@@ -103,12 +103,12 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center h-16 lg:h-20">
           {/* Logo - Fixed width for balance */}
-          <div className="w-[120px] flex-shrink-0">
+          <div className="w-[160px] flex-shrink-0">
             <Link href="/" className="flex items-center">
               <Image
                 src="/casita-logo.png"
                 alt="Casita"
-                width={120}
+                width={156}
                 height={40}
                 className="h-8 lg:h-10 w-auto"
                 priority
