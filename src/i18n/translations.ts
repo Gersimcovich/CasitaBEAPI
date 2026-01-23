@@ -118,8 +118,8 @@ export const translations = {
     },
     // CTA
     cta: {
-      title: 'Most Reviewed Superhost in USA',
-      subtitle: 'We have the biggest Airbnb account by reviews. Book direct here.',
+      title: 'Bueno, Bonito y Barato',
+      subtitle: 'Only account in USA in Airbnb with over 60,000 reviews Superhost.',
       exploreAll: 'Explore All Properties',
     },
     // Footer
@@ -361,8 +361,8 @@ export const translations = {
     },
     // CTA
     cta: {
-      title: 'El Superhost Más Reseñado en USA',
-      subtitle: 'Tenemos la cuenta de Airbnb más grande por reseñas. Reserva directo aquí.',
+      title: 'Bueno, Bonito y Barato',
+      subtitle: 'La única cuenta en USA en Airbnb con más de 60,000 reseñas Superhost.',
       exploreAll: 'Explorar Todas las Propiedades',
     },
     // Footer
@@ -604,8 +604,8 @@ export const translations = {
     },
     // CTA
     cta: {
-      title: 'Pronto para Reservar sua Estadia?',
-      subtitle: 'Explore nossa coleção de aluguéis de temporada e hotéis boutique.',
+      title: 'Bueno, Bonito y Barato',
+      subtitle: 'A única conta nos EUA no Airbnb com mais de 60.000 avaliações Superhost.',
       exploreAll: 'Explorar Todas as Propriedades',
     },
     // Footer
