@@ -5,6 +5,9 @@ export const translations = {
     // Navigation
     nav: {
       properties: 'Stays',
+      locations: 'Locations',
+      deals: 'Deals',
+      help: 'Help',
       destinations: 'Destinations',
       about: 'Who We Are',
       contact: 'Contact',
@@ -244,6 +247,9 @@ export const translations = {
     // Navigation
     nav: {
       properties: 'Estadías',
+      locations: 'Ubicaciones',
+      deals: 'Ofertas',
+      help: 'Ayuda',
       destinations: 'Destinos',
       about: 'Quiénes Somos',
       contact: 'Contacto',
@@ -483,6 +489,9 @@ export const translations = {
     // Navigation
     nav: {
       properties: 'Estadias',
+      locations: 'Locais',
+      deals: 'Ofertas',
+      help: 'Ajuda',
       destinations: 'Destinos',
       about: 'Quem Somos',
       contact: 'Contato',

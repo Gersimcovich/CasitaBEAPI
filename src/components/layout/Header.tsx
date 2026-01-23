@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ShoppingCart, User, Trash2, LogOut, Award, Settings } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, Trash2, LogOut, Award, Settings, MapPin, Tag, HelpCircle, Building2, ChevronDown } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useCart } from '@/contexts/CartContext';
 import { useUser } from '@/contexts/UserContext';
@@ -18,7 +18,7 @@ export default function Header() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { t } = useLocale();
   const { cartItem, hasCartItem, clearCart } = useCart();
-  const { user, isAuthenticated, logout, isLoading: isUserLoading } = useUser();
+  const { user, isAuthenticated, logout } = useUser();
   const [isCartHovered, setIsCartHovered] = useState(false);
   const cartHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -31,7 +31,6 @@ export default function Header() {
   };
 
   const handleCartMouseLeave = () => {
-    // Small delay to allow mouse to move to dropdown
     cartHoverTimeoutRef.current = setTimeout(() => {
       setIsCartHovered(false);
     }, 150);
@@ -40,26 +39,18 @@ export default function Header() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
-      // Update scrolled state for shadow
       setIsScrolled(currentScrollY > 50);
-
-      // Hide on scroll down, show on scroll up
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        // Scrolling down & past threshold - hide header
         setIsHidden(true);
       } else {
-        // Scrolling up - show header
         setIsHidden(false);
       }
-
       setLastScrollY(currentScrollY);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
       setIsUserMenuOpen(false);
@@ -73,47 +64,74 @@ export default function Header() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white ${
-        isScrolled ? 'shadow-md py-3' : 'py-5'
+        isScrolled ? 'shadow-md' : ''
       } ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          {/* Logo - Black & Orange transparent */}
-          <Link href="/" className="flex items-center">
+        <div className="flex items-center justify-between h-16 lg:h-20">
+          {/* Logo */}
+          <Link href="/" className="flex items-center flex-shrink-0">
             <Image
               src="/casita-logo.png"
               alt="Casita"
-              width={140}
-              height={45}
-              className="h-10 w-auto"
+              width={120}
+              height={40}
+              className="h-8 lg:h-10 w-auto"
               priority
             />
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/properties"
-              className="font-medium transition-colors text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)]"
-            >
-              {t.nav.properties}
-            </Link>
-            <Link
-              href="/partner"
-              className="font-medium transition-colors text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)]"
-            >
-              {t.nav.partner}
-            </Link>
-            <Link
-              href="/contact"
-              className="font-medium transition-colors text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)]"
-            >
-              {t.nav.contact}
-            </Link>
+          {/* Desktop Navigation - Centered */}
+          <nav className="hidden lg:flex items-center justify-center flex-1 px-8">
+            <div className="flex items-center space-x-1">
+              {/* Stays */}
+              <Link
+                href="/properties"
+                className="flex items-center gap-2 px-4 py-2 text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] hover:bg-[var(--casita-cream)] rounded-lg transition-colors font-medium"
+              >
+                <Building2 className="w-4 h-4" />
+                {t.nav.properties}
+              </Link>
+
+              {/* Locations */}
+              <Link
+                href="/properties"
+                className="flex items-center gap-2 px-4 py-2 text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] hover:bg-[var(--casita-cream)] rounded-lg transition-colors font-medium"
+              >
+                <MapPin className="w-4 h-4" />
+                {t.nav.locations || 'Locations'}
+              </Link>
+
+              {/* Deals */}
+              <Link
+                href="/properties?deals=true"
+                className="flex items-center gap-2 px-4 py-2 text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] hover:bg-[var(--casita-cream)] rounded-lg transition-colors font-medium"
+              >
+                <Tag className="w-4 h-4" />
+                {t.nav.deals || 'Deals'}
+              </Link>
+
+              {/* Help */}
+              <Link
+                href="/help"
+                className="flex items-center gap-2 px-4 py-2 text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] hover:bg-[var(--casita-cream)] rounded-lg transition-colors font-medium"
+              >
+                <HelpCircle className="w-4 h-4" />
+                {t.nav.help || 'Help'}
+              </Link>
+            </div>
           </nav>
 
           {/* Right Side Actions */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-3">
+            {/* Partner CTA - Always visible */}
+            <Link
+              href="/partner"
+              className="px-4 py-2 text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] font-medium transition-colors whitespace-nowrap"
+            >
+              {t.nav.partner}
+            </Link>
+
             {/* Cart */}
             <div
               className="relative"
@@ -125,7 +143,7 @@ export default function Header() {
                 className={`inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors relative ${
                   hasCartItem
                     ? 'bg-orange-50 text-[var(--casita-orange)] hover:bg-orange-100'
-                    : 'text-[var(--casita-gray-700)] hover:bg-gray-100'
+                    : 'text-[var(--casita-gray-500)] hover:bg-gray-100'
                 }`}
               >
                 <ShoppingCart className="w-5 h-5" />
@@ -137,7 +155,6 @@ export default function Header() {
               {/* Cart Dropdown Preview */}
               {isCartHovered && hasCartItem && cartItem && (
                 <>
-                  {/* Invisible bridge to prevent gap issues */}
                   <div className="absolute right-0 top-full w-72 h-3" />
                   <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-[var(--casita-gray-100)] p-4 animate-scale-in z-50">
                     <div className="flex items-center justify-between mb-2">
@@ -191,109 +208,112 @@ export default function Header() {
                   e.stopPropagation();
                   setIsUserMenuOpen(!isUserMenuOpen);
                 }}
-                className={`flex items-center space-x-2 p-2 rounded-full border transition-colors hover:shadow-md ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-all hover:shadow-md ${
                   isAuthenticated
                     ? 'border-[var(--casita-orange)] bg-[var(--casita-orange)] text-white'
-                    : 'border-[var(--casita-gray-300)] text-[var(--casita-gray-700)]'
+                    : 'border-[var(--casita-gray-300)] text-[var(--casita-gray-700)] hover:border-[var(--casita-gray-400)]'
                 }`}
               >
                 <Menu className="w-4 h-4" />
                 {isAuthenticated && user ? (
-                  <span className="w-6 h-6 bg-white text-[var(--casita-orange)] rounded-full flex items-center justify-center text-xs font-semibold">
+                  <span className="w-7 h-7 bg-white text-[var(--casita-orange)] rounded-full flex items-center justify-center text-sm font-semibold">
                     {user.firstName[0]}
                   </span>
                 ) : (
                   <User className="w-5 h-5" />
                 )}
+                <ChevronDown className="w-3 h-3 opacity-60" />
               </button>
 
-              {/* Dropdown */}
+              {/* User Dropdown */}
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-[var(--casita-gray-100)] py-2 animate-scale-in">
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-[var(--casita-gray-100)] py-2 animate-scale-in">
                   {isAuthenticated && user ? (
                     <>
-                      {/* Logged in user */}
+                      {/* Logged in user header */}
                       <div className="px-4 py-3 border-b border-[var(--casita-gray-100)]">
-                        <p className="font-medium text-[var(--casita-gray-900)]">{user.firstName} {user.lastName}</p>
+                        <p className="font-semibold text-[var(--casita-gray-900)]">{user.firstName} {user.lastName}</p>
                         <p className="text-sm text-[var(--casita-gray-500)] truncate">{user.email}</p>
-                        <div className="flex items-center gap-1 mt-1">
+                        <div className="flex items-center gap-1 mt-2 bg-[var(--casita-cream)] px-2 py-1 rounded-lg w-fit">
                           <Award className="w-4 h-4 text-[var(--casita-orange)]" />
-                          <span className="text-sm font-medium text-[var(--casita-orange)]">{user.casitaPoints.toLocaleString()} pts</span>
+                          <span className="text-sm font-semibold text-[var(--casita-orange)]">{user.casitaPoints.toLocaleString()} pts</span>
                         </div>
                       </div>
-                      <Link
-                        href="/account"
-                        className="flex items-center gap-2 px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                      >
-                        <User className="w-4 h-4" />
-                        {t.nav.myAccount || 'My Account'}
-                      </Link>
-                      <Link
-                        href="/account"
-                        className="flex items-center gap-2 px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                      >
-                        <Settings className="w-4 h-4" />
-                        {t.nav.settings || 'Settings'}
-                      </Link>
-                      <hr className="my-2 border-[var(--casita-gray-100)]" />
-                      <Link
-                        href="/partner"
-                        className="block px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                      >
-                        List your property
-                      </Link>
-                      <Link
-                        href="/help"
-                        className="block px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                      >
-                        {t.footer.helpCenter}
-                      </Link>
-                      <hr className="my-2 border-[var(--casita-gray-100)]" />
-                      <button
-                        onClick={async () => {
-                          await logout();
-                          setIsUserMenuOpen(false);
-                        }}
-                        className="flex items-center gap-2 w-full px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        {t.nav.logout || 'Log out'}
-                      </button>
+                      <div className="py-1">
+                        <Link
+                          href="/account"
+                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <User className="w-4 h-4" />
+                          {t.nav.myAccount || 'My Account'}
+                        </Link>
+                        <Link
+                          href="/account"
+                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <Settings className="w-4 h-4" />
+                          {t.nav.settings || 'Settings'}
+                        </Link>
+                      </div>
+                      <hr className="my-1 border-[var(--casita-gray-100)]" />
+                      <div className="py-1">
+                        <Link
+                          href="/help"
+                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <HelpCircle className="w-4 h-4" />
+                          {t.footer.helpCenter}
+                        </Link>
+                      </div>
+                      <hr className="my-1 border-[var(--casita-gray-100)]" />
+                      <div className="py-1">
+                        <button
+                          onClick={async () => {
+                            await logout();
+                            setIsUserMenuOpen(false);
+                          }}
+                          className="flex items-center gap-3 w-full px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          {t.nav.logout || 'Log out'}
+                        </button>
+                      </div>
                     </>
                   ) : (
                     <>
                       {/* Guest user */}
-                      <button
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          setIsAuthModalOpen(true);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                      >
-                        {t.nav.login}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          setIsAuthModalOpen(true);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                      >
-                        {t.nav.signup}
-                      </button>
-                      <hr className="my-2 border-[var(--casita-gray-100)]" />
-                      <Link
-                        href="/partner"
-                        className="block px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                      >
-                        List your property
-                      </Link>
-                      <Link
-                        href="/help"
-                        className="block px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                      >
-                        {t.footer.helpCenter}
-                      </Link>
+                      <div className="py-1">
+                        <button
+                          onClick={() => {
+                            setIsUserMenuOpen(false);
+                            setIsAuthModalOpen(true);
+                          }}
+                          className="flex items-center gap-3 w-full px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] font-medium"
+                        >
+                          <User className="w-4 h-4" />
+                          {t.nav.login}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsUserMenuOpen(false);
+                            setIsAuthModalOpen(true);
+                          }}
+                          className="flex items-center gap-3 w-full px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <Award className="w-4 h-4" />
+                          {t.nav.signup}
+                        </button>
+                      </div>
+                      <hr className="my-1 border-[var(--casita-gray-100)]" />
+                      <div className="py-1">
+                        <Link
+                          href="/help"
+                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <HelpCircle className="w-4 h-4" />
+                          {t.footer.helpCenter}
+                        </Link>
+                      </div>
                     </>
                   )}
                 </div>
@@ -304,7 +324,7 @@ export default function Header() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg transition-colors text-[var(--casita-gray-700)]"
+            className="lg:hidden p-2 rounded-lg transition-colors text-[var(--casita-gray-700)]"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -312,89 +332,142 @@ export default function Header() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 bg-white rounded-xl shadow-lg p-4 animate-scale-in">
-            <nav className="flex flex-col space-y-2">
-              <Link
-                href="/properties"
-                className="px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-lg"
-              >
-                {t.nav.properties}
-              </Link>
-              <Link
-                href="/partner"
-                className="px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-lg"
-              >
-                {t.nav.partner}
-              </Link>
-              <Link
-                href="/contact"
-                className="px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-lg"
-              >
-                {t.nav.contact}
-              </Link>
-              {/* Mobile Cart */}
+          <div className="lg:hidden bg-white rounded-b-xl shadow-lg border-t border-[var(--casita-gray-100)] animate-scale-in">
+            <nav className="py-4 px-2">
+              {/* Main Nav Links */}
+              <div className="space-y-1 mb-4">
+                <Link
+                  href="/properties"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-cream)] rounded-xl font-medium"
+                >
+                  <Building2 className="w-5 h-5 text-[var(--casita-orange)]" />
+                  {t.nav.properties}
+                </Link>
+                <Link
+                  href="/properties"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-cream)] rounded-xl font-medium"
+                >
+                  <MapPin className="w-5 h-5 text-[var(--casita-orange)]" />
+                  {t.nav.locations || 'Locations'}
+                </Link>
+                <Link
+                  href="/properties?deals=true"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-cream)] rounded-xl font-medium"
+                >
+                  <Tag className="w-5 h-5 text-[var(--casita-orange)]" />
+                  {t.nav.deals || 'Deals'}
+                </Link>
+                <Link
+                  href="/help"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-cream)] rounded-xl font-medium"
+                >
+                  <HelpCircle className="w-5 h-5 text-[var(--casita-orange)]" />
+                  {t.nav.help || 'Help'}
+                </Link>
+              </div>
+
+              {/* Partner CTA */}
+              <div className="px-2 mb-4">
+                <Link
+                  href="/partner"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block w-full px-4 py-3 text-center border-2 border-[var(--casita-orange)] text-[var(--casita-orange)] rounded-xl font-semibold hover:bg-[var(--casita-orange)] hover:text-white transition-colors"
+                >
+                  {t.nav.partner}
+                </Link>
+              </div>
+
+              {/* Cart */}
               {hasCartItem && cartItem && (
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/property/${cartItem.propertySlug}`}
-                    className="flex-1 px-4 py-3 text-[var(--casita-orange)] hover:bg-[var(--casita-orange)] hover:bg-opacity-10 rounded-lg flex items-center gap-2"
-                  >
-                    <ShoppingCart className="w-5 h-5" />
-                    <span>Continue booking: {cartItem.propertyName.substring(0, 20)}...</span>
-                  </Link>
-                  <button
-                    onClick={() => clearCart()}
-                    className="p-3 text-[var(--casita-gray-400)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Remove from cart"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                <div className="px-2 mb-4">
+                  <div className="flex items-center gap-2 p-3 bg-[var(--casita-cream)] rounded-xl">
+                    <Link
+                      href={`/property/${cartItem.propertySlug}`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex-1 flex items-center gap-3"
+                    >
+                      <ShoppingCart className="w-5 h-5 text-[var(--casita-orange)]" />
+                      <span className="text-sm font-medium text-[var(--casita-gray-700)] truncate">
+                        Continue: {cartItem.propertyName.substring(0, 25)}...
+                      </span>
+                    </Link>
+                    <button
+                      onClick={() => clearCart()}
+                      className="p-2 text-[var(--casita-gray-400)] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               )}
-              <hr className="my-2 border-[var(--casita-gray-100)]" />
-              {isAuthenticated && user ? (
-                <>
-                  <Link
-                    href="/account"
-                    className="px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-lg flex items-center gap-2"
-                  >
-                    <User className="w-5 h-5" />
-                    {t.nav.myAccount || 'My Account'}
-                    <span className="ml-auto text-[var(--casita-orange)] text-sm font-medium">{user.casitaPoints.toLocaleString()} pts</span>
-                  </Link>
-                  <button
-                    onClick={async () => {
-                      await logout();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-lg flex items-center gap-2"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    {t.nav.logout || 'Log out'}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      setIsAuthModalOpen(true);
-                    }}
-                    className="w-full px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-lg text-left"
-                  >
-                    {t.nav.login}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      setIsAuthModalOpen(true);
-                    }}
-                    className="px-4 py-3 bg-[var(--casita-orange)] text-white rounded-lg text-center font-medium"
-                  >
-                    {t.nav.signup}
-                  </button>
-                </>
-              )}
+
+              {/* Divider */}
+              <hr className="mx-4 my-4 border-[var(--casita-gray-100)]" />
+
+              {/* User Section */}
+              <div className="px-2">
+                {isAuthenticated && user ? (
+                  <>
+                    {/* Logged in user */}
+                    <div className="flex items-center gap-3 px-4 py-3 bg-[var(--casita-cream)] rounded-xl mb-3">
+                      <div className="w-10 h-10 bg-[var(--casita-orange)] text-white rounded-full flex items-center justify-center font-semibold">
+                        {user.firstName[0]}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-[var(--casita-gray-900)]">{user.firstName}</p>
+                        <div className="flex items-center gap-1">
+                          <Award className="w-3 h-3 text-[var(--casita-orange)]" />
+                          <span className="text-xs font-medium text-[var(--casita-orange)]">{user.casitaPoints.toLocaleString()} pts</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Link
+                      href="/account"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-xl"
+                    >
+                      <User className="w-5 h-5" />
+                      {t.nav.myAccount || 'My Account'}
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        await logout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-xl"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      {t.nav.logout || 'Log out'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* Guest user */}
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setIsAuthModalOpen(true);
+                      }}
+                      className="w-full px-4 py-3 bg-[var(--casita-orange)] text-white rounded-xl font-semibold mb-2"
+                    >
+                      {t.nav.signup}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setIsAuthModalOpen(true);
+                      }}
+                      className="w-full px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-xl font-medium"
+                    >
+                      {t.nav.login}
+                    </button>
+                  </>
+                )}
+              </div>
             </nav>
           </div>
         )}
