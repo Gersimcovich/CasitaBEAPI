@@ -237,21 +237,21 @@ const cachedTokens: { [key: number]: { token: string; expiresAt: number } | null
   3: null,
 };
 
-// Listings cache - 4 hours (increased to reduce API calls during rate limiting)
+// Listings cache - 12 hours (properties rarely change)
 let cachedListings: { data: GuestyListing[]; expiresAt: number } | null = null;
-const LISTINGS_CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 hours
+const LISTINGS_CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
 
-// Individual listing cache
+// Individual listing cache - 6 hours
 const listingCache = new Map<string, { data: GuestyListing; expiresAt: number }>();
-const LISTING_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+const LISTING_CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
 
-// Calendar cache - increased to 1 hour to reduce API load
+// Calendar cache - 6 hours (availability doesn't change that frequently)
 const calendarCache = new Map<string, { data: CalendarDay[]; expiresAt: number }>();
-const CALENDAR_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+const CALENDAR_CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
 
-// Quote cache
+// Quote cache - 2 hours (quotes valid for 24h in Guesty)
 const quoteCache = new Map<string, { data: ReservationQuote; expiresAt: number }>();
-const QUOTE_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes (quotes valid for 24h)
+const QUOTE_CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 hours
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -1364,7 +1364,7 @@ export interface GuestyReview {
 
 // Reviews cache
 const reviewsCache = new Map<string, { data: GuestyReview[]; expiresAt: number }>();
-const REVIEWS_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+const REVIEWS_CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours (reviews don't change often)
 
 export async function getReviews(listingId: string): Promise<GuestyReview[]> {
   // Check cache
@@ -1400,7 +1400,7 @@ export async function getReviews(listingId: string): Promise<GuestyReview[]> {
 
 // Cities cache
 let cachedCities: { data: string[]; expiresAt: number } | null = null;
-const CITIES_CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 hours
+const CITIES_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours (cities almost never change)
 
 /**
  * Get cities from listings
