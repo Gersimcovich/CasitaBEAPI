@@ -77,6 +77,7 @@ const translations = {
     createYourAccount: 'Create your account',
     joinCasita: 'Join Casita to track your reservations and earn points.',
     codeExpires: 'Code expires in 10 minutes',
+    accountNotFound: 'No account found with this email. Let\'s create one!',
   },
   es: {
     signIn: 'Iniciar Sesion',
@@ -103,6 +104,7 @@ const translations = {
     createYourAccount: 'Crea tu cuenta',
     joinCasita: 'Unete a Casita para seguir tus reservas y ganar puntos.',
     codeExpires: 'El codigo expira en 10 minutos',
+    accountNotFound: 'No encontramos una cuenta con este correo. ¡Vamos a crear una!',
   },
   pt: {
     signIn: 'Entrar',
@@ -129,6 +131,7 @@ const translations = {
     createYourAccount: 'Crie sua conta',
     joinCasita: 'Junte-se a Casita para acompanhar suas reservas e ganhar pontos.',
     codeExpires: 'O codigo expira em 10 minutos',
+    accountNotFound: 'Nao encontramos uma conta com este email. Vamos criar uma!',
   },
 };
 
@@ -141,6 +144,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAccountNotFound, setShowAccountNotFound] = useState(false);
 
   // Form data
   const [email, setEmail] = useState('');
@@ -167,6 +171,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       setCountry('');
       setPreferredLanguage(locale);
       setVerificationCode(['', '', '', '', '', '']);
+      setShowAccountNotFound(false);
     }
   }, [isOpen, locale]);
 
@@ -187,6 +192,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         const result = await login(email);
         if (result.requiresRegistration) {
           setIsLogin(false);
+          setShowAccountNotFound(true);
           setStep('register');
         } else if (result.success) {
           setStep('verify');
@@ -331,15 +337,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Modal */}
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      {/* Modal container - centers modal vertically and horizontally */}
+      <div className="flex min-h-full items-center justify-center p-4">
+        {/* Modal */}
+        <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="relative p-6 pb-4 border-b border-[var(--casita-gray-100)]">
           {step !== 'email' && (
@@ -427,6 +435,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           {/* Register Step */}
           {step === 'register' && (
             <form onSubmit={handleRegisterSubmit}>
+              {/* Show info message when user was redirected from login */}
+              {showAccountNotFound && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-sm">
+                  {t.accountNotFound}
+                </div>
+              )}
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -576,6 +590,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </form>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
