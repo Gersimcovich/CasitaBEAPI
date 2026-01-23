@@ -280,7 +280,7 @@ export default function BookingWidget({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-[var(--casita-gray-100)] p-6 sticky top-24">
+    <div className="bg-white rounded-2xl shadow-xl border border-[var(--casita-gray-100)] p-4 sm:p-6 sticky top-20 md:top-24">
       {/* Price Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -323,8 +323,8 @@ export default function BookingWidget({
 
         {/* Date inputs */}
         {!isLoadingCalendar && !calendarError && (
-          <div className="grid grid-cols-2 divide-x divide-[var(--casita-gray-200)]">
-            <div className="p-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[var(--casita-gray-200)]">
+            <div className="p-3 sm:p-3">
               <label className="block text-xs font-semibold text-[var(--casita-gray-700)] uppercase mb-1">
                 Check-in
               </label>
@@ -352,7 +352,7 @@ export default function BookingWidget({
                 inline={false}
               />
             </div>
-            <div className="p-3">
+            <div className="p-3 sm:p-3">
               <label className="block text-xs font-semibold text-[var(--casita-gray-700)] uppercase mb-1">
                 Check-out
               </label>

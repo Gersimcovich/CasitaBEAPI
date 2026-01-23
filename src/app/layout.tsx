@@ -1,9 +1,19 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Cormorant_Garamond } from "next/font/google";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { CartProvider } from "@/contexts/CartContext";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import "./globals.css";
+
+// Viewport configuration for mobile optimization
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover", // For iPhone notch/Dynamic Island
+  themeColor: "#E8A07A", // Casita orange for browser UI
+};
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -62,6 +72,17 @@ export const metadata: Metadata = {
       { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: '/apple-touch-icon.png',
+  },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Casita',
+  },
+  formatDetection: {
+    telephone: true,
+    email: true,
+    address: true,
   },
 };
 
