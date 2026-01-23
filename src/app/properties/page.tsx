@@ -80,7 +80,7 @@ function PropertiesContent() {
   const [priceRange, setPriceRange] = useState<[number, number]>([urlMinPrice || 0, urlMaxPrice || 2000]);
   const [minRating, setMinRating] = useState(0);
   const [searchQuery, setSearchQuery] = useState(urlDestination);
-  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(urlDestination || null);
   const [guestFilter, setGuestFilter] = useState<number | null>(urlGuests);
   const [checkInDate, setCheckInDate] = useState<Date | null>(urlCheckIn ? new Date(urlCheckIn) : null);
   const [checkOutDate, setCheckOutDate] = useState<Date | null>(urlCheckOut ? new Date(urlCheckOut) : null);
@@ -298,10 +298,41 @@ function PropertiesContent() {
     window.location.href = `/properties?${params.toString()}`;
   };
 
+  // Clear location and update URL
+  const clearLocation = () => {
+    setSelectedLocation(null);
+    setSearchQuery('');
+    // Update URL to remove destination param
+    const params = new URLSearchParams(window.location.search);
+    params.delete('destination');
+    const newUrl = params.toString() ? `/properties?${params.toString()}` : '/properties';
+    window.history.replaceState({}, '', newUrl);
+  };
+
   // Shared search header component - compact inline style for properties page
   const SearchHeader = () => (
     <div className="pt-20 md:pt-24 bg-[var(--casita-gray-50)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        {/* Selected Location Pill */}
+        {selectedLocation && (
+          <div className="mb-3 flex items-center gap-2">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--casita-orange)] text-white rounded-full font-medium">
+              <MapPin className="w-4 h-4" />
+              <span>{selectedLocation}</span>
+              <button
+                onClick={clearLocation}
+                className="ml-1 hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                aria-label="Clear location"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <span className="text-sm text-[var(--casita-gray-500)]">
+              Showing stays in {selectedLocation}
+            </span>
+          </div>
+        )}
+
         {/* Compact inline search bar */}
         <div className="bg-white rounded-xl shadow-sm border border-[var(--casita-gray-200)] p-3 mb-4">
           {/* Row 1: Search fields */}
