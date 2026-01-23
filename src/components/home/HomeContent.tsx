@@ -340,7 +340,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
                 <DollarSign className="w-8 h-8 text-[var(--casita-turquoise)]" />
               </div>
               <h3 className="font-semibold text-[var(--casita-gray-900)]">No Fees</h3>
-              <p className="text-sm text-[var(--casita-gray-500)] mt-1">You book direct here</p>
+              <p className="text-sm text-[var(--casita-gray-500)] mt-1">When you book direct here vs other OTAs</p>
             </div>
 
             {/* Pay Over Time */}
