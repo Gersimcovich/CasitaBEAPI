@@ -75,8 +75,41 @@ function CheckoutContent() {
     lastName: '',
     email: '',
     phone: '',
+    country: '',
     notes: '',
   });
+
+  // Country list for tracking customer origins
+  const countries = [
+    { code: 'US', name: 'United States' },
+    { code: 'AR', name: 'Argentina' },
+    { code: 'BR', name: 'Brazil' },
+    { code: 'CA', name: 'Canada' },
+    { code: 'CL', name: 'Chile' },
+    { code: 'CO', name: 'Colombia' },
+    { code: 'CR', name: 'Costa Rica' },
+    { code: 'CU', name: 'Cuba' },
+    { code: 'DO', name: 'Dominican Republic' },
+    { code: 'EC', name: 'Ecuador' },
+    { code: 'SV', name: 'El Salvador' },
+    { code: 'GT', name: 'Guatemala' },
+    { code: 'HN', name: 'Honduras' },
+    { code: 'MX', name: 'Mexico' },
+    { code: 'NI', name: 'Nicaragua' },
+    { code: 'PA', name: 'Panama' },
+    { code: 'PY', name: 'Paraguay' },
+    { code: 'PE', name: 'Peru' },
+    { code: 'PR', name: 'Puerto Rico' },
+    { code: 'ES', name: 'Spain' },
+    { code: 'UY', name: 'Uruguay' },
+    { code: 'VE', name: 'Venezuela' },
+    { code: 'PT', name: 'Portugal' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'FR', name: 'France' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'IT', name: 'Italy' },
+    { code: 'OTHER', name: 'Other' },
+  ];
 
   // Payment state
   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
@@ -198,6 +231,7 @@ function CheckoutContent() {
             lastName: guestInfo.lastName,
             email: guestInfo.email,
             phone: guestInfo.phone,
+            country: guestInfo.country,
           },
           bookingType: 'instant',
           paymentIntentId, // Stripe PaymentIntent ID for capture
@@ -472,18 +506,37 @@ function CheckoutContent() {
                     </p>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-1">
-                      <Phone className="w-4 h-4 inline mr-1" />
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      value={guestInfo.phone}
-                      onChange={(e) => setGuestInfo({ ...guestInfo, phone: e.target.value })}
-                      placeholder="+1 (555) 123-4567"
-                      className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl text-[var(--casita-gray-900)] focus:outline-none focus:ring-2 focus:ring-[var(--casita-orange)]/20 focus:border-[var(--casita-orange)]"
-                    />
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-1">
+                        <Phone className="w-4 h-4 inline mr-1" />
+                        Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        value={guestInfo.phone}
+                        onChange={(e) => setGuestInfo({ ...guestInfo, phone: e.target.value })}
+                        placeholder="+1 (555) 123-4567"
+                        className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl text-[var(--casita-gray-900)] focus:outline-none focus:ring-2 focus:ring-[var(--casita-orange)]/20 focus:border-[var(--casita-orange)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-1">
+                        Country of Residence *
+                      </label>
+                      <select
+                        value={guestInfo.country}
+                        onChange={(e) => setGuestInfo({ ...guestInfo, country: e.target.value })}
+                        className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl text-[var(--casita-gray-900)] focus:outline-none focus:ring-2 focus:ring-[var(--casita-orange)]/20 focus:border-[var(--casita-orange)] bg-white"
+                      >
+                        <option value="">Select your country</option>
+                        {countries.map((country) => (
+                          <option key={country.code} value={country.code}>
+                            {country.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div>
@@ -536,7 +589,7 @@ function CheckoutContent() {
                       onError={handlePaymentError}
                       isSubmitting={isSubmitting}
                       setIsSubmitting={setIsSubmitting}
-                      guestInfoComplete={!!(guestInfo.firstName && guestInfo.lastName && guestInfo.email)}
+                      guestInfoComplete={!!(guestInfo.firstName && guestInfo.lastName && guestInfo.email && guestInfo.country)}
                     />
                   </Elements>
                 ) : (
