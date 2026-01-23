@@ -9,11 +9,13 @@ interface LocaleContextType {
   setLocale: (locale: Locale) => void;
   formatPrice: (priceUSD: number) => string;
   isLoading: boolean;
+  detectedCountry: string | null;
 }
 
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'casita-locale-preferences';
+const GEO_DETECTED_KEY = 'casita-geo-detected';
 
 interface StoredPreferences {
   locale: Locale;
@@ -22,8 +24,9 @@ interface StoredPreferences {
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('en');
   const [isLoading, setIsLoading] = useState(true);
+  const [detectedCountry, setDetectedCountry] = useState<string | null>(null);
 
-  // Load preferences from storage
+  // Load preferences from storage or detect via geolocation
   useEffect(() => {
     async function initializeLocale() {
       // Check localStorage for saved locale preference
@@ -33,11 +36,49 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
           const prefs: StoredPreferences = JSON.parse(stored);
           if (prefs.locale) {
             setLocaleState(prefs.locale);
+            setIsLoading(false);
+            return;
           }
         } catch (e) {
           console.error('Error parsing stored preferences:', e);
         }
       }
+
+      // No saved preference - check if we already detected geo for this session
+      const geoDetected = sessionStorage.getItem(GEO_DETECTED_KEY);
+      if (geoDetected) {
+        try {
+          const geoData = JSON.parse(geoDetected);
+          if (geoData.locale) {
+            setLocaleState(geoData.locale);
+            setDetectedCountry(geoData.country);
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.error('Error parsing geo detection:', e);
+        }
+      }
+
+      // First visit - detect language via IP geolocation
+      try {
+        const response = await fetch('/api/geolocation');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.locale && ['en', 'es', 'pt'].includes(data.locale)) {
+            setLocaleState(data.locale as Locale);
+            setDetectedCountry(data.country);
+            // Store in sessionStorage so we don't re-detect on every page load
+            sessionStorage.setItem(GEO_DETECTED_KEY, JSON.stringify({
+              locale: data.locale,
+              country: data.country,
+            }));
+          }
+        }
+      } catch (e) {
+        console.error('Error detecting locale via geolocation:', e);
+      }
+
       setIsLoading(false);
     }
 
@@ -72,6 +113,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
         setLocale,
         formatPrice,
         isLoading,
+        detectedCountry,
       }}
     >
       {children}
