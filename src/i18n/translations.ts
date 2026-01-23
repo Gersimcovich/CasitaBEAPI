@@ -20,8 +20,8 @@ export const translations = {
     },
     // Hero
     hero: {
-      title: 'Vacation Rentals & Boutique Hotels',
-      subtitle: 'No booking fees · Pay over time options available',
+      title: 'Book Direct. Save More.',
+      subtitle: 'Vacation rentals, boutique hotels & unique stays',
     },
     // Search
     search: {
@@ -262,8 +262,8 @@ export const translations = {
     },
     // Hero
     hero: {
-      title: 'Alquileres Vacacionales y Hoteles Boutique',
-      subtitle: 'Sin comisiones · Opciones de pago a plazos disponibles',
+      title: 'Reserva Directo. Ahorra Más.',
+      subtitle: 'Alquileres vacacionales, hoteles boutique y estadías únicas',
     },
     // Search
     search: {
@@ -504,8 +504,8 @@ export const translations = {
     },
     // Hero
     hero: {
-      title: 'Aluguéis de Temporada e Hotéis Boutique',
-      subtitle: 'Sem taxas de reserva · Opções de parcelamento disponíveis',
+      title: 'Reserve Direto. Economize Mais.',
+      subtitle: 'Aluguéis de temporada, hotéis boutique e estadias únicas',
     },
     // Search
     search: {
