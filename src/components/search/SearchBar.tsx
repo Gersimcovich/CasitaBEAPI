@@ -310,8 +310,9 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                       selected={checkOut}
                       onChange={(date: Date | null) => {
                         setCheckOut(date);
+                        // Auto-advance to guests step when both dates are selected
                         if (date && checkIn) {
-                          handleDatesComplete();
+                          setTimeout(() => setStep('guests'), 300);
                         }
                       }}
                       selectsEnd
@@ -324,14 +325,6 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                     />
                   </div>
                 </div>
-                {checkIn && checkOut && (
-                  <button
-                    onClick={handleDatesComplete}
-                    className="px-4 py-2 bg-[var(--casita-orange)] text-white rounded-full text-sm font-medium hover:bg-[var(--casita-orange-dark)] transition-colors"
-                  >
-                    Next
-                  </button>
-                )}
               </div>
             )}
 
