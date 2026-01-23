@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -9,7 +8,6 @@ import {
   Star,
   TrendingUp,
   Shield,
-  Headphones,
   Send,
   CheckCircle,
   Building2,
@@ -38,10 +36,9 @@ export default function PartnerPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [totalReviews, setTotalReviews] = useState(60777); // Default fallback
-  const [totalGuestsHosted, setTotalGuestsHosted] = useState(182331); // Default fallback
+  const [totalReviews, setTotalReviews] = useState(60777);
+  const [totalGuestsHosted, setTotalGuestsHosted] = useState(182331);
 
-  // Fetch stats on mount (cached for 24 hours on server)
   useEffect(() => {
     async function fetchStats() {
       try {
@@ -57,7 +54,6 @@ export default function PartnerPage() {
         }
       } catch (error) {
         console.error('Failed to fetch stats:', error);
-        // Keep default values
       }
     }
     fetchStats();
@@ -111,7 +107,6 @@ export default function PartnerPage() {
               allowFullScreen
             />
           </div>
-          {/* Dark overlay for text readability */}
           <div className="absolute inset-0 bg-black/70" />
         </div>
 
@@ -119,14 +114,14 @@ export default function PartnerPage() {
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-[var(--casita-orange)]/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
               <Award className="w-5 h-5 text-[var(--casita-orange)]" />
-              <span className="text-[var(--casita-orange)] font-semibold">Florida's Largest Superhost</span>
+              <span className="text-[var(--casita-orange)] font-semibold">{t.partner.badge}</span>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-              Is Your Property on the<br />
-              <span className="text-[var(--casita-orange)]">First Page of Airbnb?</span>
+              {t.partner.heroTitle1}<br />
+              <span className="text-[var(--casita-orange)]">{t.partner.heroTitle2}</span>
             </h1>
             <p className="text-xl text-white/80 max-w-3xl mx-auto mb-8">
-              With Casita, it would be. Leverage our 60,000+ positive reviews and Superhost status to maximize your property's visibility and revenue.
+              {t.partner.heroSubtitle}
             </p>
           </div>
 
@@ -134,15 +129,15 @@ export default function PartnerPage() {
           <div className="grid grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto">
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
               <div className="text-3xl md:text-4xl font-bold text-[var(--casita-orange)] mb-2">60K+</div>
-              <div className="text-white/70 text-sm">5-Star Reviews</div>
+              <div className="text-white/70 text-sm">{t.partner.stat1}</div>
             </div>
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
               <div className="text-3xl md:text-4xl font-bold text-[var(--casita-orange)] mb-2">$50M+</div>
-              <div className="text-white/70 text-sm">Gross Revenue</div>
+              <div className="text-white/70 text-sm">{t.partner.stat2}</div>
             </div>
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
               <div className="text-3xl md:text-4xl font-bold text-[var(--casita-orange)] mb-2">99.4%</div>
-              <div className="text-white/70 text-sm">Occupancy Rate</div>
+              <div className="text-white/70 text-sm">{t.partner.stat3}</div>
             </div>
           </div>
         </div>
@@ -155,13 +150,13 @@ export default function PartnerPage() {
             <div>
               <div className="inline-flex items-center gap-2 text-[var(--casita-orange)] mb-4">
                 <Star className="w-5 h-5 fill-current" />
-                <span className="font-semibold uppercase tracking-wider text-sm">The Superhost Advantage</span>
+                <span className="font-semibold uppercase tracking-wider text-sm">{t.partner.superhostBadge}</span>
               </div>
               <h2 className="text-3xl md:text-4xl font-bold text-[var(--casita-gray-900)] mb-6">
-                Your Property Deserves First Page Visibility
+                {t.partner.superhostTitle}
               </h2>
               <p className="text-lg text-[var(--casita-gray-600)] mb-8">
-                As a Preferred Airbnb Partner with Florida's largest Superhost account, Casita maintains direct contact with Airbnb corporate and was invited to speak at Airbnb's first Superhost Panel in Miami.
+                {t.partner.superhostDesc}
               </p>
 
               <div className="space-y-4">
@@ -170,8 +165,8 @@ export default function PartnerPage() {
                     <Eye className="w-6 h-6 text-[var(--casita-orange)]" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">1st Page Visibility</h3>
-                    <p className="text-[var(--casita-gray-600)] text-sm">Our SEO, listing optimization, and reputation management keeps listings at the top of search results with 500K+ monthly impressions.</p>
+                    <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">{t.partner.visibility}</h3>
+                    <p className="text-[var(--casita-gray-600)] text-sm">{t.partner.visibilityDesc}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -179,8 +174,8 @@ export default function PartnerPage() {
                     <TrendingUp className="w-6 h-6 text-[var(--casita-orange)]" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Boost Sales by 30%</h3>
-                    <p className="text-[var(--casita-gray-600)] text-sm">Using dynamic pricing, we achieve occupancy rates 33.6% higher than competitors, turning unsold rooms into revenue.</p>
+                    <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">{t.partner.boostSales}</h3>
+                    <p className="text-[var(--casita-gray-600)] text-sm">{t.partner.boostSalesDesc}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -188,8 +183,8 @@ export default function PartnerPage() {
                     <Award className="w-6 h-6 text-[var(--casita-orange)]" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Priority Placement</h3>
-                    <p className="text-[var(--casita-gray-600)] text-sm">Our Superhost status secures priority placement and features in Airbnb newsletters, driving more bookings to your property.</p>
+                    <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">{t.partner.priorityPlacement}</h3>
+                    <p className="text-[var(--casita-gray-600)] text-sm">{t.partner.priorityPlacementDesc}</p>
                   </div>
                 </div>
               </div>
@@ -198,29 +193,28 @@ export default function PartnerPage() {
             {/* Visual stats card */}
             <div className="bg-gradient-to-br from-[var(--casita-gray-50)] to-white rounded-3xl p-8 border border-[var(--casita-gray-100)]">
               <div className="text-center mb-8">
-                {/* Airbnb Superhost Badge */}
                 <img
                   src="/airbnb-superhost.png"
                   alt="Airbnb Superhost"
                   className="h-24 md:h-32 w-auto mx-auto mb-4"
                 />
                 <div className="text-5xl font-bold text-[var(--casita-gray-900)] mb-2">{totalReviews.toLocaleString()}</div>
-                <div className="text-[var(--casita-gray-500)]">reviews</div>
+                <div className="text-[var(--casita-gray-500)]">{t.partner.reviews}</div>
               </div>
 
               <div className="space-y-4">
                 <div className="bg-white rounded-xl p-4 border border-[var(--casita-gray-100)]">
-                  <div className="text-sm text-[var(--casita-gray-500)] mb-2">1st Page Impressions</div>
+                  <div className="text-sm text-[var(--casita-gray-500)] mb-2">{t.partner.impressions}</div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[var(--casita-gray-700)]">Monthly Avg</span>
+                    <span className="text-[var(--casita-gray-700)]">{t.partner.monthlyAvg}</span>
                     <span className="text-[var(--casita-orange)] font-semibold">536,289 imp</span>
                   </div>
                 </div>
                 <div className="bg-white rounded-xl p-4 border border-[var(--casita-gray-100)]">
-                  <div className="text-sm text-[var(--casita-gray-500)] mb-2">Guests Hosted</div>
+                  <div className="text-sm text-[var(--casita-gray-500)] mb-2">{t.partner.guestsHosted}</div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[var(--casita-gray-700)]">Total</span>
-                    <span className="text-green-600 font-semibold">{totalGuestsHosted.toLocaleString()} guests</span>
+                    <span className="text-[var(--casita-gray-700)]">{t.partner.total}</span>
+                    <span className="text-green-600 font-semibold">{totalGuestsHosted.toLocaleString()} {t.partner.guests}</span>
                   </div>
                 </div>
               </div>
@@ -235,13 +229,13 @@ export default function PartnerPage() {
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 bg-[var(--casita-orange)]/10 px-4 py-2 rounded-full mb-4">
               <Zap className="w-4 h-4 text-[var(--casita-orange)]" />
-              <span className="text-[var(--casita-orange)] font-semibold text-sm">Powered by AI & Software</span>
+              <span className="text-[var(--casita-orange)] font-semibold text-sm">{t.partner.servicesBadge}</span>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-[var(--casita-gray-900)] mb-4">
-              Comprehensive Property Solutions
+              {t.partner.servicesTitle}
             </h2>
             <p className="text-lg text-[var(--casita-gray-600)] max-w-3xl mx-auto">
-              Casita leverages proprietary technology and industry-leading third-party software to guarantee the best ADR and occupancy rates across our entire portfolio.
+              {t.partner.servicesDesc}
             </p>
           </div>
 
@@ -252,15 +246,15 @@ export default function PartnerPage() {
                 <BarChart3 className="w-7 h-7 text-blue-600" />
               </div>
               <h3 className="text-xl font-semibold text-[var(--casita-gray-900)] mb-3">
-                Airbnb & Booking.com Management
+                {t.partner.channelTitle}
               </h3>
               <p className="text-[var(--casita-gray-600)] mb-4">
-                Unlock new booking opportunities with our specialized channel management solution, designed to seamlessly connect and optimize listings across platforms.
+                {t.partner.channelDesc}
               </p>
               <ul className="space-y-2 text-sm text-[var(--casita-gray-600)]">
-                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Listing optimization</li>
-                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Dynamic pricing</li>
-                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Multi-platform sync</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.channelItem1}</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.channelItem2}</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.channelItem3}</li>
               </ul>
             </div>
 
@@ -270,16 +264,16 @@ export default function PartnerPage() {
                 <MessageSquare className="w-7 h-7 text-green-600" />
               </div>
               <h3 className="text-xl font-semibold text-[var(--casita-gray-900)] mb-3">
-                24/7 Digital Front Desk
+                {t.partner.supportTitle}
               </h3>
               <p className="text-[var(--casita-gray-600)] mb-4">
-                Bilingual guest support via instant messaging, helping connect with guests, increase 5-star reviews, and grow bookings without extra hires.
+                {t.partner.supportDesc}
               </p>
               <ul className="space-y-2 text-sm text-[var(--casita-gray-600)]">
-                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Human & AI customer service</li>
-                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> English & Spanish support</li>
-                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Proactive issue resolution</li>
-                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Review management</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.supportItem1}</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.supportItem2}</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.supportItem3}</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.supportItem4}</li>
               </ul>
             </div>
 
@@ -289,15 +283,15 @@ export default function PartnerPage() {
                 <Building2 className="w-7 h-7 text-purple-600" />
               </div>
               <h3 className="text-xl font-semibold text-[var(--casita-gray-900)] mb-3">
-                Bespoke Property Management
+                {t.partner.managementTitle}
               </h3>
               <p className="text-[var(--casita-gray-600)] mb-4">
-                Customized management that integrates with your operations, from filling unsold rooms to complete day-to-day management.
+                {t.partner.managementDesc}
               </p>
               <ul className="space-y-2 text-sm text-[var(--casita-gray-600)]">
-                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Interior design & photography</li>
-                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Housekeeping & maintenance</li>
-                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> Property automation</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.managementItem1}</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.managementItem2}</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.managementItem3}</li>
               </ul>
             </div>
           </div>
@@ -309,9 +303,9 @@ export default function PartnerPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-[var(--casita-gray-900)] mb-4">
-              The Casita Advantage
+              {t.partner.advantagesTitle}
             </h2>
-            <p className="text-lg text-[var(--casita-gray-600)]">Financial and operational benefits of partnering with us</p>
+            <p className="text-lg text-[var(--casita-gray-600)]">{t.partner.advantagesSubtitle}</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -320,8 +314,8 @@ export default function PartnerPage() {
                 <DollarSign className="w-5 h-5 text-[var(--casita-orange)]" />
               </div>
               <div>
-                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Payroll Savings</h3>
-                <p className="text-sm text-[var(--casita-gray-600)]">Digital guest support cuts down on front desk and housekeeping needs.</p>
+                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">{t.partner.payrollSavings}</h3>
+                <p className="text-sm text-[var(--casita-gray-600)]">{t.partner.payrollSavingsDesc}</p>
               </div>
             </div>
 
@@ -330,8 +324,8 @@ export default function PartnerPage() {
                 <BarChart3 className="w-5 h-5 text-[var(--casita-orange)]" />
               </div>
               <div>
-                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Financial Clarity</h3>
-                <p className="text-sm text-[var(--casita-gray-600)]">Real-time analytics and P&L statements for full transparency.</p>
+                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">{t.partner.financialClarity}</h3>
+                <p className="text-sm text-[var(--casita-gray-600)]">{t.partner.financialClarityDesc}</p>
               </div>
             </div>
 
@@ -340,8 +334,8 @@ export default function PartnerPage() {
                 <Shield className="w-5 h-5 text-[var(--casita-orange)]" />
               </div>
               <div>
-                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Security & Payments</h3>
-                <p className="text-sm text-[var(--casita-gray-600)]">$1M liability + $1M damage insurance per reservation.</p>
+                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">{t.partner.securityPayments}</h3>
+                <p className="text-sm text-[var(--casita-gray-600)]">{t.partner.securityPaymentsDesc}</p>
               </div>
             </div>
 
@@ -350,8 +344,8 @@ export default function PartnerPage() {
                 <Zap className="w-5 h-5 text-[var(--casita-orange)]" />
               </div>
               <div>
-                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">No Empty Rooms</h3>
-                <p className="text-sm text-[var(--casita-gray-600)]">Dynamic pricing fills rooms aligned with your rate guidelines.</p>
+                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">{t.partner.noEmptyRooms}</h3>
+                <p className="text-sm text-[var(--casita-gray-600)]">{t.partner.noEmptyRoomsDesc}</p>
               </div>
             </div>
 
@@ -360,8 +354,8 @@ export default function PartnerPage() {
                 <Users className="w-5 h-5 text-[var(--casita-orange)]" />
               </div>
               <div>
-                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Advanced Technology</h3>
-                <p className="text-sm text-[var(--casita-gray-600)]">Access our hospitality software suite at no extra cost.</p>
+                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">{t.partner.advancedTech}</h3>
+                <p className="text-sm text-[var(--casita-gray-600)]">{t.partner.advancedTechDesc}</p>
               </div>
             </div>
 
@@ -370,8 +364,8 @@ export default function PartnerPage() {
                 <Clock className="w-5 h-5 text-[var(--casita-orange)]" />
               </div>
               <div>
-                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Flexible Partnership</h3>
-                <p className="text-sm text-[var(--casita-gray-600)]">Month-to-month agreement, no long-term commitments.</p>
+                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">{t.partner.flexiblePartnership}</h3>
+                <p className="text-sm text-[var(--casita-gray-600)]">{t.partner.flexiblePartnershipDesc}</p>
               </div>
             </div>
           </div>
@@ -383,9 +377,9 @@ export default function PartnerPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Getting Started is Easy
+              {t.partner.howItWorksTitle}
             </h2>
-            <p className="text-xl text-white/80">Increasing sales with Casita is as easy as 1-2-3!</p>
+            <p className="text-xl text-white/80">{t.partner.howItWorksSubtitle}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -393,24 +387,24 @@ export default function PartnerPage() {
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <span className="text-3xl font-bold text-[var(--casita-orange)]">1</span>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">Showcase Your Property</h3>
-              <p className="text-white/80">From interior design and professional photography to property automation—we ensure your space looks its best.</p>
+              <h3 className="text-xl font-semibold text-white mb-3">{t.partner.step1Title}</h3>
+              <p className="text-white/80">{t.partner.step1Desc}</p>
             </div>
 
             <div className="text-center">
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <span className="text-3xl font-bold text-[var(--casita-orange)]">2</span>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">Tailor Listing & Rates</h3>
-              <p className="text-white/80">We customize room listings and dynamic rates across platforms, optimizing each to resonate with the target audience.</p>
+              <h3 className="text-xl font-semibold text-white mb-3">{t.partner.step2Title}</h3>
+              <p className="text-white/80">{t.partner.step2Desc}</p>
             </div>
 
             <div className="text-center">
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <span className="text-3xl font-bold text-[var(--casita-orange)]">3</span>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">Enjoy Increased Bookings</h3>
-              <p className="text-white/80">Sit back and relax as Casita handles everything from bookings to guest communications, maximizing revenue.</p>
+              <h3 className="text-xl font-semibold text-white mb-3">{t.partner.step3Title}</h3>
+              <p className="text-white/80">{t.partner.step3Desc}</p>
             </div>
           </div>
 
@@ -424,10 +418,8 @@ export default function PartnerPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Switching from Another Company?</h3>
-                  <p className="text-white/80 text-sm">
-                    If you're currently under a management agreement with another company, we can match or improve their pricing for the same services. Let's talk about how we can do better for you.
-                  </p>
+                  <h3 className="text-lg font-semibold text-white mb-2">{t.partner.switchingTitle}</h3>
+                  <p className="text-white/80 text-sm">{t.partner.switchingDesc}</p>
                 </div>
               </div>
             </div>
@@ -440,10 +432,8 @@ export default function PartnerPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Fast Onboarding, High Occupancy</h3>
-                  <p className="text-white/80 text-sm">
-                    Get your property live and earning within a week. Our streamlined onboarding process ensures you start seeing bookings fast with maximum occupancy rates.
-                  </p>
+                  <h3 className="text-lg font-semibold text-white mb-2">{t.partner.fastOnboardingTitle}</h3>
+                  <p className="text-white/80 text-sm">{t.partner.fastOnboardingDesc}</p>
                 </div>
               </div>
             </div>
@@ -456,10 +446,10 @@ export default function PartnerPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Ready to Maximize Your Revenue?
+              {t.partner.ctaTitle}
             </h2>
             <p className="text-xl text-[var(--casita-gray-400)]">
-              Let's discuss how Casita can help your property reach its full potential.
+              {t.partner.ctaSubtitle}
             </p>
           </div>
 
@@ -469,15 +459,15 @@ export default function PartnerPage() {
                 <CheckCircle className="w-10 h-10 text-green-600" />
               </div>
               <h3 className="text-2xl font-semibold text-[var(--casita-gray-900)] mb-4">
-                Thank you for your interest!
+                {t.partner.formSuccess}
               </h3>
-              <p className="text-[var(--casita-gray-600)]">Our team will contact you within 24 hours.</p>
+              <p className="text-[var(--casita-gray-600)]">{t.partner.formSuccessDesc}</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 md:p-12">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">Full Name *</label>
+                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formName} *</label>
                   <input
                     type="text"
                     required
@@ -488,7 +478,7 @@ export default function PartnerPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">Email *</label>
+                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formEmail} *</label>
                   <input
                     type="email"
                     required
@@ -499,7 +489,7 @@ export default function PartnerPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">Phone</label>
+                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formPhone}</label>
                   <input
                     type="tel"
                     value={formData.phone}
@@ -509,7 +499,7 @@ export default function PartnerPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">Property Type</label>
+                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formPropertyType}</label>
                   <div className="flex gap-3">
                     <button
                       type="button"
@@ -521,7 +511,7 @@ export default function PartnerPage() {
                       }`}
                     >
                       <Home className="w-4 h-4" />
-                      <span className="text-sm">Vacation Rental</span>
+                      <span className="text-sm">{t.partner.formPropertyTypeVacation}</span>
                     </button>
                     <button
                       type="button"
@@ -533,13 +523,13 @@ export default function PartnerPage() {
                       }`}
                     >
                       <Building2 className="w-4 h-4" />
-                      <span className="text-sm">Hotel</span>
+                      <span className="text-sm">{t.partner.formPropertyTypeHotel}</span>
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">Property Location *</label>
+                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formLocation} *</label>
                   <input
                     type="text"
                     required
@@ -551,7 +541,7 @@ export default function PartnerPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">Number of Units</label>
+                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formUnits}</label>
                   <input
                     type="number"
                     min="1"
@@ -563,13 +553,13 @@ export default function PartnerPage() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">Message</label>
+                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formMessage}</label>
                   <textarea
                     rows={4}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl focus:outline-none focus:border-[var(--casita-orange)] resize-none"
-                    placeholder="Tell us about your property..."
+                    placeholder={t.partner.formMessagePlaceholder}
                   />
                 </div>
               </div>
@@ -589,12 +579,12 @@ export default function PartnerPage() {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Sending...</span>
+                      <span>{t.partner.formSubmitting}</span>
                     </>
                   ) : (
                     <>
                       <Send className="w-5 h-5" />
-                      <span>Get Started</span>
+                      <span>{t.partner.formSubmit}</span>
                     </>
                   )}
                 </button>
