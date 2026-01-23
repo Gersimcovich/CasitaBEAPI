@@ -338,7 +338,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
                 <Bitcoin className="w-8 h-8 text-[var(--casita-orange)]" />
               </div>
               <h3 className="font-semibold text-[var(--casita-gray-900)]">Pay with Crypto</h3>
-              <p className="text-sm text-[var(--casita-gray-500)] mt-1">Bitcoin, ETH & more</p>
+              <p className="text-sm text-[var(--casita-gray-500)] mt-1">Secured by Coinbase</p>
             </div>
 
             {/* Instant Confirmation */}
