@@ -115,12 +115,6 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
     setStep('dates');
   };
 
-  const handleDatesComplete = () => {
-    if (checkIn && checkOut) {
-      setStep('guests');
-    }
-  };
-
   const clearDestination = () => {
     setDestination('');
     setCheckIn(null);
@@ -163,21 +157,21 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
     );
   }
 
-  // Hero variant - Progressive Disclosure
+  // Hero variant - Full width bar with progressive disclosure
   return (
     <div className="w-full max-w-4xl mx-auto px-4 relative z-[100]" ref={searchBarRef}>
       <div className="bg-white rounded-full shadow-2xl border border-[var(--casita-gray-100)] transition-all duration-300">
-        <div className="flex items-center">
-          {/* Selected Pills */}
-          <div className="flex items-center gap-2 pl-4">
-            {/* Destination Pill - shown after selection */}
-            {destination && step !== 'destination' && (
+        <div className="flex items-center h-[72px]">
+          {/* Left section: Pills for completed selections */}
+          {step !== 'destination' && (
+            <div className="flex items-center gap-2 pl-6 flex-shrink-0">
+              {/* Destination Pill */}
               <button
                 onClick={() => {
                   setStep('destination');
                   setShowCityDropdown(true);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors group"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors"
               >
                 <MapPin className="w-4 h-4 text-[var(--casita-orange)]" />
                 <span className="text-sm font-medium text-[var(--casita-gray-900)]">{destination}</span>
@@ -191,42 +185,42 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                   <X className="w-3.5 h-3.5 text-[var(--casita-gray-500)]" />
                 </button>
               </button>
-            )}
 
-            {/* Dates Pill - shown after dates are selected */}
-            {checkIn && checkOut && step === 'guests' && (
-              <button
-                onClick={() => setStep('dates')}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors group"
-              >
-                <Calendar className="w-4 h-4 text-[var(--casita-orange)]" />
-                <span className="text-sm font-medium text-[var(--casita-gray-900)]">{formatDateRange()}</span>
+              {/* Dates Pill - shown when on guests step */}
+              {step === 'guests' && checkIn && checkOut && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    clearDates();
-                  }}
-                  className="p-0.5 hover:bg-[var(--casita-gray-200)] rounded-full transition-colors"
+                  onClick={() => setStep('dates')}
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors"
                 >
-                  <X className="w-3.5 h-3.5 text-[var(--casita-gray-500)]" />
+                  <Calendar className="w-4 h-4 text-[var(--casita-orange)]" />
+                  <span className="text-sm font-medium text-[var(--casita-gray-900)]">{formatDateRange()}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearDates();
+                    }}
+                    className="p-0.5 hover:bg-[var(--casita-gray-200)] rounded-full transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5 text-[var(--casita-gray-500)]" />
+                  </button>
                 </button>
-              </button>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
-          {/* Current Step Input */}
+          {/* Center section: Current input */}
           <div className="flex-1 relative">
-            {/* Step 1: Destination Input */}
+            {/* Step 1: Large destination input */}
             {step === 'destination' && (
               <div className="relative">
                 <div
-                  className="flex items-center gap-3 px-6 py-5 cursor-text"
+                  className="flex items-center gap-4 px-8 cursor-text"
                   onClick={() => {
                     setShowCityDropdown(true);
                     destinationInputRef.current?.focus();
                   }}
                 >
-                  <MapPin className="w-5 h-5 text-[var(--casita-orange)] flex-shrink-0" />
+                  <MapPin className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0" />
                   <input
                     ref={destinationInputRef}
                     type="text"
@@ -237,13 +231,13 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                       setShowCityDropdown(true);
                     }}
                     onFocus={() => setShowCityDropdown(true)}
-                    className="flex-1 bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-lg font-medium"
+                    className="flex-1 bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-2xl font-semibold tracking-tight"
                   />
                 </div>
 
                 {/* City Dropdown */}
                 {showCityDropdown && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-[var(--casita-gray-100)] max-h-80 overflow-y-auto z-[200] animate-scale-in">
+                  <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-[var(--casita-gray-100)] max-h-80 overflow-y-auto z-[200] animate-scale-in">
                     {isLoadingCities ? (
                       <div className="p-4 text-center text-[var(--casita-gray-500)]">
                         Loading cities...
@@ -254,10 +248,10 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                           <li key={city}>
                             <button
                               onClick={() => handleCitySelect(city)}
-                              className="w-full px-5 py-3 text-left hover:bg-[var(--casita-gray-50)] flex items-center gap-3 transition-colors"
+                              className="w-full px-6 py-4 text-left hover:bg-[var(--casita-gray-50)] flex items-center gap-4 transition-colors"
                             >
-                              <MapPin className="w-4 h-4 text-[var(--casita-orange)]" />
-                              <span className="text-[var(--casita-gray-800)] font-medium">{city}</span>
+                              <MapPin className="w-5 h-5 text-[var(--casita-orange)]" />
+                              <span className="text-lg text-[var(--casita-gray-800)] font-medium">{city}</span>
                             </button>
                           </li>
                         ))}
@@ -274,9 +268,9 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
 
             {/* Step 2: Date Pickers */}
             {step === 'dates' && (
-              <div className="flex items-center gap-2 px-6 py-4">
+              <div className="flex items-center gap-2 px-6">
                 <Calendar className="w-5 h-5 text-[var(--casita-orange)] flex-shrink-0" />
-                <div className="flex items-center gap-4 flex-1">
+                <div className="flex items-center gap-6 flex-1">
                   <div className="flex-1">
                     <label className="block text-xs font-medium text-[var(--casita-gray-500)] mb-1">Check-in</label>
                     <DatePicker
@@ -299,11 +293,11 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                       endDate={checkOut}
                       minDate={new Date()}
                       placeholderText="Add date"
-                      className="w-full bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-base font-medium cursor-pointer"
+                      className="w-full bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-lg font-medium cursor-pointer"
                       dateFormat="MMM d"
                     />
                   </div>
-                  <div className="w-px h-8 bg-[var(--casita-gray-200)]" />
+                  <div className="w-px h-10 bg-[var(--casita-gray-200)]" />
                   <div className="flex-1">
                     <label className="block text-xs font-medium text-[var(--casita-gray-500)] mb-1">Check-out</label>
                     <DatePicker
@@ -320,7 +314,7 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                       endDate={checkOut}
                       minDate={checkIn || new Date()}
                       placeholderText="Add date"
-                      className="w-full bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-base font-medium cursor-pointer"
+                      className="w-full bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-lg font-medium cursor-pointer"
                       dateFormat="MMM d"
                     />
                   </div>
@@ -330,9 +324,8 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
 
             {/* Step 3: Guests */}
             {step === 'guests' && (
-              <div className="flex items-center gap-4 px-6 py-4">
-                {/* Guests Picker */}
-                <div className="relative flex-1">
+              <div className="flex items-center gap-4 px-6">
+                <div className="relative">
                   <button
                     onClick={() => setShowGuestPicker(!showGuestPicker)}
                     className="flex items-center gap-2 px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors"
@@ -421,8 +414,8 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
             )}
           </div>
 
-          {/* Search Button */}
-          <div className="pr-3">
+          {/* Right section: Search Button */}
+          <div className="pr-3 flex-shrink-0">
             <button
               onClick={handleSearch}
               disabled={!destination}
