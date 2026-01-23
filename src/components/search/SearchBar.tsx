@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Calendar, Users, Minus, Plus, X, PawPrint, ChevronDown } from 'lucide-react';
+import { Search, MapPin, Calendar, Users, Minus, Plus, X, ChevronDown } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -17,12 +17,9 @@ interface SearchParams {
   checkOut: Date | null;
   guests: number;
   rooms: number;
-  minPrice: number | null;
-  maxPrice: number | null;
-  petFriendly: boolean;
 }
 
-type SearchStep = 'destination' | 'dates' | 'options';
+type SearchStep = 'destination' | 'dates' | 'guests';
 
 export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps) {
   const { t } = useLocale();
@@ -36,7 +33,6 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
   const [checkOut, setCheckOut] = useState<Date | null>(null);
   const [guests, setGuests] = useState(2);
   const [rooms, setRooms] = useState(1);
-  const [petFriendly, setPetFriendly] = useState(false);
 
   // UI state
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -102,9 +98,6 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
       checkOut,
       guests,
       rooms,
-      minPrice: null,
-      maxPrice: null,
-      petFriendly,
     });
 
     const params = new URLSearchParams();
@@ -113,7 +106,6 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
     if (checkOut) params.set('checkOut', checkOut.toISOString().split('T')[0]);
     params.set('guests', guests.toString());
     params.set('rooms', rooms.toString());
-    if (petFriendly) params.set('petFriendly', 'true');
     window.location.href = `/properties?${params.toString()}`;
   };
 
@@ -125,7 +117,7 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
 
   const handleDatesComplete = () => {
     if (checkIn && checkOut) {
-      setStep('options');
+      setStep('guests');
     }
   };
 
@@ -202,7 +194,7 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
             )}
 
             {/* Dates Pill - shown after dates are selected */}
-            {checkIn && checkOut && step === 'options' && (
+            {checkIn && checkOut && step === 'guests' && (
               <button
                 onClick={() => setStep('dates')}
                 className="flex items-center gap-2 px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors group"
@@ -343,18 +335,18 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
               </div>
             )}
 
-            {/* Step 3: Options (Guests, Pets) */}
-            {step === 'options' && (
+            {/* Step 3: Guests */}
+            {step === 'guests' && (
               <div className="flex items-center gap-4 px-6 py-4">
                 {/* Guests Picker */}
-                <div className="relative">
+                <div className="relative flex-1">
                   <button
                     onClick={() => setShowGuestPicker(!showGuestPicker)}
                     className="flex items-center gap-2 px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors"
                   >
                     <Users className="w-4 h-4 text-[var(--casita-orange)]" />
                     <span className="text-sm font-medium text-[var(--casita-gray-900)]">
-                      {guests} {guests !== 1 ? 'guests' : 'guest'}
+                      {guests} {guests !== 1 ? 'guests' : 'guest'}, {rooms} {rooms !== 1 ? 'rooms' : 'room'}
                     </span>
                     <ChevronDown className="w-4 h-4 text-[var(--casita-gray-500)]" />
                   </button>
@@ -432,19 +424,6 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                     </div>
                   )}
                 </div>
-
-                {/* Pet Friendly Toggle */}
-                <button
-                  onClick={() => setPetFriendly(!petFriendly)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-colors ${
-                    petFriendly
-                      ? 'bg-[var(--casita-orange)]/10 border-[var(--casita-orange)] text-[var(--casita-orange)]'
-                      : 'bg-[var(--casita-gray-50)] border-[var(--casita-gray-200)] text-[var(--casita-gray-700)] hover:border-[var(--casita-orange)]'
-                  }`}
-                >
-                  <PawPrint className="w-4 h-4" />
-                  <span className="text-sm font-medium">Pets</span>
-                </button>
               </div>
             )}
           </div>
