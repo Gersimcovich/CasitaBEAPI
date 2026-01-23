@@ -152,9 +152,16 @@ function generateBookingConfirmationHTML(data: BookingConfirmationData): string 
 
           <!-- Logo Header -->
           <tr>
-            <td style="padding: 40px 40px 24px 40px; text-align: center; background-color: #ffffff;">
+            <td style="padding: 40px 40px 16px 40px; text-align: center; background-color: #ffffff;">
               <img src="https://casita-beapi.vercel.app/casita-logo.png" alt="Casita" style="height: 50px; width: auto;" />
-                          </td>
+            </td>
+          </tr>
+
+          <!-- Icon -->
+          <tr>
+            <td style="padding: 0 40px 24px 40px; text-align: center; background-color: #ffffff;">
+              <img src="https://hellocasita.com/icon-512.png" alt="" style="height: 60px; width: 60px;" />
+            </td>
           </tr>
 
           <!-- Elegant Divider -->
@@ -511,9 +518,16 @@ function generateInquiryConfirmationHTML(data: InquiryConfirmationData): string 
 
           <!-- Logo Header -->
           <tr>
-            <td style="padding: 40px 40px 24px 40px; text-align: center; background-color: #ffffff;">
+            <td style="padding: 40px 40px 16px 40px; text-align: center; background-color: #ffffff;">
               <img src="https://casita-beapi.vercel.app/casita-logo.png" alt="Casita" style="height: 50px; width: auto;" />
-                          </td>
+            </td>
+          </tr>
+
+          <!-- Icon -->
+          <tr>
+            <td style="padding: 0 40px 24px 40px; text-align: center; background-color: #ffffff;">
+              <img src="https://hellocasita.com/icon-512.png" alt="" style="height: 60px; width: 60px;" />
+            </td>
           </tr>
 
           <!-- Elegant Divider -->
@@ -909,4 +923,183 @@ export async function sendHostNotificationEmail(data: {
 </html>
   `;
   return sendEmail(data.hostEmail, subject, html);
+}
+
+// ============================================
+// 2FA VERIFICATION CODE EMAIL
+// ============================================
+
+type Locale = 'en' | 'es' | 'pt';
+
+interface TwoFAEmailData {
+  email: string;
+  code: string;
+  name: string;
+  language?: Locale;
+}
+
+// Translations for 2FA email
+const twoFATranslations = {
+  en: {
+    subject: 'Your Casita Verification Code',
+    title: 'Verification Code',
+    greeting: (name: string) => `Hi ${name},`,
+    intro: 'Use this code to access your Casita account:',
+    expires: 'This code expires in 10 minutes.',
+    warning: "If you didn't request this code, you can safely ignore this email.",
+    footer: 'Your Home Away From Home',
+  },
+  es: {
+    subject: 'Tu Codigo de Verificacion Casita',
+    title: 'Codigo de Verificacion',
+    greeting: (name: string) => `Hola ${name},`,
+    intro: 'Usa este codigo para acceder a tu cuenta Casita:',
+    expires: 'Este codigo expira en 10 minutos.',
+    warning: 'Si no solicitaste este codigo, puedes ignorar este correo.',
+    footer: 'Tu Hogar Lejos de Casa',
+  },
+  pt: {
+    subject: 'Seu Codigo de Verificacao Casita',
+    title: 'Codigo de Verificacao',
+    greeting: (name: string) => `Ola ${name},`,
+    intro: 'Use este codigo para acessar sua conta Casita:',
+    expires: 'Este codigo expira em 10 minutos.',
+    warning: 'Se voce nao solicitou este codigo, pode ignorar este email.',
+    footer: 'Sua Casa Longe de Casa',
+  },
+};
+
+function generate2FAEmailHTML(data: TwoFAEmailData): string {
+  const { code, name, language = 'en' } = data;
+  const t = twoFATranslations[language];
+
+  // Casita brand colors
+  const casitaOrange = '#E8A07A';
+  const casitaCream = '#FDF8F5';
+  const casitaSand = '#F4E4D4';
+  const casitaGray = '#525252';
+  const casitaDark = '#171717';
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${t.title} - Casita</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: ${casitaCream};">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: ${casitaCream}; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="500" cellpadding="0" cellspacing="0" style="background-color: #ffffff; overflow: hidden;">
+
+          <!-- Decorative Top Border -->
+          <tr>
+            <td style="height: 4px; background: linear-gradient(90deg, ${casitaOrange} 0%, ${casitaSand} 50%, ${casitaOrange} 100%);"></td>
+          </tr>
+
+          <!-- Logo Header -->
+          <tr>
+            <td style="padding: 40px 40px 16px 40px; text-align: center; background-color: #ffffff;">
+              <img src="https://casita-beapi.vercel.app/casita-logo.png" alt="Casita" style="height: 45px; width: auto;" />
+            </td>
+          </tr>
+
+          <!-- Icon -->
+          <tr>
+            <td style="padding: 0 40px 24px 40px; text-align: center; background-color: #ffffff;">
+              <img src="https://hellocasita.com/icon-512.png" alt="" style="height: 50px; width: 50px;" />
+            </td>
+          </tr>
+
+          <!-- Title -->
+          <tr>
+            <td style="padding: 0 40px 24px 40px; text-align: center;">
+              <h1 style="margin: 0; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; font-weight: 600; color: ${casitaDark}; letter-spacing: 1px;">
+                ${t.title}
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Greeting -->
+          <tr>
+            <td style="padding: 0 40px 16px 40px;">
+              <p style="margin: 0; color: ${casitaDark}; font-size: 16px; line-height: 1.7;">
+                ${t.greeting(name)}
+              </p>
+              <p style="margin: 12px 0 0 0; color: ${casitaGray}; font-size: 15px; line-height: 1.7;">
+                ${t.intro}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Verification Code Box -->
+          <tr>
+            <td style="padding: 0 40px 24px 40px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="background-color: ${casitaCream}; border: 2px solid ${casitaOrange}; border-radius: 12px; padding: 24px; text-align: center;">
+                    <span style="font-family: 'DM Sans', monospace; font-size: 40px; font-weight: 700; color: ${casitaOrange}; letter-spacing: 12px; display: block;">
+                      ${code}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Expiration Notice -->
+          <tr>
+            <td style="padding: 0 40px 24px 40px; text-align: center;">
+              <p style="margin: 0; color: ${casitaGray}; font-size: 14px;">
+                ${t.expires}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Security Warning -->
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: ${casitaCream}; border-left: 3px solid ${casitaSand}; border-radius: 0 4px 4px 0;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <p style="margin: 0; color: ${casitaGray}; font-size: 13px; line-height: 1.6;">
+                      ${t.warning}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 40px; text-align: center; background-color: #ffffff; border-top: 1px solid ${casitaSand};">
+              <p style="margin: 0; color: #A3A3A3; font-size: 12px;">
+                © ${new Date().getFullYear()} Casita · ${t.footer}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Decorative Bottom Border -->
+          <tr>
+            <td style="height: 4px; background: linear-gradient(90deg, ${casitaOrange} 0%, ${casitaSand} 50%, ${casitaOrange} 100%);"></td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
+// Send 2FA verification code email
+export async function send2FACodeEmail(data: TwoFAEmailData): Promise<{ success: boolean; error?: string }> {
+  const t = twoFATranslations[data.language || 'en'];
+  const html = generate2FAEmailHTML(data);
+  return sendEmail(data.email, t.subject, html);
 }

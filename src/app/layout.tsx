@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { DM_Sans, Cormorant_Garamond } from "next/font/google";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { UserProvider } from "@/contexts/UserContext";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import "./globals.css";
 
@@ -95,10 +96,12 @@ export default function RootLayout({
     <html lang="en" className={`${dmSans.variable} ${cormorant.variable}`}>
       <body className="antialiased">
         <LocaleProvider>
-          <CartProvider>
-            {children}
-            <WhatsAppButton />
-          </CartProvider>
+          <UserProvider>
+            <CartProvider>
+              {children}
+              <WhatsAppButton />
+            </CartProvider>
+          </UserProvider>
         </LocaleProvider>
       </body>
     </html>

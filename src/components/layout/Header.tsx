@@ -3,9 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ShoppingCart, User, Trash2 } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, Trash2, LogOut, Award, Settings } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useCart } from '@/contexts/CartContext';
+import { useUser } from '@/contexts/UserContext';
+import AuthModal from '@/components/auth/AuthModal';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -13,8 +15,10 @@ export default function Header() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { t } = useLocale();
   const { cartItem, hasCartItem, clearCart } = useCart();
+  const { user, isAuthenticated, logout, isLoading: isUserLoading } = useUser();
   const [isCartHovered, setIsCartHovered] = useState(false);
   const cartHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -187,40 +191,111 @@ export default function Header() {
                   e.stopPropagation();
                   setIsUserMenuOpen(!isUserMenuOpen);
                 }}
-                className="flex items-center space-x-2 p-2 rounded-full border transition-colors border-[var(--casita-gray-300)] text-[var(--casita-gray-700)] hover:shadow-md"
+                className={`flex items-center space-x-2 p-2 rounded-full border transition-colors hover:shadow-md ${
+                  isAuthenticated
+                    ? 'border-[var(--casita-orange)] bg-[var(--casita-orange)] text-white'
+                    : 'border-[var(--casita-gray-300)] text-[var(--casita-gray-700)]'
+                }`}
               >
                 <Menu className="w-4 h-4" />
-                <User className="w-5 h-5" />
+                {isAuthenticated && user ? (
+                  <span className="w-6 h-6 bg-white text-[var(--casita-orange)] rounded-full flex items-center justify-center text-xs font-semibold">
+                    {user.firstName[0]}
+                  </span>
+                ) : (
+                  <User className="w-5 h-5" />
+                )}
               </button>
 
               {/* Dropdown */}
               {isUserMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-[var(--casita-gray-100)] py-2 animate-scale-in">
-                  <Link
-                    href="/login"
-                    className="block px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                  >
-                    {t.nav.login}
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className="block px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                  >
-                    {t.nav.signup}
-                  </Link>
-                  <hr className="my-2 border-[var(--casita-gray-100)]" />
-                  <Link
-                    href="/host"
-                    className="block px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                  >
-                    List your property
-                  </Link>
-                  <Link
-                    href="/help"
-                    className="block px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                  >
-                    {t.footer.helpCenter}
-                  </Link>
+                  {isAuthenticated && user ? (
+                    <>
+                      {/* Logged in user */}
+                      <div className="px-4 py-3 border-b border-[var(--casita-gray-100)]">
+                        <p className="font-medium text-[var(--casita-gray-900)]">{user.firstName} {user.lastName}</p>
+                        <p className="text-sm text-[var(--casita-gray-500)] truncate">{user.email}</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Award className="w-4 h-4 text-[var(--casita-orange)]" />
+                          <span className="text-sm font-medium text-[var(--casita-orange)]">{user.casitaPoints.toLocaleString()} pts</span>
+                        </div>
+                      </div>
+                      <Link
+                        href="/account"
+                        className="flex items-center gap-2 px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                      >
+                        <User className="w-4 h-4" />
+                        {t.nav.myAccount || 'My Account'}
+                      </Link>
+                      <Link
+                        href="/account"
+                        className="flex items-center gap-2 px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                      >
+                        <Settings className="w-4 h-4" />
+                        {t.nav.settings || 'Settings'}
+                      </Link>
+                      <hr className="my-2 border-[var(--casita-gray-100)]" />
+                      <Link
+                        href="/partner"
+                        className="block px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                      >
+                        List your property
+                      </Link>
+                      <Link
+                        href="/help"
+                        className="block px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                      >
+                        {t.footer.helpCenter}
+                      </Link>
+                      <hr className="my-2 border-[var(--casita-gray-100)]" />
+                      <button
+                        onClick={async () => {
+                          await logout();
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        {t.nav.logout || 'Log out'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {/* Guest user */}
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          setIsAuthModalOpen(true);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                      >
+                        {t.nav.login}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          setIsAuthModalOpen(true);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                      >
+                        {t.nav.signup}
+                      </button>
+                      <hr className="my-2 border-[var(--casita-gray-100)]" />
+                      <Link
+                        href="/partner"
+                        className="block px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                      >
+                        List your property
+                      </Link>
+                      <Link
+                        href="/help"
+                        className="block px-4 py-2 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                      >
+                        {t.footer.helpCenter}
+                      </Link>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -277,22 +352,56 @@ export default function Header() {
                 </div>
               )}
               <hr className="my-2 border-[var(--casita-gray-100)]" />
-              <Link
-                href="/login"
-                className="px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-lg"
-              >
-                {t.nav.login}
-              </Link>
-              <Link
-                href="/signup"
-                className="px-4 py-3 bg-[var(--casita-orange)] text-white rounded-lg text-center font-medium"
-              >
-                {t.nav.signup}
-              </Link>
+              {isAuthenticated && user ? (
+                <>
+                  <Link
+                    href="/account"
+                    className="px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-lg flex items-center gap-2"
+                  >
+                    <User className="w-5 h-5" />
+                    {t.nav.myAccount || 'My Account'}
+                    <span className="ml-auto text-[var(--casita-orange)] text-sm font-medium">{user.casitaPoints.toLocaleString()} pts</span>
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      await logout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-lg flex items-center gap-2"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    {t.nav.logout || 'Log out'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsAuthModalOpen(true);
+                    }}
+                    className="w-full px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-lg text-left"
+                  >
+                    {t.nav.login}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsAuthModalOpen(true);
+                    }}
+                    className="px-4 py-3 bg-[var(--casita-orange)] text-white rounded-lg text-center font-medium"
+                  >
+                    {t.nav.signup}
+                  </button>
+                </>
+              )}
             </nav>
           </div>
         )}
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </header>
   );
 }

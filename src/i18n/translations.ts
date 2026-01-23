@@ -11,6 +11,9 @@ export const translations = {
       partner: 'Partner with Us',
       login: 'Log in',
       signup: 'Sign up',
+      logout: 'Log out',
+      myAccount: 'My Account',
+      settings: 'Settings',
     },
     // Hero
     hero: {
@@ -247,6 +250,9 @@ export const translations = {
       partner: 'Asóciate',
       login: 'Iniciar sesión',
       signup: 'Registrarse',
+      logout: 'Cerrar sesión',
+      myAccount: 'Mi Cuenta',
+      settings: 'Configuración',
     },
     // Hero
     hero: {
@@ -483,6 +489,9 @@ export const translations = {
       partner: 'Seja Parceiro',
       login: 'Entrar',
       signup: 'Cadastrar',
+      logout: 'Sair',
+      myAccount: 'Minha Conta',
+      settings: 'Configuracoes',
     },
     // Hero
     hero: {
