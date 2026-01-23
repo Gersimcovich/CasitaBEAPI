@@ -251,7 +251,7 @@ const CALENDAR_CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
 
 // Quote cache - 2 hours (quotes valid for 24h in Guesty)
 const quoteCache = new Map<string, { data: ReservationQuote; expiresAt: number }>();
-const QUOTE_CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 hours
+const QUOTE_CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -1894,6 +1894,209 @@ function mapPropertyType(guestyType: string): 'boutique-hotel' | 'luxury-villa' 
   };
 
   return typeMap[guestyType?.toLowerCase()] || 'boutique-hotel';
+}
+
+// ============================================================================
+// OPEN API RESERVATION MANAGEMENT FUNCTIONS
+// Used by AI chatbot for guest reservation lookup, modification, and cancellation
+// ============================================================================
+
+/**
+ * Make a request to Guesty Open API with support for different methods
+ */
+async function openApiFetchWithMethod<T>(
+  endpoint: string,
+  options: {
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    body?: Record<string, unknown>;
+  } = {}
+): Promise<T> {
+  const token = await getOpenApiAccessToken();
+  const { method = 'GET', body } = options;
+
+  const response = await fetch(`${GUESTY_OPEN_API_URL}${endpoint}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    ...(body && { body: JSON.stringify(body) }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Open API error: ${response.status} - ${error}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Search for a reservation by confirmation code
+ * Returns the reservation if found and email matches
+ */
+export async function lookupReservation(
+  confirmationCode: string,
+  email: string
+): Promise<GuestyReservation | null> {
+  if (!hasOpenApi()) {
+    console.warn('Open API not configured for reservation lookup');
+    return null;
+  }
+
+  try {
+    // Search by confirmation code using filters
+    const filters = JSON.stringify([
+      { operator: '$eq', field: 'confirmationCode', value: confirmationCode }
+    ]);
+
+    const fields = '_id confirmationCode status checkInDateLocalized checkOutDateLocalized guestsCount guest listing money nightsCount source';
+
+    const data = await openApiFetchWithMethod<{
+      results: GuestyReservation[];
+      count: number;
+    }>(`/reservations?filters=${encodeURIComponent(filters)}&fields=${encodeURIComponent(fields)}&limit=1`);
+
+    if (!data.results || data.results.length === 0) {
+      console.log(`No reservation found with confirmation code: ${confirmationCode}`);
+      return null;
+    }
+
+    const reservation = data.results[0];
+
+    // Verify email matches for security
+    const guestEmail = reservation.guest?.email?.toLowerCase();
+    if (guestEmail !== email.toLowerCase()) {
+      console.log(`Email mismatch for reservation ${confirmationCode}`);
+      return null;
+    }
+
+    console.log(`✅ Found reservation ${confirmationCode} for ${email}`);
+    return reservation;
+  } catch (error) {
+    console.error('Error looking up reservation:', error);
+    return null;
+  }
+}
+
+/**
+ * Get full reservation details by ID
+ */
+export async function getReservationById(
+  reservationId: string
+): Promise<GuestyReservation | null> {
+  if (!hasOpenApi()) {
+    console.warn('Open API not configured');
+    return null;
+  }
+
+  try {
+    const data = await openApiFetchWithMethod<GuestyReservation>(
+      `/reservations/${reservationId}`
+    );
+    return data;
+  } catch (error) {
+    console.error('Error fetching reservation:', error);
+    return null;
+  }
+}
+
+/**
+ * Cancel a reservation
+ * Sets the status to 'canceled'
+ */
+export async function cancelReservation(
+  reservationId: string
+): Promise<{ success: boolean; message: string }> {
+  if (!hasOpenApi()) {
+    return { success: false, message: 'Open API not configured' };
+  }
+
+  try {
+    await openApiFetchWithMethod<{ status: string; _id: string }>(
+      `/reservations/${reservationId}`,
+      {
+        method: 'PUT',
+        body: { status: 'canceled' }
+      }
+    );
+
+    console.log(`✅ Reservation ${reservationId} canceled`);
+    return {
+      success: true,
+      message: 'Your reservation has been successfully canceled. You will receive a confirmation email shortly.'
+    };
+  } catch (error) {
+    console.error('Error canceling reservation:', error);
+    return {
+      success: false,
+      message: 'Unable to cancel reservation. Please contact support at 786-694-7577.'
+    };
+  }
+}
+
+/**
+ * Modify reservation dates
+ * Uses checkInDateLocalized and checkOutDateLocalized to avoid timezone issues
+ */
+export async function modifyReservationDates(
+  reservationId: string,
+  newCheckIn: string,
+  newCheckOut: string
+): Promise<{ success: boolean; reservation?: GuestyReservation; message: string }> {
+  if (!hasOpenApi()) {
+    return { success: false, message: 'Open API not configured' };
+  }
+
+  try {
+    const data = await openApiFetchWithMethod<GuestyReservation>(
+      `/reservations/${reservationId}`,
+      {
+        method: 'PUT',
+        body: {
+          checkInDateLocalized: newCheckIn,
+          checkOutDateLocalized: newCheckOut
+        }
+      }
+    );
+
+    console.log(`✅ Reservation ${reservationId} dates modified to ${newCheckIn} - ${newCheckOut}`);
+    return {
+      success: true,
+      reservation: data,
+      message: `Your reservation has been updated. New dates: ${newCheckIn} to ${newCheckOut}. You will receive a confirmation email.`
+    };
+  } catch (error) {
+    console.error('Error modifying reservation dates:', error);
+    return {
+      success: false,
+      message: 'Unable to modify reservation dates. The new dates may not be available. Please contact support at 786-694-7577.'
+    };
+  }
+}
+
+/**
+ * Get property details by listing ID (for chatbot context)
+ */
+export async function getListingDetails(
+  listingId: string
+): Promise<{ name: string; address: string; checkIn: string; checkOut: string } | null> {
+  try {
+    const listing = await getListing(listingId);
+    if (!listing) return null;
+
+    const property = convertGuestyToProperty(listing);
+    return {
+      name: property.name,
+      address: property.location.address,
+      checkIn: property.policies.checkIn,
+      checkOut: property.policies.checkOut
+    };
+  } catch (error) {
+    console.error('Error getting listing details:', error);
+    return null;
+  }
 }
 
 export type { GuestyListing, GuestyReservation, GuestyGuest, CreateReservationResponse, CalendarDay, ReservationQuote };

@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
     "@headlessui/react": "^2.2.9",
     "@react-google-maps/api": "^2.20.8",
     "@sendgrid/mail": "^8.1.6",
