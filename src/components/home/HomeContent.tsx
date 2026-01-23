@@ -356,7 +356,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
                 <Headphones className="w-8 h-8 text-[var(--casita-coral)]" />
               </div>
               <h3 className="font-semibold text-[var(--casita-gray-900)]">24/7 Support</h3>
-              <p className="text-sm text-[var(--casita-gray-500)] mt-1">We're always here</p>
+              <p className="text-sm text-[var(--casita-gray-500)] mt-1">WhatsApp, message, email or call</p>
             </div>
           </div>
         </div>
