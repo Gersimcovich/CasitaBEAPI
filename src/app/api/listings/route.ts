@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getListings as getListingsLegacy, convertGuestyToProperty } from '@/lib/guesty';
-import { getListings as getListingsNew, isConfigured as isNewClientConfigured } from '@/lib/guesty-client';
+import { getListings as getListingsBeapi, isConfigured as isBeapiConfigured, BeapiListing } from '@/lib/guesty-beapi';
+import { guestyProperties } from '@/data/guestyData';
 import { Property } from '@/types';
 
 // Sort properties by best reviews (highest rating with most reviews first)
@@ -16,24 +17,8 @@ function sortByBestReviews(properties: Property[]): Property[] {
   });
 }
 
-// Convert new client listing to Property format
-function convertNewListingToProperty(listing: {
-  _id: string;
-  title: string;
-  nickname?: string;
-  propertyType: string;
-  accommodates: number;
-  bedrooms: number;
-  bathrooms: number;
-  address: { full: string; city: string; country: string; lat: number; lng: number };
-  prices?: { basePrice: number; currency: string; cleaningFee?: number };
-  pictures: Array<{ original: string; large?: string; thumbnail?: string }>;
-  amenities: string[];
-  publicDescription?: { summary: string };
-  reviews?: { count?: number; avg?: number };
-  type?: string;
-  parentId?: string | null;
-}): Property {
+// Convert BEAPI listing to Property format
+function convertBeapiToProperty(listing: BeapiListing): Property {
   return {
     id: listing._id,
     name: listing.title || listing.nickname || 'Property',
@@ -64,7 +49,7 @@ function convertNewListingToProperty(listing: {
     bathrooms: listing.bathrooms || 1,
     isFeatured: false,
     isBeachfront: false,
-    petFriendly: listing.amenities?.some(a => a.toLowerCase().includes('pet')) || false,
+    petFriendly: listing.petsAllowed || listing.amenities?.some(a => a.toLowerCase().includes('pet')) || false,
     distanceToBeach: 2000,
     locationPerks: [],
     policies: {
@@ -75,13 +60,27 @@ function convertNewListingToProperty(listing: {
   };
 }
 
+// Check if properties have valid data (not just empty defaults)
+function hasValidData(properties: Property[]): boolean {
+  if (properties.length === 0) return false;
+
+  // Check if most properties have meaningful data
+  const validCount = properties.filter(p =>
+    p.name !== 'Property' &&
+    p.images.length > 0 &&
+    p.location.city !== ''
+  ).length;
+
+  return validCount > properties.length * 0.5; // At least 50% should be valid
+}
+
 /**
  * GET /api/listings
  *
  * PRODUCTION STRATEGY:
- * - Use new rate-limited client (Open API) with 6-hour cache
- * - NO live API calls on search - filter cached results client-side
- * - Availability/pricing only fetched on property detail page
+ * 1. Primary: BEAPI (Booking Engine API) with better rate limits
+ * 2. Secondary: Legacy client with disk cache
+ * 3. Final fallback: Static data from guestyData.ts
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -91,20 +90,54 @@ export async function GET(request: Request) {
   const maxPrice = searchParams.get('maxPrice');
 
   try {
-    let properties: Property[];
+    let properties: Property[] = [];
+    let source = 'unknown';
 
-    // Use new client if configured (has rate limiting, circuit breaker, etc.)
-    if (isNewClientConfigured()) {
-      console.log('📡 Using new rate-limited Guesty client');
-      const listings = await getListingsNew();
-      properties = listings
-        .filter(l => !l.parentId && l.type !== 'MTL_CHILD') // Filter parent listings only
-        .map(convertNewListingToProperty);
-    } else {
-      // Fallback to legacy client
-      console.log('📡 Using legacy Guesty client');
-      const listings = await getListingsLegacy({ active: true, limit: 100, useCache: true });
-      properties = listings.map(convertGuestyToProperty);
+    // Try BEAPI first if configured
+    if (isBeapiConfigured()) {
+      try {
+        console.log('📡 Trying Guesty BEAPI client...');
+        const listings = await getListingsBeapi({ limit: 100 });
+        const converted = listings
+          .filter(l => l.active !== false)
+          .map(convertBeapiToProperty);
+
+        if (hasValidData(converted)) {
+          properties = converted;
+          source = 'beapi';
+          console.log(`✅ BEAPI returned ${properties.length} valid listings`);
+        } else {
+          console.log('⚠️ BEAPI returned sparse data, trying fallback...');
+        }
+      } catch (beapiError) {
+        console.warn('⚠️ BEAPI failed:', beapiError);
+      }
+    }
+
+    // Fallback to legacy client if BEAPI failed or returned bad data
+    if (!hasValidData(properties)) {
+      try {
+        console.log('📡 Trying legacy Guesty client...');
+        const listings = await getListingsLegacy({ active: true, limit: 100, useCache: true });
+        const converted = listings.map(convertGuestyToProperty);
+
+        if (hasValidData(converted)) {
+          properties = converted;
+          source = 'legacy';
+          console.log(`✅ Legacy client returned ${properties.length} valid listings`);
+        } else {
+          console.log('⚠️ Legacy client returned sparse data, using static fallback...');
+        }
+      } catch (legacyError) {
+        console.warn('⚠️ Legacy client failed:', legacyError);
+      }
+    }
+
+    // Final fallback to static data
+    if (!hasValidData(properties)) {
+      console.log('📦 Using static fallback data from guestyData.ts');
+      properties = guestyProperties;
+      source = 'static';
     }
 
     // FILTER CLIENT-SIDE (no additional API calls!)
@@ -131,18 +164,37 @@ export async function GET(request: Request) {
       success: true,
       data: properties,
       count: properties.length,
+      source, // Include source for debugging
     });
   } catch (error) {
     console.error('Error fetching listings:', error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Unable to load properties. Please try again.',
-        data: [],
-        count: 0,
-      },
-      { status: 500 }
-    );
+    // Even on error, return static fallback
+    console.log('📦 Error occurred - returning static fallback data');
+    let fallbackProperties = guestyProperties;
+
+    // Apply filters to fallback
+    if (city) {
+      fallbackProperties = fallbackProperties.filter(p =>
+        p.location.city.toLowerCase().includes(city.toLowerCase())
+      );
+    }
+    if (guests) {
+      const guestCount = parseInt(guests);
+      fallbackProperties = fallbackProperties.filter(p => p.maxGuests >= guestCount);
+    }
+    if (minPrice) {
+      fallbackProperties = fallbackProperties.filter(p => p.price.perNight >= parseInt(minPrice));
+    }
+    if (maxPrice) {
+      fallbackProperties = fallbackProperties.filter(p => p.price.perNight <= parseInt(maxPrice));
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: sortByBestReviews(fallbackProperties),
+      count: fallbackProperties.length,
+      source: 'static-fallback',
+    });
   }
 }
