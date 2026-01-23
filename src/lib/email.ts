@@ -153,9 +153,8 @@ function generateBookingConfirmationHTML(data: BookingConfirmationData): string 
           <!-- Logo Header -->
           <tr>
             <td style="padding: 40px 40px 24px 40px; text-align: center; background-color: #ffffff;">
-              <h1 style="margin: 0; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 42px; font-weight: 600; color: ${casitaDark}; letter-spacing: 2px;">Casita</h1>
-              <p style="margin: 8px 0 0 0; color: ${casitaGray}; font-size: 13px; letter-spacing: 2px; text-transform: uppercase;">Your Home Away From Home</p>
-            </td>
+              <img src="https://casita-beapi.vercel.app/casita-logo.png" alt="Casita" style="height: 50px; width: auto;" />
+                          </td>
           </tr>
 
           <!-- Elegant Divider -->
@@ -165,7 +164,7 @@ function generateBookingConfirmationHTML(data: BookingConfirmationData): string 
                 <tr>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                   <td style="width: 60px; text-align: center; padding: 0 15px;">
-                    <span style="color: ${casitaOrange}; font-size: 18px;">✦</span>
+                    <span style="color: ${casitaOrange}; font-size: 18px;">🏠</span>
                   </td>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                 </tr>
@@ -443,7 +442,7 @@ function generateBookingConfirmationHTML(data: BookingConfirmationData): string 
                 <tr>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                   <td style="width: 80px; text-align: center; padding: 0 15px;">
-                    <span style="color: ${casitaOrange}; font-size: 14px;">🌴 ✦ 🌴</span>
+                    <span style="color: ${casitaOrange}; font-size: 14px;">🌴 🏠 🌴</span>
                   </td>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                 </tr>
@@ -513,9 +512,8 @@ function generateInquiryConfirmationHTML(data: InquiryConfirmationData): string 
           <!-- Logo Header -->
           <tr>
             <td style="padding: 40px 40px 24px 40px; text-align: center; background-color: #ffffff;">
-              <h1 style="margin: 0; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 42px; font-weight: 600; color: ${casitaDark}; letter-spacing: 2px;">Casita</h1>
-              <p style="margin: 8px 0 0 0; color: ${casitaGray}; font-size: 13px; letter-spacing: 2px; text-transform: uppercase;">Your Home Away From Home</p>
-            </td>
+              <img src="https://casita-beapi.vercel.app/casita-logo.png" alt="Casita" style="height: 50px; width: auto;" />
+                          </td>
           </tr>
 
           <!-- Elegant Divider -->
@@ -525,7 +523,7 @@ function generateInquiryConfirmationHTML(data: InquiryConfirmationData): string 
                 <tr>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                   <td style="width: 60px; text-align: center; padding: 0 15px;">
-                    <span style="color: ${casitaOrange}; font-size: 18px;">✦</span>
+                    <span style="color: ${casitaOrange}; font-size: 18px;">🏠</span>
                   </td>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                 </tr>
@@ -680,7 +678,7 @@ function generateInquiryConfirmationHTML(data: InquiryConfirmationData): string 
                 <tr>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                   <td style="width: 80px; text-align: center; padding: 0 15px;">
-                    <span style="color: ${casitaOrange}; font-size: 14px;">🌴 ✦ 🌴</span>
+                    <span style="color: ${casitaOrange}; font-size: 14px;">🌴 🏠 🌴</span>
                   </td>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                 </tr>
@@ -780,7 +778,7 @@ export async function sendHostNotificationEmail(data: {
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td>
-                    <span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 32px; font-weight: 600; color: ${casitaDark}; letter-spacing: 1px;">Casita</span>
+                    <img src="https://casita-beapi.vercel.app/casita-logo.png" alt="Casita" style="height: 36px; width: auto;" />
                   </td>
                   <td align="right">
                     <span style="display: inline-block; background-color: ${data.isInstantBooking ? successGreen : casitaOrange}; color: #ffffff; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; padding: 6px 12px; border-radius: 4px;">
