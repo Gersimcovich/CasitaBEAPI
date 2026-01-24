@@ -90,6 +90,7 @@ function PropertiesContent() {
   const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(null);
   const [showGuestPicker, setShowGuestPicker] = useState(false);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [guests, setGuests] = useState(urlGuests || 2);
   const [rooms, setRooms] = useState(1);
   const [petFriendlyFilter, setPetFriendlyFilter] = useState(urlPetFriendly);
@@ -371,7 +372,10 @@ function PropertiesContent() {
 
           {/* Guests filter */}
           <button
-            onClick={() => setShowGuestPicker(!showGuestPicker)}
+            onClick={() => {
+              setShowGuestPicker(!showGuestPicker);
+              setShowSortDropdown(false);
+            }}
             className="flex items-center gap-1.5 px-3 py-2 bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] rounded-full text-sm font-medium whitespace-nowrap"
           >
             <Users className="w-4 h-4" />
@@ -436,17 +440,37 @@ function PropertiesContent() {
           <p className="text-sm text-[var(--casita-gray-600)]">
             <span className="font-semibold text-[var(--casita-gray-900)]">{sortedProperties.length}</span> {t.properties.found}
           </p>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="appearance-none px-3 py-1.5 pr-7 bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] rounded-lg text-sm font-medium focus:outline-none cursor-pointer"
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowSortDropdown(!showSortDropdown);
+                setShowGuestPicker(false);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] rounded-lg text-sm font-medium"
+            >
+              {sortOptions.find(o => o.value === sortBy)?.label || 'Recommended'}
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showSortDropdown && (
+              <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-[var(--casita-gray-200)] py-2 z-50">
+                {sortOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setSortBy(option.value);
+                      setShowSortDropdown(false);
+                    }}
+                    className={`w-full px-4 py-2 text-left text-sm hover:bg-[var(--casita-gray-50)] transition-colors ${
+                      sortBy === option.value ? 'text-[var(--casita-orange)] font-medium bg-[var(--casita-orange)]/5' : 'text-[var(--casita-gray-700)]'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Guest Picker Dropdown (for app) */}
