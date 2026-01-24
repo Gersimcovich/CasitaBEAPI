@@ -45,6 +45,22 @@ function generateDealDates(index: number, nights: number): { dates: string; chec
   };
 }
 
+// Extract city and zip code from address for display
+function getCityAndZip(address: string, city: string): string {
+  if (!address) return city;
+
+  // Try to extract zip code from full address
+  // Common formats: "..., Miami Beach, FL 33139" or "..., 33139"
+  const zipMatch = address.match(/\b(\d{5})(?:-\d{4})?\b/);
+  const zipCode = zipMatch ? zipMatch[1] : '';
+
+  if (zipCode) {
+    return `${city}, ${zipCode}`;
+  }
+
+  return city;
+}
+
 // Get icon type based on property characteristics
 function getIconType(property: Property): 'city' | 'beach' | 'arts' | 'nature' {
   const name = property.name.toLowerCase();
@@ -321,7 +337,7 @@ export default function DealsPage() {
                     <div className="flex items-center gap-2 text-[var(--casita-gray-500)] text-xs mb-3">
                       <div className="flex items-center gap-1">
                         <MapPin className="w-3 h-3" />
-                        <span>{deal.property.location.city}</span>
+                        <span>{getCityAndZip(deal.property.location.address, deal.property.location.city)}</span>
                       </div>
                       {deal.property.bedrooms && (
                         <>
