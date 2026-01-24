@@ -101,13 +101,27 @@ export default function Header() {
     }
   }, [isUserMenuOpen]);
 
+  // State for app user menu
+  const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
+
+  // Close app menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setIsAppMenuOpen(false);
+    };
+    if (isAppMenuOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [isAppMenuOpen]);
+
   // App-specific header (simplified for iOS/Android app)
   if (isCapacitor) {
     return (
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white ${
           isScrolled ? 'shadow-md' : ''
-        } ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
+        }`}
         style={isIOS ? { paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' } : undefined}
       >
         <div className="max-w-7xl mx-auto px-4">
@@ -124,7 +138,7 @@ export default function Header() {
               />
             </Link>
 
-            {/* Center Navigation - Simplified for App */}
+            {/* Center Navigation - Only Stays */}
             <nav className="flex items-center gap-1">
               <Link
                 href="/properties"
@@ -133,30 +147,133 @@ export default function Header() {
                 <Building2 className="w-4 h-4" />
                 {t.nav.properties}
               </Link>
-              <Link
-                href="/reservation"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] hover:bg-[var(--casita-cream)] rounded-lg transition-colors font-medium"
-              >
-                <CalendarCheck className="w-4 h-4" />
-                {t.nav.manageReservation || 'My Reservation'}
-              </Link>
             </nav>
 
-            {/* Right Side - Simple Person Icon for Auth */}
-            <button
-              onClick={() => setIsAuthModalOpen(true)}
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-                isAuthenticated
-                  ? 'bg-[var(--casita-gray-900)] text-white'
-                  : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-200)]'
-              }`}
-            >
-              {isAuthenticated && user ? (
-                <span className="text-sm font-semibold">{user.firstName[0]}</span>
-              ) : (
-                <User className="w-5 h-5" />
+            {/* Right Side - Person Icon with Dropdown */}
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsAppMenuOpen(!isAppMenuOpen);
+                }}
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+                  isAuthenticated
+                    ? 'bg-[var(--casita-gray-900)] text-white'
+                    : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-200)]'
+                }`}
+              >
+                {isAuthenticated && user ? (
+                  <span className="text-sm font-semibold">{user.firstName[0]}</span>
+                ) : (
+                  <User className="w-5 h-5" />
+                )}
+              </button>
+
+              {/* App User Dropdown Menu */}
+              {isAppMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-[var(--casita-gray-100)] py-2 animate-scale-in z-50">
+                  {isAuthenticated && user ? (
+                    <>
+                      {/* Logged in user header */}
+                      <div className="px-4 py-3 border-b border-[var(--casita-gray-100)]">
+                        <p className="font-semibold text-[var(--casita-gray-900)]">{user.firstName} {user.lastName}</p>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Award className="w-4 h-4 text-[var(--casita-orange)]" />
+                          <span className="text-sm font-semibold text-[var(--casita-orange)]">{user.casitaPoints.toLocaleString()} pts</span>
+                        </div>
+                      </div>
+                      <div className="py-1">
+                        <Link
+                          href="/reservation"
+                          onClick={() => setIsAppMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <CalendarCheck className="w-4 h-4" />
+                          {t.nav.manageReservation || 'My Reservation'}
+                        </Link>
+                        <Link
+                          href="/account"
+                          onClick={() => setIsAppMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <User className="w-4 h-4" />
+                          {t.nav.myAccount || 'My Account'}
+                        </Link>
+                        <Link
+                          href="/help"
+                          onClick={() => setIsAppMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <HelpCircle className="w-4 h-4" />
+                          {t.footer.helpCenter}
+                        </Link>
+                      </div>
+                      <hr className="my-1 border-[var(--casita-gray-100)]" />
+                      <div className="py-1">
+                        <button
+                          onClick={async () => {
+                            await logout();
+                            setIsAppMenuOpen(false);
+                          }}
+                          className="flex items-center gap-3 w-full px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          {t.nav.logout || 'Log out'}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Guest user */}
+                      <div className="py-1">
+                        <Link
+                          href="/reservation"
+                          onClick={() => setIsAppMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <CalendarCheck className="w-4 h-4" />
+                          {t.nav.manageReservation || 'My Reservation'}
+                        </Link>
+                      </div>
+                      <hr className="my-1 border-[var(--casita-gray-100)]" />
+                      <div className="py-1">
+                        <button
+                          onClick={() => {
+                            setIsAppMenuOpen(false);
+                            setIsAuthModalOpen(true);
+                          }}
+                          className="flex items-center gap-3 w-full px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] font-medium"
+                        >
+                          <User className="w-4 h-4" />
+                          {t.nav.login}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsAppMenuOpen(false);
+                            setIsAuthModalOpen(true);
+                          }}
+                          className="flex items-center gap-3 w-full px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <Award className="w-4 h-4" />
+                          {t.nav.signup}
+                        </button>
+                      </div>
+                      <hr className="my-1 border-[var(--casita-gray-100)]" />
+                      <div className="py-1">
+                        <Link
+                          href="/help"
+                          onClick={() => setIsAppMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <HelpCircle className="w-4 h-4" />
+                          {t.footer.helpCenter}
+                        </Link>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
-            </button>
+            </div>
           </div>
         </div>
 
