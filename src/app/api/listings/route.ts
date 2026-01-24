@@ -4,6 +4,86 @@ import { getListings as getListingsBeapi, isConfigured as isBeapiConfigured, Bea
 import { guestyProperties } from '@/data/guestyData';
 import { Property } from '@/types';
 
+// Generate location title from address
+// For Miami Beach: "1200 Collins Ave" → "Collins Ave & 12th St"
+// For Orlando: Use neighborhood (e.g., "Lake Berkley") or street name
+function generateLocationTitle(address: string | undefined, city: string | undefined, neighborhood?: string): string {
+  if (!address || !city) return 'Property';
+
+  const cityLower = city.toLowerCase();
+
+  // For Orlando/Kissimmee area - use neighborhood if available, otherwise street name
+  if (cityLower.includes('orlando') || cityLower.includes('kissimmee') || cityLower.includes('davenport') || cityLower.includes('champions gate')) {
+    // If we have a neighborhood, use that
+    if (neighborhood) {
+      return neighborhood;
+    }
+    // Otherwise use street name without number
+    const streetPart = address.split(',')[0].trim();
+    const match = streetPart.match(/^(\d+)\s+(.+)$/);
+    if (match) {
+      let streetName = match[2]
+        .replace(/\bStreet\b/gi, 'St')
+        .replace(/\bAvenue\b/gi, 'Ave')
+        .replace(/\bDrive\b/gi, 'Dr')
+        .replace(/\bBoulevard\b/gi, 'Blvd')
+        .replace(/\bRoad\b/gi, 'Rd')
+        .replace(/\bLane\b/gi, 'Ln')
+        .replace(/\bCourt\b/gi, 'Ct')
+        .replace(/\bPlace\b/gi, 'Pl')
+        .replace(/\bTerrace\b/gi, 'Ter')
+        .replace(/\bCircle\b/gi, 'Cir');
+      return `${streetName}, ${city}`;
+    }
+    return `${streetPart}, ${city}`;
+  }
+
+  // Parse street number and name from address
+  // Handles formats like "1200 Collins Ave" or "1200 Collins Avenue, Miami Beach, FL"
+  const streetPart = address.split(',')[0].trim();
+  const match = streetPart.match(/^(\d+)\s+(.+)$/);
+
+  if (!match) return `${streetPart}, ${city}`;
+
+  const streetNumber = parseInt(match[1], 10);
+  let streetName = match[2]
+    .replace(/\bStreet\b/gi, 'St')
+    .replace(/\bAvenue\b/gi, 'Ave')
+    .replace(/\bDrive\b/gi, 'Dr')
+    .replace(/\bBoulevard\b/gi, 'Blvd')
+    .replace(/\bRoad\b/gi, 'Rd')
+    .replace(/\bLane\b/gi, 'Ln')
+    .replace(/\bCourt\b/gi, 'Ct')
+    .replace(/\bPlace\b/gi, 'Pl')
+    .replace(/\bTerrace\b/gi, 'Ter')
+    .replace(/\bCircle\b/gi, 'Cir');
+
+  // For Miami Beach area, use the grid system to calculate cross street
+  if (cityLower.includes('miami beach') || cityLower.includes('bal harbour') || cityLower.includes('surfside')) {
+    if (streetNumber > 0) {
+      const crossStreet = Math.round(streetNumber / 100);
+      if (crossStreet > 0 && crossStreet <= 200) {
+        // Get ordinal suffix
+        const suffix = crossStreet === 1 ? 'st' : crossStreet === 2 ? 'nd' : crossStreet === 3 ? 'rd' :
+          (crossStreet >= 11 && crossStreet <= 13) ? 'th' :
+          crossStreet % 10 === 1 ? 'st' : crossStreet % 10 === 2 ? 'nd' : crossStreet % 10 === 3 ? 'rd' : 'th';
+        return `${streetName} & ${crossStreet}${suffix} St`;
+      }
+    }
+  }
+
+  return `${streetName}, ${city}`;
+}
+
+// Transform static property to use cross-street location title
+function transformStaticProperty(property: Property): Property {
+  const locationTitle = generateLocationTitle(property.location.address, property.location.city, property.location.neighborhood);
+  return {
+    ...property,
+    name: locationTitle,
+  };
+}
+
 // Sort properties by best reviews (highest rating with most reviews first)
 function sortByBestReviews(properties: Property[]): Property[] {
   return [...properties].sort((a, b) => {
@@ -19,9 +99,17 @@ function sortByBestReviews(properties: Property[]): Property[] {
 
 // Convert BEAPI listing to Property format
 function convertBeapiToProperty(listing: BeapiListing): Property {
+  // Get neighborhood from public description
+  const neighborhood = listing.publicDescription?.neighborhood;
+
+  // Generate location title instead of generic Guesty title
+  // For Miami Beach: cross-street format (e.g., "Collins Ave & 12th St")
+  // For Orlando: neighborhood or street name (e.g., "Lake Berkley")
+  const locationTitle = generateLocationTitle(listing.address?.full, listing.address?.city, neighborhood);
+
   return {
     id: listing._id,
-    name: listing.title || listing.nickname || 'Property',
+    name: locationTitle,
     slug: listing._id,
     description: listing.publicDescription?.summary || '',
     shortDescription: listing.publicDescription?.summary?.substring(0, 150) || '',
@@ -36,6 +124,7 @@ function convertBeapiToProperty(listing: BeapiListing): Property {
       address: listing.address?.full || '',
       city: listing.address?.city || '',
       country: listing.address?.country || '',
+      neighborhood: neighborhood,
       coordinates: {
         lat: listing.address?.lat || 0,
         lng: listing.address?.lng || 0,
@@ -136,7 +225,7 @@ export async function GET(request: Request) {
     // Final fallback to static data
     if (!hasValidData(properties)) {
       console.log('📦 Using static fallback data from guestyData.ts');
-      properties = guestyProperties;
+      properties = guestyProperties.map(transformStaticProperty);
       source = 'static';
     }
 
@@ -171,7 +260,7 @@ export async function GET(request: Request) {
 
     // Even on error, return static fallback
     console.log('📦 Error occurred - returning static fallback data');
-    let fallbackProperties = guestyProperties;
+    let fallbackProperties = guestyProperties.map(transformStaticProperty);
 
     // Apply filters to fallback
     if (city) {
