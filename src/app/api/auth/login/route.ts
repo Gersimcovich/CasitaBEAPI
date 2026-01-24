@@ -62,6 +62,16 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Login error:', error);
+
+    // Check if it's a MongoDB connection error
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    if (errorMessage.includes('MONGODB_URI') || errorMessage.includes('MongoClient')) {
+      return NextResponse.json<AuthResponse>(
+        { success: false, message: 'Service temporarily unavailable. Please try again later.' },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json<AuthResponse>(
       { success: false, message: 'An error occurred. Please try again.' },
       { status: 500 }

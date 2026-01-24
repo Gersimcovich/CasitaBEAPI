@@ -204,8 +204,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         // Switch to register step
         setStep('register');
       }
-    } catch {
-      setError('An error occurred. Please try again.');
+    } catch (err) {
+      console.error('Login submit error:', err);
+      setError('Unable to connect. Please check your internet and try again.');
     } finally {
       setIsLoading(false);
     }

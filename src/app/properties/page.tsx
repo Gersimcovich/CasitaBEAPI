@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { Property, SortOption } from '@/types';
 import { useLocale } from '@/contexts/LocaleContext';
+import { useCapacitor } from '@/hooks/useCapacitor';
 import dynamic from 'next/dynamic';
 
 // Dynamically import map component (client-side only, no SSR)
@@ -53,6 +54,7 @@ const PropertyMap = dynamic(() => import('@/components/map/PropertyMap'), {
 function PropertiesContent() {
   const searchParams = useSearchParams();
   const { t } = useLocale();
+  const { isCapacitor, isIOS } = useCapacitor();
 
   // Parse URL search parameters
   const urlDestination = searchParams.get('destination') || '';
@@ -309,8 +311,181 @@ function PropertiesContent() {
     window.history.replaceState({}, '', newUrl);
   };
 
-  // Shared search header component - compact inline style for properties page
-  const SearchHeader = () => (
+  // App-specific search header - clean filter chips UI with integrated header
+  const AppSearchHeader = () => (
+    <div
+      className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[var(--casita-gray-100)]"
+      style={isIOS ? { paddingTop: 'env(safe-area-inset-top, 0px)' } : undefined}
+    >
+      {/* Top bar with back button and title */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--casita-gray-100)]">
+        <button
+          onClick={() => window.history.back()}
+          className="w-9 h-9 rounded-full bg-[var(--casita-gray-100)] flex items-center justify-center"
+        >
+          <ChevronDown className="w-5 h-5 text-[var(--casita-gray-700)] rotate-90" />
+        </button>
+        <h1 className="text-base font-semibold text-[var(--casita-gray-900)]">{t.nav.properties}</h1>
+        <div className="w-9" /> {/* Spacer for centering */}
+      </div>
+
+      <div className="px-4 py-3">
+        {/* Horizontal scrollable filter chips */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {/* Location filter */}
+          {selectedLocation ? (
+            <button
+              onClick={clearLocation}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[var(--casita-orange)] text-white rounded-full text-sm font-medium whitespace-nowrap"
+            >
+              <MapPin className="w-4 h-4" />
+              {selectedLocation}
+              <X className="w-3.5 h-3.5 ml-1" />
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowFilters(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] rounded-full text-sm font-medium whitespace-nowrap"
+            >
+              <MapPin className="w-4 h-4" />
+              Location
+              <ChevronDown className="w-3 h-3" />
+            </button>
+          )}
+
+          {/* Dates filter */}
+          <button
+            onClick={() => setShowFilters(true)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+              checkInDate && checkOutDate
+                ? 'bg-[var(--casita-orange)] text-white'
+                : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)]'
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            {checkInDate && checkOutDate
+              ? `${checkInDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${checkOutDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+              : 'Dates'}
+          </button>
+
+          {/* Guests filter */}
+          <button
+            onClick={() => setShowGuestPicker(!showGuestPicker)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] rounded-full text-sm font-medium whitespace-nowrap"
+          >
+            <Users className="w-4 h-4" />
+            {guests} guests
+          </button>
+
+          {/* Bedrooms */}
+          <button
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+              minBedrooms > 0
+                ? 'bg-[var(--casita-orange)] text-white'
+                : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)]'
+            }`}
+            onClick={() => setMinBedrooms(minBedrooms > 0 ? 0 : 1)}
+          >
+            <Bed className="w-4 h-4" />
+            {minBedrooms > 0 ? `${minBedrooms}+` : 'Beds'}
+          </button>
+
+          {/* Pet Friendly */}
+          <button
+            onClick={() => setPetFriendlyFilter(!petFriendlyFilter)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+              petFriendlyFilter
+                ? 'bg-[var(--casita-orange)] text-white'
+                : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)]'
+            }`}
+          >
+            <Dog className="w-4 h-4" />
+            Pets
+          </button>
+
+          {/* Beachfront */}
+          <button
+            onClick={() => setBeachfrontOnly(!beachfrontOnly)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+              beachfrontOnly
+                ? 'bg-[var(--casita-orange)] text-white'
+                : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)]'
+            }`}
+          >
+            <Waves className="w-4 h-4" />
+            Beach
+          </button>
+
+          {/* More Filters */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+              activeFiltersCount > 0
+                ? 'bg-[var(--casita-gray-900)] text-white'
+                : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)]'
+            }`}
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            {activeFiltersCount > 0 ? `Filters (${activeFiltersCount})` : 'Filters'}
+          </button>
+        </div>
+
+        {/* Results count + Sort row */}
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-sm text-[var(--casita-gray-600)]">
+            <span className="font-semibold text-[var(--casita-gray-900)]">{sortedProperties.length}</span> {t.properties.found}
+          </p>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            className="appearance-none px-3 py-1.5 pr-7 bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] rounded-lg text-sm font-medium focus:outline-none cursor-pointer"
+          >
+            {sortOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Guest Picker Dropdown (for app) */}
+        {showGuestPicker && (
+          <div className="absolute left-4 right-4 mt-2 bg-white rounded-xl shadow-lg border border-[var(--casita-gray-200)] p-4 z-50">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-[var(--casita-gray-900)]">Guests</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setGuests(Math.max(1, guests - 1))}
+                    className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] flex items-center justify-center"
+                    disabled={guests <= 1}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="w-6 text-center font-semibold">{guests}</span>
+                  <button
+                    onClick={() => setGuests(guests + 1)}
+                    className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] flex items-center justify-center"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowGuestPicker(false)}
+              className="w-full mt-4 py-2.5 bg-[var(--casita-orange)] text-white rounded-lg font-medium"
+            >
+              Done
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Website search header - compact inline style for properties page
+  const WebSearchHeader = () => (
     <div className="pt-20 md:pt-24 bg-[var(--casita-gray-50)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Selected Location Pill */}
@@ -356,13 +531,11 @@ function PropertiesContent() {
                 selected={checkInDate}
                 onChange={(date: Date | null) => {
                   setCheckInDate(date);
-                  // Auto-adjust checkout if it's on or before the new check-in
                   if (date && checkOutDate && checkOutDate <= date) {
                     const nextDay = new Date(date);
                     nextDay.setDate(nextDay.getDate() + 1);
                     setCheckOutDate(nextDay);
                   }
-                  // If no checkout is set, auto-set it to the next day
                   if (date && !checkOutDate) {
                     const nextDay = new Date(date);
                     nextDay.setDate(nextDay.getDate() + 1);
@@ -405,7 +578,6 @@ function PropertiesContent() {
                 <span className="text-[var(--casita-gray-700)]">{guests} guests</span>
               </button>
 
-              {/* Guest Picker Dropdown */}
               {showGuestPicker && (
                 <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-xl shadow-lg border border-[var(--casita-gray-200)] p-4 z-50">
                   <div className="space-y-4">
@@ -470,9 +642,7 @@ function PropertiesContent() {
 
           {/* Row 2: Quick filters and controls */}
           <div className="flex flex-col lg:flex-row gap-3 pt-3 border-t border-[var(--casita-gray-100)]">
-            {/* Quick filter chips - scrollable on mobile */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-hide flex-1">
-              {/* Bedrooms */}
               <div className="relative flex-shrink-0">
                 <button
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
@@ -488,7 +658,6 @@ function PropertiesContent() {
                 </button>
               </div>
 
-              {/* Bathrooms */}
               <div className="relative flex-shrink-0">
                 <button
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
@@ -504,7 +673,6 @@ function PropertiesContent() {
                 </button>
               </div>
 
-              {/* Pet Friendly */}
               <button
                 onClick={() => setPetFriendlyFilter(!petFriendlyFilter)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
@@ -517,7 +685,6 @@ function PropertiesContent() {
                 Pet Friendly
               </button>
 
-              {/* Beachfront */}
               <button
                 onClick={() => setBeachfrontOnly(!beachfrontOnly)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
@@ -530,7 +697,6 @@ function PropertiesContent() {
                 Beachfront
               </button>
 
-              {/* Property Type */}
               <div className="relative flex-shrink-0">
                 <select
                   value={propertyType || ''}
@@ -551,7 +717,6 @@ function PropertiesContent() {
                 <ChevronDown className={`absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none ${propertyType ? 'text-white' : 'text-[var(--casita-gray-400)]'}`} />
               </div>
 
-              {/* All Filters button */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
@@ -572,7 +737,6 @@ function PropertiesContent() {
               </button>
             </div>
 
-            {/* Sort and View Controls */}
             <div className="flex items-center gap-2 flex-shrink-0">
               <select
                 value={sortBy}
@@ -611,27 +775,35 @@ function PropertiesContent() {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );
 
-  // Results count shown below header when loaded
-  const ResultsCount = () => (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
-      <p className="text-sm text-[var(--casita-gray-600)]">
-        <span className="font-semibold text-[var(--casita-gray-900)]">{sortedProperties.length}</span> {t.properties.found}
-        {selectedLocation && <span> in <span className="font-medium">{selectedLocation}</span></span>}
-        {searchQuery && <span> matching &ldquo;<span className="font-medium">{searchQuery}</span>&rdquo;</span>}
-      </p>
-    </div>
-  );
+  // Use appropriate header based on platform
+  const SearchHeader = isCapacitor ? AppSearchHeader : WebSearchHeader;
+
+  // Results count shown below header when loaded (website only)
+  const ResultsCount = () => {
+    if (isCapacitor) return null; // App shows count in header
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+        <p className="text-sm text-[var(--casita-gray-600)]">
+          <span className="font-semibold text-[var(--casita-gray-900)]">{sortedProperties.length}</span> {t.properties.found}
+          {selectedLocation && <span> in <span className="font-medium">{selectedLocation}</span></span>}
+          {searchQuery && <span> matching &ldquo;<span className="font-medium">{searchQuery}</span>&rdquo;</span>}
+        </p>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
       <>
         <SearchHeader />
-        <div className="py-16 flex flex-col items-center justify-center min-h-[40vh]">
+        <div
+          className="py-16 flex flex-col items-center justify-center min-h-[40vh]"
+          style={isCapacitor ? { paddingTop: isIOS ? 'calc(env(safe-area-inset-top, 0px) + 160px)' : '160px' } : undefined}
+        >
           <Loader2 className="w-10 h-10 text-[var(--casita-orange)] animate-spin mb-4" />
           <p className="text-[var(--casita-gray-600)]">{t.properties.loading}</p>
         </div>
@@ -643,7 +815,10 @@ function PropertiesContent() {
     return (
       <>
         <SearchHeader />
-        <div className="py-16 flex flex-col items-center justify-center min-h-[40vh]">
+        <div
+          className="py-16 flex flex-col items-center justify-center min-h-[40vh]"
+          style={isCapacitor ? { paddingTop: isIOS ? 'calc(env(safe-area-inset-top, 0px) + 160px)' : '160px' } : undefined}
+        >
           <p className="text-red-500 mb-4">{error}</p>
           <Button onClick={() => window.location.reload()}>{t.common.tryAgain}</Button>
         </div>
@@ -656,7 +831,11 @@ function PropertiesContent() {
       <SearchHeader />
       <ResultsCount />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+      {/* Add padding for fixed app header */}
+      <div
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6"
+        style={isCapacitor ? { paddingTop: isIOS ? 'calc(env(safe-area-inset-top, 0px) + 140px)' : '140px' } : undefined}
+      >
         <div className="flex gap-8">
           {showFilters && (
             <div className="w-80 flex-shrink-0 hidden md:block">
@@ -905,10 +1084,24 @@ function PropertiesContent() {
   );
 }
 
-export default function PropertiesPage() {
+function PropertiesPageWrapper() {
+  const { isCapacitor, isReady } = useCapacitor();
+
+  // Show loading state until we know the platform
+  if (!isReady) {
+    return (
+      <main className="min-h-screen bg-[var(--casita-gray-50)]">
+        <div className="pt-24 pb-6 flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-10 h-10 text-[var(--casita-orange)] animate-spin" />
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[var(--casita-gray-50)]">
-      <Header />
+      {/* Only show Header on web - app has filter header built-in */}
+      {!isCapacitor && <Header />}
       <Suspense fallback={
         <div className="pt-24 pb-6 flex items-center justify-center min-h-[60vh]">
           <Loader2 className="w-10 h-10 text-[var(--casita-orange)] animate-spin" />
@@ -916,7 +1109,11 @@ export default function PropertiesPage() {
       }>
         <PropertiesContent />
       </Suspense>
-      <Footer />
+      {!isCapacitor && <Footer />}
     </main>
   );
+}
+
+export default function PropertiesPage() {
+  return <PropertiesPageWrapper />;
 }

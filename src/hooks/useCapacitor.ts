@@ -7,6 +7,7 @@ interface CapacitorInfo {
   platform: 'ios' | 'android' | 'web';
   isIOS: boolean;
   isAndroid: boolean;
+  isReady: boolean; // True once we've checked the environment
 }
 
 export function useCapacitor(): CapacitorInfo {
@@ -15,6 +16,7 @@ export function useCapacitor(): CapacitorInfo {
     platform: 'web',
     isIOS: false,
     isAndroid: false,
+    isReady: false,
   });
 
   useEffect(() => {
@@ -28,7 +30,11 @@ export function useCapacitor(): CapacitorInfo {
         platform: platform as 'ios' | 'android' | 'web',
         isIOS: platform === 'ios',
         isAndroid: platform === 'android',
+        isReady: true,
       });
+    } else {
+      // Not in Capacitor, but we've checked
+      setInfo(prev => ({ ...prev, isReady: true }));
     }
   }, []);
 

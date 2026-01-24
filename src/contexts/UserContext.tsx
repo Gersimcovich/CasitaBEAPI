@@ -90,12 +90,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
       return {
         success: data.success,
-        message: data.message,
+        message: data.message || 'An error occurred',
         requiresRegistration: data.requiresRegistration,
       };
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, message: 'An error occurred. Please try again.' };
+      return { success: false, message: 'Unable to connect. Please check your internet connection and try again.' };
     }
   }, []);
 
