@@ -138,18 +138,7 @@ export default function Header() {
               />
             </Link>
 
-            {/* Center Navigation - Only Stays */}
-            <nav className="flex items-center gap-1">
-              <Link
-                href="/properties"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] hover:bg-[var(--casita-cream)] rounded-lg transition-colors font-medium"
-              >
-                <Building2 className="w-4 h-4" />
-                {t.nav.properties}
-              </Link>
-            </nav>
-
-            {/* Right Side - Person Icon with Dropdown */}
+            {/* Right Side - Person Icon with Dropdown (all nav in menu) */}
             <div className="relative">
               <button
                 onClick={(e) => {
@@ -184,6 +173,14 @@ export default function Header() {
                       </div>
                       <div className="py-1">
                         <Link
+                          href="/properties"
+                          onClick={() => setIsAppMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <Building2 className="w-4 h-4" />
+                          {t.nav.properties}
+                        </Link>
+                        <Link
                           href="/reservation"
                           onClick={() => setIsAppMenuOpen(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
@@ -191,6 +188,9 @@ export default function Header() {
                           <CalendarCheck className="w-4 h-4" />
                           {t.nav.manageReservation || 'My Reservation'}
                         </Link>
+                      </div>
+                      <hr className="my-1 border-[var(--casita-gray-100)]" />
+                      <div className="py-1">
                         <Link
                           href="/account"
                           onClick={() => setIsAppMenuOpen(false)}
@@ -226,6 +226,14 @@ export default function Header() {
                     <>
                       {/* Guest user */}
                       <div className="py-1">
+                        <Link
+                          href="/properties"
+                          onClick={() => setIsAppMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <Building2 className="w-4 h-4" />
+                          {t.nav.properties}
+                        </Link>
                         <Link
                           href="/reservation"
                           onClick={() => setIsAppMenuOpen(false)}
