@@ -15,13 +15,12 @@ interface PropertyCardProps {
   checkOut?: Date | null;
 }
 
-// Extract detailed location from address (e.g., "1200 Collins Ave, South Beach")
-function getDetailedLocation(address: string, city: string): string {
+// Generate approximate cross-street address (e.g., "Ocean Dr & 7th St")
+function getApproximateAddress(address: string, city: string): string {
   if (!address) return city;
 
-  // Parse the full address to extract meaningful parts
+  // Parse the full address to extract street info
   const parts = address.split(',').map(p => p.trim());
-
   if (parts.length === 0) return city;
 
   // Get the street part (first segment)
@@ -50,32 +49,28 @@ function getDetailedLocation(address: string, city: string): string {
     .replace(/\bTerrace\b/gi, 'Ter')
     .replace(/\bCircle\b/gi, 'Cir');
 
-  // Build the display string with number if available
-  let display = streetNumber ? `${streetNumber} ${streetName}` : streetName;
+  // Generate cross-street from street number
+  if (streetNumber) {
+    const num = parseInt(streetNumber, 10);
+    // Round to nearest block (typically 100s for cross-streets)
+    const crossStreetNum = Math.round(num / 100);
 
-  // Try to get neighborhood/area from second part of address if it's not just the city
-  if (parts.length > 1) {
-    const secondPart = parts[1];
-    // Check if it's a neighborhood (not a state abbreviation or zip code)
-    if (secondPart &&
-        !secondPart.match(/^[A-Z]{2}$/) &&
-        !secondPart.match(/^\d{5}/) &&
-        secondPart.toLowerCase() !== city.toLowerCase()) {
-      display += `, ${secondPart}`;
+    if (crossStreetNum > 0 && crossStreetNum <= 200) {
+      // Generate ordinal suffix
+      const suffix = getOrdinalSuffix(crossStreetNum);
+      return `${streetName} & ${crossStreetNum}${suffix}`;
     }
   }
 
-  // If still just have street name and it's short, add city
-  if (!display.includes(',') && display.length < 20) {
-    display += `, ${city}`;
-  }
+  // Fallback: just return abbreviated street name with city
+  return `${streetName}, ${city}`;
+}
 
-  // Truncate if too long
-  if (display.length > 40) {
-    display = display.substring(0, 37) + '...';
-  }
-
-  return display || city;
+// Helper to get ordinal suffix (1st, 2nd, 3rd, etc.)
+function getOrdinalSuffix(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
 }
 
 // Get property type display name
@@ -337,7 +332,7 @@ export default function PropertyCard({ property, showMap = false, onPreviewClick
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center text-[var(--casita-gray-500)] text-sm">
               <MapPin className="w-3.5 h-3.5 mr-1 flex-shrink-0" />
-              <span className="truncate">{property.location.city}, {property.location.country === 'United States' ? 'FL' : property.location.country}</span>
+              <span className="truncate">{getApproximateAddress(property.location.address, property.location.city)}</span>
             </div>
             {property.reviewCount > 0 && (
               <div className="flex items-center flex-shrink-0 ml-2 text-sm text-[var(--casita-gray-500)]">

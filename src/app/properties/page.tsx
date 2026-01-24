@@ -89,6 +89,7 @@ function PropertiesContent() {
   const [allCities, setAllCities] = useState<string[]>([]);
   const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(null);
   const [showGuestPicker, setShowGuestPicker] = useState(false);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [guests, setGuests] = useState(urlGuests || 2);
   const [rooms, setRooms] = useState(1);
   const [petFriendlyFilter, setPetFriendlyFilter] = useState(urlPetFriendly);
@@ -512,6 +513,53 @@ function PropertiesContent() {
         <div className="bg-white rounded-xl shadow-sm border border-[var(--casita-gray-200)] p-3 mb-4">
           {/* Row 1: Search fields */}
           <div className="flex flex-col lg:flex-row gap-3 mb-3">
+            {/* Location dropdown */}
+            <div className="relative flex-shrink-0">
+              <button
+                onClick={() => {
+                  setShowCityDropdown(!showCityDropdown);
+                  setShowGuestPicker(false);
+                }}
+                className="w-full lg:w-auto flex items-center gap-2 pl-10 pr-4 py-2.5 bg-[var(--casita-gray-50)] border border-[var(--casita-gray-200)] rounded-lg text-sm focus:outline-none hover:border-[var(--casita-gray-300)]"
+              >
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--casita-gray-400)]" />
+                <span className={selectedLocation ? 'text-[var(--casita-gray-900)] font-medium' : 'text-[var(--casita-gray-500)]'}>
+                  {selectedLocation || 'All Locations'}
+                </span>
+                <ChevronDown className={`w-4 h-4 text-[var(--casita-gray-400)] transition-transform ${showCityDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showCityDropdown && (
+                <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-[var(--casita-gray-200)] py-2 z-50 max-h-64 overflow-y-auto">
+                  <button
+                    onClick={() => {
+                      setSelectedLocation(null);
+                      setShowCityDropdown(false);
+                    }}
+                    className={`w-full px-4 py-2 text-left text-sm hover:bg-[var(--casita-gray-50)] transition-colors ${
+                      !selectedLocation ? 'text-[var(--casita-orange)] font-medium bg-[var(--casita-orange)]/5' : 'text-[var(--casita-gray-700)]'
+                    }`}
+                  >
+                    All Locations
+                  </button>
+                  {allCities.map((city) => (
+                    <button
+                      key={city}
+                      onClick={() => {
+                        setSelectedLocation(city);
+                        setShowCityDropdown(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm hover:bg-[var(--casita-gray-50)] transition-colors ${
+                        selectedLocation === city ? 'text-[var(--casita-orange)] font-medium bg-[var(--casita-orange)]/5' : 'text-[var(--casita-gray-700)]'
+                      }`}
+                    >
+                      {city}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Search input */}
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--casita-gray-400)]" />
@@ -571,7 +619,10 @@ function PropertiesContent() {
             {/* Guests */}
             <div className="relative flex-shrink-0">
               <button
-                onClick={() => setShowGuestPicker(!showGuestPicker)}
+                onClick={() => {
+                  setShowGuestPicker(!showGuestPicker);
+                  setShowCityDropdown(false);
+                }}
                 className="w-full lg:w-auto flex items-center gap-2 pl-10 pr-4 py-2.5 bg-[var(--casita-gray-50)] border border-[var(--casita-gray-200)] rounded-lg text-sm focus:outline-none hover:border-[var(--casita-gray-300)]"
               >
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--casita-gray-400)]" />
