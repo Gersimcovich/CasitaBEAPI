@@ -15,62 +15,20 @@ interface PropertyCardProps {
   checkOut?: Date | null;
 }
 
-// Generate approximate cross-street address (e.g., "Ocean Dr & 7th St")
-function getApproximateAddress(address: string, city: string): string {
+// Extract city and zip code from address for display
+function getCityAndZip(address: string, city: string): string {
   if (!address) return city;
 
-  // Parse the full address to extract street info
-  const parts = address.split(',').map(p => p.trim());
-  if (parts.length === 0) return city;
+  // Try to extract zip code from full address
+  // Common formats: "..., Miami Beach, FL 33139" or "..., 33139"
+  const zipMatch = address.match(/\b(\d{5})(?:-\d{4})?\b/);
+  const zipCode = zipMatch ? zipMatch[1] : '';
 
-  // Get the street part (first segment)
-  let street = parts[0];
-
-  // Extract street number and name
-  const streetMatch = street.match(/^(\d+)\s+(.+)$/);
-  let streetNumber = '';
-  let streetName = street;
-
-  if (streetMatch) {
-    streetNumber = streetMatch[1];
-    streetName = streetMatch[2];
+  if (zipCode) {
+    return `${city}, ${zipCode}`;
   }
 
-  // Abbreviate common street types
-  streetName = streetName
-    .replace(/\bStreet\b/gi, 'St')
-    .replace(/\bAvenue\b/gi, 'Ave')
-    .replace(/\bDrive\b/gi, 'Dr')
-    .replace(/\bBoulevard\b/gi, 'Blvd')
-    .replace(/\bRoad\b/gi, 'Rd')
-    .replace(/\bLane\b/gi, 'Ln')
-    .replace(/\bCourt\b/gi, 'Ct')
-    .replace(/\bPlace\b/gi, 'Pl')
-    .replace(/\bTerrace\b/gi, 'Ter')
-    .replace(/\bCircle\b/gi, 'Cir');
-
-  // Generate cross-street from street number
-  if (streetNumber) {
-    const num = parseInt(streetNumber, 10);
-    // Round to nearest block (typically 100s for cross-streets)
-    const crossStreetNum = Math.round(num / 100);
-
-    if (crossStreetNum > 0 && crossStreetNum <= 200) {
-      // Generate ordinal suffix
-      const suffix = getOrdinalSuffix(crossStreetNum);
-      return `${streetName} & ${crossStreetNum}${suffix}`;
-    }
-  }
-
-  // Fallback: just return abbreviated street name with city
-  return `${streetName}, ${city}`;
-}
-
-// Helper to get ordinal suffix (1st, 2nd, 3rd, etc.)
-function getOrdinalSuffix(n: number): string {
-  const s = ['th', 'st', 'nd', 'rd'];
-  const v = n % 100;
-  return s[(v - 20) % 10] || s[v] || s[0];
+  return city;
 }
 
 // Get property type display name
@@ -332,7 +290,7 @@ export default function PropertyCard({ property, showMap = false, onPreviewClick
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center text-[var(--casita-gray-500)] text-sm">
               <MapPin className="w-3.5 h-3.5 mr-1 flex-shrink-0" />
-              <span className="truncate">{getApproximateAddress(property.location.address, property.location.city)}</span>
+              <span className="truncate">{getCityAndZip(property.location.address, property.location.city)}</span>
             </div>
             {property.reviewCount > 0 && (
               <div className="flex items-center flex-shrink-0 ml-2 text-sm text-[var(--casita-gray-500)]">
