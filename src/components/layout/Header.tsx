@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ShoppingCart, User, Trash2, LogOut, Award, Settings, MapPin, Tag, HelpCircle, Building2, ChevronDown, CalendarCheck } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, Trash2, LogOut, Award, Settings, HelpCircle, Building2, ChevronDown, CalendarCheck } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useCart } from '@/contexts/CartContext';
 import { useUser } from '@/contexts/UserContext';
@@ -16,44 +16,11 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isLocationsOpen, setIsLocationsOpen] = useState(false);
-  const [cities, setCities] = useState<string[]>([]);
   const { t } = useLocale();
   const { cartItem, hasCartItem, clearCart } = useCart();
   const { user, isAuthenticated, logout } = useUser();
   const [isCartHovered, setIsCartHovered] = useState(false);
   const cartHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const locationsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Fetch cities for locations dropdown
-  useEffect(() => {
-    async function fetchCities() {
-      try {
-        const response = await fetch('/api/cities');
-        const data = await response.json();
-        if (data.success && data.data) {
-          setCities(data.data);
-        }
-      } catch {
-        setCities(['Miami Beach', 'Bal Harbour', 'Miami', 'Kissimmee']);
-      }
-    }
-    fetchCities();
-  }, []);
-
-  const handleLocationsMouseEnter = () => {
-    if (locationsTimeoutRef.current) {
-      clearTimeout(locationsTimeoutRef.current);
-      locationsTimeoutRef.current = null;
-    }
-    setIsLocationsOpen(true);
-  };
-
-  const handleLocationsMouseLeave = () => {
-    locationsTimeoutRef.current = setTimeout(() => {
-      setIsLocationsOpen(false);
-    }, 150);
-  };
 
   const handleCartMouseEnter = () => {
     if (cartHoverTimeoutRef.current) {
@@ -129,57 +96,6 @@ export default function Header() {
                 {t.nav.properties}
               </Link>
 
-              {/* Locations with Dropdown */}
-              <div
-                className="relative"
-                onMouseEnter={handleLocationsMouseEnter}
-                onMouseLeave={handleLocationsMouseLeave}
-              >
-                <button
-                  className="flex items-center gap-2 px-4 py-2 text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] hover:bg-[var(--casita-cream)] rounded-lg transition-colors font-medium"
-                >
-                  <MapPin className="w-4 h-4" />
-                  {t.nav.locations || 'Locations'}
-                  <ChevronDown className={`w-3 h-3 transition-transform ${isLocationsOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* Locations Dropdown */}
-                {isLocationsOpen && (
-                  <>
-                    <div className="absolute left-0 top-full w-56 h-2" />
-                    <div className="absolute left-0 mt-1 w-56 bg-white rounded-xl shadow-xl border border-[var(--casita-gray-100)] py-2 animate-scale-in z-50">
-                      <Link
-                        href="/properties"
-                        className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] font-medium"
-                      >
-                        <MapPin className="w-4 h-4 text-[var(--casita-orange)]" />
-                        All Locations
-                      </Link>
-                      <hr className="my-1 border-[var(--casita-gray-100)]" />
-                      {cities.map((city) => (
-                        <Link
-                          key={city}
-                          href={`/properties?destination=${encodeURIComponent(city)}`}
-                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                        >
-                          <span className="w-4" />
-                          {city}
-                        </Link>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Deals */}
-              <Link
-                href="/deals"
-                className="flex items-center gap-2 px-4 py-2 text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] hover:bg-[var(--casita-cream)] rounded-lg transition-colors font-medium"
-              >
-                <Tag className="w-4 h-4" />
-                {t.nav.deals || 'Deals'}
-              </Link>
-
               {/* Manage Reservation */}
               <Link
                 href="/reservation"
@@ -193,14 +109,6 @@ export default function Header() {
 
           {/* Right Side Actions - Match logo width for balance */}
           <div className="hidden lg:flex items-center justify-end space-x-3 w-[200px] flex-shrink-0">
-            {/* Partner CTA - Always visible */}
-            <Link
-              href="/partner"
-              className="px-4 py-2 text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] font-medium transition-colors whitespace-nowrap"
-            >
-              {t.nav.partner}
-            </Link>
-
             {/* Cart */}
             <div
               className="relative"
@@ -317,6 +225,13 @@ export default function Header() {
                           {t.nav.myAccount || 'My Account'}
                         </Link>
                         <Link
+                          href="/reservation"
+                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
+                        >
+                          <CalendarCheck className="w-4 h-4" />
+                          {t.nav.manageReservation || 'My Reservations'}
+                        </Link>
+                        <Link
                           href="/account"
                           className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
                         >
@@ -415,48 +330,6 @@ export default function Header() {
                   <Building2 className="w-5 h-5 text-[var(--casita-orange)]" />
                   {t.nav.properties}
                 </Link>
-                {/* Mobile Locations - Expandable */}
-                <div>
-                  <button
-                    onClick={() => setIsLocationsOpen(!isLocationsOpen)}
-                    className="w-full flex items-center justify-between px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-cream)] rounded-xl font-medium"
-                  >
-                    <span className="flex items-center gap-3">
-                      <MapPin className="w-5 h-5 text-[var(--casita-orange)]" />
-                      {t.nav.locations || 'Locations'}
-                    </span>
-                    <ChevronDown className={`w-4 h-4 transition-transform ${isLocationsOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {isLocationsOpen && (
-                    <div className="pl-12 pb-2 space-y-1">
-                      <Link
-                        href="/properties"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="block px-4 py-2 text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] text-sm"
-                      >
-                        All Locations
-                      </Link>
-                      {cities.map((city) => (
-                        <Link
-                          key={city}
-                          href={`/properties?destination=${encodeURIComponent(city)}`}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="block px-4 py-2 text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] text-sm"
-                        >
-                          {city}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <Link
-                  href="/deals"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-cream)] rounded-xl font-medium"
-                >
-                  <Tag className="w-5 h-5 text-[var(--casita-orange)]" />
-                  {t.nav.deals || 'Deals'}
-                </Link>
                 <Link
                   href="/reservation"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -464,17 +337,6 @@ export default function Header() {
                 >
                   <CalendarCheck className="w-5 h-5 text-[var(--casita-orange)]" />
                   {t.nav.manageReservation || 'My Reservation'}
-                </Link>
-              </div>
-
-              {/* Partner CTA */}
-              <div className="px-2 mb-4">
-                <Link
-                  href="/partner"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block w-full px-4 py-3 text-center border-2 border-[var(--casita-orange)] text-[var(--casita-orange)] rounded-xl font-semibold hover:bg-[var(--casita-orange)] hover:text-white transition-colors"
-                >
-                  {t.nav.partner}
                 </Link>
               </div>
 
