@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     // Check if user exists
-    const existingUser = getUserByEmail(email);
+    const existingUser = await getUserByEmail(email);
 
     if (!existingUser) {
       // User doesn't exist - needs to register
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     }
 
     // User exists - create and send verification code
-    const verificationCode = createVerificationCode(email, 'login');
+    const verificationCode = await createVerificationCode(email, 'login');
 
     // Send the code via email
     const emailResult = await send2FACodeEmail({

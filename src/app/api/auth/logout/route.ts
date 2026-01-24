@@ -8,7 +8,7 @@ export async function POST() {
     const token = cookieStore.get('casita-auth-token')?.value;
 
     if (token) {
-      deleteSession(token);
+      await deleteSession(token);
     }
 
     const response = NextResponse.json({

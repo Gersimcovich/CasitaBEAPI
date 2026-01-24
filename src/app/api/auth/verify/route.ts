@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     }
 
     // Verify the code
-    const verification = verifyCode(email, code);
+    const verification = await verifyCode(email, code);
 
     if (!verification.valid) {
       return NextResponse.json<AuthResponse>(
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     // Get or create user
-    let user = getUserByEmail(email);
+    let user = await getUserByEmail(email);
 
     if (!user) {
       // This is a new registration
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         );
       }
 
-      user = createUser({
+      user = await createUser({
         email,
         firstName,
         lastName,
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     }
 
     // Create session
-    const session = createSession(user.id);
+    const session = await createSession(user.id);
 
     // Return success with user data and token
     const response = NextResponse.json<AuthResponse>({

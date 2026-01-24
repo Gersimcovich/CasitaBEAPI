@@ -15,7 +15,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const session = getSessionByToken(token);
+    const session = await getSessionByToken(token);
     if (!session) {
       return NextResponse.json(
         { success: false, message: 'Session expired' },
@@ -23,7 +23,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const user = getUserById(session.userId);
+    const user = await getUserById(session.userId);
     if (!user) {
       return NextResponse.json(
         { success: false, message: 'User not found' },
@@ -42,7 +42,7 @@ export async function PUT(request: Request) {
     if (country !== undefined) updates.country = country;
     if (preferredLanguage !== undefined) updates.preferredLanguage = preferredLanguage;
 
-    const updatedUser = updateUser(user.id, updates);
+    const updatedUser = await updateUser(user.id, updates);
 
     if (!updatedUser) {
       return NextResponse.json(

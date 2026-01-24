@@ -14,7 +14,7 @@ export async function GET() {
       );
     }
 
-    const session = getSessionByToken(token);
+    const session = await getSessionByToken(token);
     if (!session) {
       return NextResponse.json(
         { success: false, message: 'Session expired' },
@@ -22,7 +22,7 @@ export async function GET() {
       );
     }
 
-    const user = getUserById(session.userId);
+    const user = await getUserById(session.userId);
     if (!user) {
       return NextResponse.json(
         { success: false, message: 'User not found' },
@@ -31,7 +31,7 @@ export async function GET() {
     }
 
     // Get user's reservations
-    const reservations = getUserReservations(user.id);
+    const reservations = await getUserReservations(user.id);
 
     return NextResponse.json({
       success: true,

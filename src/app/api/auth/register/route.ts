@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     }
 
     // Check if user already exists
-    const existingUser = getUserByEmail(email);
+    const existingUser = await getUserByEmail(email);
     if (existingUser) {
       return NextResponse.json<AuthResponse>(
         { success: false, message: 'An account with this email already exists. Please log in.' },
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     }
 
     // Create verification code (we'll store registration data temporarily)
-    const verificationCode = createVerificationCode(email, 'register');
+    const verificationCode = await createVerificationCode(email, 'register');
 
     // Store registration data in the session (we'll create the user after verification)
     // For now, we'll pass the data through the verification process
