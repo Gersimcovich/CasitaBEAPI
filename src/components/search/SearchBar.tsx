@@ -34,37 +34,42 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
   const [guests, setGuests] = useState(2);
   const [rooms, setRooms] = useState(1);
 
+  // Fallback cities - shown immediately while API loads
+  const fallbackCities = ['Bal Harbour', 'Kissimmee', 'Miami', 'Miami Beach', 'Puerto Iguazú'];
+
   // UI state
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [showGuestPicker, setShowGuestPicker] = useState(false);
-  const [cities, setCities] = useState<string[]>([]);
-  const [filteredCities, setFilteredCities] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>(fallbackCities);
+  const [filteredCities, setFilteredCities] = useState<string[]>(fallbackCities);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
 
   const searchBarRef = useRef<HTMLDivElement>(null);
   const destinationInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch cities on mount
+  // Fetch cities on mount (async update after initial render with fallbacks)
   useEffect(() => {
     const fetchCities = async () => {
       setIsLoadingCities(true);
       try {
         const response = await fetch('/api/cities');
         const data = await response.json();
-        if (data.success && data.data) {
+        if (data.success && data.data && data.data.length > 0) {
           setCities(data.data);
-          setFilteredCities(data.data);
+          // Only update filtered if no search input yet
+          if (!destination.trim()) {
+            setFilteredCities(data.data);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch cities:', error);
-        const fallback = ['Bal Harbour', 'Kissimmee', 'Miami', 'Miami Beach', 'Puerto Iguazú'];
-        setCities(fallback);
-        setFilteredCities(fallback);
+        // Keep fallback cities already set
       } finally {
         setIsLoadingCities(false);
       }
     };
     fetchCities();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Filter cities based on input
