@@ -2,6 +2,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import HomeContent from '@/components/home/HomeContent';
 import { getListings, convertGuestyToProperty } from '@/lib/guesty';
+import { guestyProperties } from '@/data/guestyData';
 import { Property } from '@/types';
 
 // Revalidate every 10 minutes to reduce API calls during rate limiting
@@ -22,17 +23,35 @@ function sortByBestReviews(properties: Property[]): Property[] {
   });
 }
 
+// Check if properties have valid data (not just empty defaults)
+function hasValidData(properties: Property[]): boolean {
+  if (properties.length === 0) return false;
+  const validCount = properties.filter(p =>
+    p.name !== 'Property' &&
+    p.images.length > 0 &&
+    p.location.city !== ''
+  ).length;
+  return validCount > properties.length * 0.5;
+}
+
 async function getFeaturedProperties(): Promise<Property[]> {
   try {
     // Fetch all listings from Guesty with caching
     const listings = await getListings({ active: true, limit: 100, useCache: true });
     const properties = listings.map(convertGuestyToProperty);
 
-    return sortByBestReviews(properties);
+    // Check if we got valid data, otherwise use static fallback
+    if (hasValidData(properties)) {
+      return sortByBestReviews(properties);
+    }
+
+    console.log('📦 Homepage: Using static fallback data');
+    return sortByBestReviews(guestyProperties);
   } catch (error) {
     console.error('Error fetching properties from Guesty:', error);
-    // Return empty array - let the frontend handle the error state
-    return [];
+    // Use static fallback data
+    console.log('📦 Homepage: Error occurred, using static fallback data');
+    return sortByBestReviews(guestyProperties);
   }
 }
 
