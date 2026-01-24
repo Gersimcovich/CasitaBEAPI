@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ShoppingCart, User, Trash2, LogOut, Award, Settings, HelpCircle, Building2, ChevronDown, CalendarCheck } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, Trash2, LogOut, Award, Settings, HelpCircle, Building2, CalendarCheck } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useCart } from '@/contexts/CartContext';
 import { useUser } from '@/contexts/UserContext';
@@ -183,23 +183,25 @@ export default function Header() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsUserMenuOpen(!isUserMenuOpen);
+                  if (!isAuthenticated) {
+                    setIsAuthModalOpen(true);
+                  } else {
+                    setIsUserMenuOpen(!isUserMenuOpen);
+                  }
                 }}
-                className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-all hover:shadow-md ${
-                  isAuthenticated
-                    ? 'border-[var(--casita-gray-900)] bg-[var(--casita-gray-900)] text-white'
-                    : 'border-[var(--casita-gray-300)] text-[var(--casita-gray-900)] hover:border-[var(--casita-gray-900)]'
+                className={`flex items-center justify-center transition-all ${
+                  isAuthenticated && user
+                    ? 'w-10 h-10 rounded-full bg-[var(--casita-orange)] text-white hover:bg-[var(--casita-orange-dark)]'
+                    : 'w-10 h-10 rounded-full bg-[var(--casita-gray-100)] text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-200)]'
                 }`}
               >
-                <Menu className="w-4 h-4" />
                 {isAuthenticated && user ? (
-                  <span className="w-7 h-7 bg-white text-[var(--casita-gray-900)] rounded-full flex items-center justify-center text-sm font-semibold">
+                  <span className="text-sm font-bold">
                     {user.firstName[0]}
                   </span>
                 ) : (
                   <User className="w-5 h-5" />
                 )}
-                <ChevronDown className="w-3 h-3 opacity-60" />
               </button>
 
               {/* User Dropdown */}
@@ -405,27 +407,23 @@ export default function Header() {
                   </>
                 ) : (
                   <>
-                    {/* Guest user */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsMobileMenuOpen(false);
-                        setIsAuthModalOpen(true);
-                      }}
-                      className="w-full px-4 py-3 bg-[var(--casita-gray-900)] text-white rounded-xl font-semibold mb-2"
-                    >
-                      {t.nav.signup}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsMobileMenuOpen(false);
-                        setIsAuthModalOpen(true);
-                      }}
-                      className="w-full px-4 py-3 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)] rounded-xl font-medium"
-                    >
-                      {t.nav.login}
-                    </button>
+                    {/* Guest user - Single Sign In button */}
+                    <div className="flex flex-col items-center gap-4 py-4">
+                      <div className="w-16 h-16 rounded-full bg-[var(--casita-gray-100)] flex items-center justify-center">
+                        <User className="w-8 h-8 text-[var(--casita-gray-400)]" />
+                      </div>
+                      <p className="text-sm text-[var(--casita-gray-500)]">Sign in to manage your bookings</p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsMobileMenuOpen(false);
+                          setIsAuthModalOpen(true);
+                        }}
+                        className="w-full px-4 py-3 bg-[var(--casita-orange)] text-white rounded-xl font-semibold hover:bg-[var(--casita-orange-dark)] transition-colors"
+                      >
+                        Sign In / Sign Up
+                      </button>
+                    </div>
                   </>
                 )}
               </div>
