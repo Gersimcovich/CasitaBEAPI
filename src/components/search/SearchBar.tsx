@@ -159,7 +159,7 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
 
   // Hero variant - Full width bar with progressive disclosure
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 relative z-[100]" ref={searchBarRef}>
+    <div className="w-full max-w-4xl mx-auto px-4 relative z-20" ref={searchBarRef}>
       <div className="bg-white rounded-full shadow-2xl border border-[var(--casita-gray-100)] transition-all duration-300">
         <div className="flex items-center h-[72px]">
           {/* Left section: Pills for completed selections */}
@@ -237,7 +237,7 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
 
                 {/* City Dropdown */}
                 {showCityDropdown && (
-                  <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-[var(--casita-gray-100)] max-h-80 overflow-y-auto z-[200] animate-scale-in">
+                  <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-[var(--casita-gray-100)] max-h-80 overflow-y-auto z-30 animate-scale-in">
                     {isLoadingCities ? (
                       <div className="p-4 text-center text-[var(--casita-gray-500)]">
                         Loading cities...
@@ -339,7 +339,7 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
 
                   {/* Guest Picker Dropdown */}
                   {showGuestPicker && (
-                    <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-[var(--casita-gray-100)] p-4 z-[200] animate-scale-in w-64">
+                    <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-[var(--casita-gray-100)] p-4 z-30 animate-scale-in w-64">
                       <div className="space-y-4">
                         {/* Guests Row */}
                         <div className="flex items-center justify-between">

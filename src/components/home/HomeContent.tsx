@@ -309,7 +309,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
           </div>
 
           {/* Search Bar */}
-          <div className="animate-slide-up overflow-visible relative z-[100]">
+          <div className="animate-slide-up overflow-visible relative z-20">
             <SearchBar variant="hero" />
           </div>
         </div>
