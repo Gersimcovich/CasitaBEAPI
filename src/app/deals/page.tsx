@@ -1,161 +1,175 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Link from 'next/link';
 import {
   Loader2,
-  Tag,
   Calendar,
   Star,
   MapPin,
   ArrowRight,
   Flame,
-  Clock,
-  DollarSign,
+  BedDouble,
+  Waves,
 } from 'lucide-react';
 import { Property } from '@/types';
 import { useLocale } from '@/contexts/LocaleContext';
 
-interface Deal {
-  property: Property;
-  checkIn: string;
-  checkOut: string;
-  nights: number;
-  totalPrice: number;
-  pricePerNight: number;
-  originalPricePerNight: number;
-  savings: number;
-  savingsPercent: number;
+// Gradient options for property cards
+const GRADIENTS = [
+  'from-[var(--casita-orange)]/20 to-[var(--casita-coral)]/20',
+  'from-[var(--casita-turquoise)]/20 to-blue-200/30',
+  'from-purple-100/30 to-pink-100/30',
+  'from-green-100/30 to-[var(--casita-turquoise)]/20',
+  'from-blue-100/30 to-[var(--casita-turquoise)]/20',
+  'from-amber-100/30 to-[var(--casita-coral)]/20',
+];
+
+// Generate deal dates based on property index and nights count
+function generateDealDates(index: number, nights: number): { dates: string; checkIn: string; checkOut: string } {
+  const today = new Date();
+  const startOffset = 14 + (index * 3); // Stagger start dates
+
+  const checkIn = new Date(today);
+  checkIn.setDate(today.getDate() + startOffset);
+  const checkOut = new Date(checkIn);
+  checkOut.setDate(checkIn.getDate() + nights);
+
+  const formatDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return {
+    dates: `${formatDate(checkIn)} - ${formatDate(checkOut)}`,
+    checkIn: checkIn.toISOString().split('T')[0],
+    checkOut: checkOut.toISOString().split('T')[0],
+  };
+}
+
+// Get icon type based on property characteristics
+function getIconType(property: Property): 'city' | 'beach' | 'arts' | 'nature' {
+  const name = property.name.toLowerCase();
+  const desc = property.description.toLowerCase();
+
+  if (name.includes('beach') || name.includes('ocean') || desc.includes('beachfront') || property.isBeachfront) {
+    return 'beach';
+  }
+  if (name.includes('art deco') || name.includes('historic') || desc.includes('art deco')) {
+    return 'arts';
+  }
+  if (name.includes('villa') || name.includes('pool') || desc.includes('garden') || desc.includes('zen')) {
+    return 'nature';
+  }
+  return 'city';
 }
 
 export default function DealsPage() {
-  const { t } = useLocale();
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedNights, setSelectedNights] = useState<number | null>(null);
+  const { formatPrice } = useLocale();
   const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
-  // Generate upcoming date ranges for 2, 3, and 4 night stays
-  const generateDateRanges = () => {
-    const ranges: { checkIn: string; checkOut: string; nights: number }[] = [];
-    const today = new Date();
-
-    // Generate date ranges for the next 60 days
-    for (let dayOffset = 1; dayOffset <= 60; dayOffset++) {
-      const checkIn = new Date(today);
-      checkIn.setDate(today.getDate() + dayOffset);
-
-      // Generate 2, 3, and 4 night stays
-      for (const nights of [2, 3, 4]) {
-        const checkOut = new Date(checkIn);
-        checkOut.setDate(checkIn.getDate() + nights);
-
-        ranges.push({
-          checkIn: checkIn.toISOString().split('T')[0],
-          checkOut: checkOut.toISOString().split('T')[0],
-          nights,
-        });
-      }
-    }
-
-    return ranges;
-  };
-
-  // Fetch properties and calculate deals
+  // Fetch properties
   useEffect(() => {
-    async function fetchDeals() {
+    async function fetchProperties() {
       setLoading(true);
       try {
-        // First fetch all properties
         const response = await fetch('/api/listings');
         const data = await response.json();
 
         if (data.success && data.data) {
           setProperties(data.data);
-
-          // Filter properties that are likely to have deals (lower base price)
-          const budgetProperties = data.data.filter(
-            (p: Property) => p.price.perNight <= 150
-          );
-
-          // Generate potential deals
-          const dateRanges = generateDateRanges();
-          const potentialDeals: Deal[] = [];
-
-          // For each budget property, calculate deals based on their base price
-          for (const property of budgetProperties) {
-            // Estimate total with fees (base price + ~15% for cleaning/fees)
-            const estimatedFeeMultiplier = 1.15;
-            const estimatedPerNight = property.price.perNight * estimatedFeeMultiplier;
-
-            // Only include if estimated price is under $100/night
-            if (estimatedPerNight <= 100) {
-              // Find best date ranges for this property
-              for (const range of dateRanges.slice(0, 30)) { // Limit to first 30 dates
-                const totalPrice = property.price.perNight * range.nights;
-                const withFees = totalPrice * estimatedFeeMultiplier;
-                const pricePerNight = withFees / range.nights;
-
-                if (pricePerNight <= 100) {
-                  // Calculate savings vs "regular" price ($150/night)
-                  const regularPrice = 150 * range.nights;
-                  const savings = regularPrice - withFees;
-                  const savingsPercent = Math.round((savings / regularPrice) * 100);
-
-                  potentialDeals.push({
-                    property,
-                    checkIn: range.checkIn,
-                    checkOut: range.checkOut,
-                    nights: range.nights,
-                    totalPrice: Math.round(withFees),
-                    pricePerNight: Math.round(pricePerNight),
-                    originalPricePerNight: property.price.perNight,
-                    savings: Math.round(savings),
-                    savingsPercent,
-                  });
-                }
-              }
-            }
-          }
-
-          // Remove duplicates (same property, keep best deal per night count)
-          const uniqueDeals = new Map<string, Deal>();
-          for (const deal of potentialDeals) {
-            const key = `${deal.property.id}-${deal.nights}`;
-            const existing = uniqueDeals.get(key);
-            if (!existing || deal.pricePerNight < existing.pricePerNight) {
-              uniqueDeals.set(key, deal);
-            }
-          }
-
-          // Sort by price per night and limit
-          const sortedDeals = Array.from(uniqueDeals.values())
-            .sort((a, b) => a.pricePerNight - b.pricePerNight)
-            .slice(0, 50);
-
-          setDeals(sortedDeals);
         }
       } catch (error) {
-        console.error('Error fetching deals:', error);
+        console.error('Error fetching properties:', error);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchDeals();
+    fetchProperties();
   }, []);
 
-  // Filter deals by selected nights
-  const filteredDeals = selectedNights
-    ? deals.filter(d => d.nights === selectedNights)
-    : deals;
+  // Get unique cities from budget properties (starting from $99/night base price)
+  const MAX_BASE_PRICE_FOR_DEALS = 100;
 
-  // Format date for display
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + 'T12:00:00');
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const citiesFromBudgetProperties = useMemo(() => {
+    const budgetProps = properties.filter(p => p.price.perNight <= MAX_BASE_PRICE_FOR_DEALS);
+    const cityCount = new Map<string, number>();
+    budgetProps.forEach(property => {
+      if (property.location.city) {
+        cityCount.set(property.location.city, (cityCount.get(property.location.city) || 0) + 1);
+      }
+    });
+    // Sort by count descending
+    return Array.from(cityCount.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([city]) => city);
+  }, [properties]);
+
+  // Set default city when cities are loaded
+  useEffect(() => {
+    if (citiesFromBudgetProperties.length > 0 && selectedCity === null) {
+      setSelectedCity(citiesFromBudgetProperties[0]);
+    }
+  }, [citiesFromBudgetProperties, selectedCity]);
+
+  // Generate deals for all budget properties
+  const allDeals = useMemo(() => {
+    // Filter properties with affordable base prices (starting from $99/night)
+    const budgetProperties = properties
+      .filter(p => p.price.perNight <= MAX_BASE_PRICE_FOR_DEALS)
+      .sort((a, b) => {
+        // Sort by price first (lowest), then by review count (highest)
+        if (a.price.perNight !== b.price.perNight) {
+          return a.price.perNight - b.price.perNight;
+        }
+        return b.reviewCount - a.reviewCount;
+      });
+
+    return budgetProperties.map((property, index) => {
+      // Generate multi-night stay deals
+      const nights = [2, 3, 4, 5][index % 4];
+      const { dates, checkIn, checkOut } = generateDealDates(index, nights);
+      const discount = [10, 15, 20, 25][index % 4];
+      const originalPrice = property.price.perNight * nights;
+      const finalPrice = Math.round(originalPrice * (1 - discount / 100));
+
+      return {
+        property,
+        dates,
+        checkIn,
+        checkOut,
+        nights,
+        discount,
+        originalPrice,
+        finalPrice,
+        gradient: GRADIENTS[index % GRADIENTS.length],
+        icon: getIconType(property),
+      };
+    });
+  }, [properties]);
+
+  // Filter deals by selected city
+  const filteredDeals = useMemo(() => {
+    if (!selectedCity) return allDeals;
+    return allDeals.filter(deal => deal.property.location.city === selectedCity);
+  }, [allDeals, selectedCity]);
+
+  const getIconForType = (type: 'city' | 'beach' | 'arts' | 'nature') => {
+    switch (type) {
+      case 'city':
+        return <MapPin className="w-12 h-12 text-[var(--casita-orange)]/40" />;
+      case 'beach':
+        return <Waves className="w-12 h-12 text-[var(--casita-turquoise)]/40" />;
+      case 'arts':
+        return <Star className="w-12 h-12 text-purple-400/40" />;
+      case 'nature':
+        return (
+          <svg className="w-12 h-12 text-green-400/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M12 3c-4 4-7 8-7 12a7 7 0 1014 0c0-4-3-8-7-12z" />
+          </svg>
+        );
+    }
   };
 
   return (
@@ -173,37 +187,44 @@ export default function DealsPage() {
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-[var(--casita-gray-900)] mb-4">
               Budget-Friendly Stays
             </h1>
-            <p className="text-lg text-[var(--casita-gray-600)] max-w-2xl mx-auto mb-8">
-              Discover amazing deals under <span className="font-semibold text-[var(--casita-orange)]">$100/night</span> including all fees.
-              Perfect for quick getaways of 2-4 nights.
+            <p className="text-lg text-[var(--casita-gray-600)] max-w-2xl mx-auto">
+              Discover amazing deals starting from <span className="font-semibold text-[var(--casita-orange)]">$99/night</span>.
+              Save up to 25% on multi-night stays.
             </p>
+          </div>
+        </div>
+      </div>
 
-            {/* Night Filter Tabs */}
-            <div className="flex items-center justify-center gap-2 flex-wrap">
-              <button
-                onClick={() => setSelectedNights(null)}
-                className={`px-4 py-2 rounded-full font-medium transition-colors ${
-                  selectedNights === null
-                    ? 'bg-[var(--casita-gray-900)] text-white'
-                    : 'bg-white text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-100)] border border-[var(--casita-gray-200)]'
-                }`}
-              >
-                All Deals
-              </button>
-              {[2, 3, 4].map(nights => (
+      {/* City Filter Tabs */}
+      <div className="sticky top-16 lg:top-20 bg-white/95 backdrop-blur-sm border-b border-[var(--casita-gray-100)] z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <button
+              onClick={() => setSelectedCity(null)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                selectedCity === null
+                  ? 'bg-[var(--casita-orange)] text-white shadow-md'
+                  : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-200)]'
+              }`}
+            >
+              All Cities ({allDeals.length})
+            </button>
+            {citiesFromBudgetProperties.map((city) => {
+              const count = allDeals.filter(d => d.property.location.city === city).length;
+              return (
                 <button
-                  key={nights}
-                  onClick={() => setSelectedNights(nights)}
-                  className={`px-4 py-2 rounded-full font-medium transition-colors ${
-                    selectedNights === nights
-                      ? 'bg-[var(--casita-gray-900)] text-white'
-                      : 'bg-white text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-100)] border border-[var(--casita-gray-200)]'
+                  key={city}
+                  onClick={() => setSelectedCity(city)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                    selectedCity === city
+                      ? 'bg-[var(--casita-orange)] text-white shadow-md'
+                      : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-200)]'
                   }`}
                 >
-                  {nights} Nights
+                  {city} ({count})
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -217,7 +238,7 @@ export default function DealsPage() {
           </div>
         ) : filteredDeals.length === 0 ? (
           <div className="text-center py-16">
-            <DollarSign className="w-16 h-16 text-[var(--casita-gray-300)] mx-auto mb-4" />
+            <Flame className="w-16 h-16 text-[var(--casita-gray-300)] mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-[var(--casita-gray-900)] mb-2">
               No deals found
             </h3>
@@ -234,79 +255,98 @@ export default function DealsPage() {
           </div>
         ) : (
           <>
-            <p className="text-sm text-[var(--casita-gray-600)] mb-6">
-              <span className="font-semibold text-[var(--casita-gray-900)]">{filteredDeals.length}</span> deals found
-              {selectedNights && ` for ${selectedNights}-night stays`}
-            </p>
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-sm text-[var(--casita-gray-600)]">
+                <span className="font-semibold text-[var(--casita-gray-900)]">{filteredDeals.length}</span> deals
+                {selectedCity && ` in ${selectedCity}`}
+              </p>
+              {selectedCity && (
+                <Link
+                  href={`/properties?city=${encodeURIComponent(selectedCity)}`}
+                  className="text-[var(--casita-orange)] font-medium text-sm hover:underline flex items-center gap-1"
+                >
+                  View all {selectedCity} properties
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {filteredDeals.map((deal, index) => (
                 <Link
-                  key={`${deal.property.id}-${deal.nights}-${index}`}
+                  key={deal.property.id}
                   href={`/property/${deal.property.slug}?checkIn=${deal.checkIn}&checkOut=${deal.checkOut}`}
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[var(--casita-gray-100)] hover:shadow-lg transition-all group"
+                  className="group bg-white border border-[var(--casita-gray-200)] rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
-                  {/* Image */}
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
-                      src={deal.property.images[0]}
-                      alt={deal.property.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-
-                    {/* Badges */}
-                    <div className="absolute top-3 left-3 flex flex-col gap-2">
-                      <span className="px-3 py-1 bg-[var(--casita-orange)] text-white text-sm font-semibold rounded-full">
-                        ${deal.pricePerNight}/night
+                  {/* Property Image or Gradient Fallback */}
+                  <div className="relative h-40 overflow-hidden">
+                    {deal.property.images[0] ? (
+                      <img
+                        src={deal.property.images[0]}
+                        alt={deal.property.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className={`w-full h-full bg-gradient-to-br ${deal.gradient} flex items-center justify-center`}>
+                        {getIconForType(deal.icon)}
+                      </div>
+                    )}
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        -{deal.discount}% OFF
                       </span>
-                      {deal.savingsPercent >= 20 && (
-                        <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
-                          Save {deal.savingsPercent}%
+                    </div>
+                    {/* Rating badge */}
+                    {deal.property.reviewCount > 0 && (
+                      <div className="absolute top-3 right-3">
+                        <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm text-[var(--casita-gray-900)] text-xs font-semibold px-2 py-1 rounded-full">
+                          <Star className="w-3 h-3 text-[var(--casita-orange)] fill-[var(--casita-orange)]" />
+                          {deal.property.rating.toFixed(1)}
                         </span>
-                      )}
-                    </div>
-
-                    {/* Rating */}
-                    <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-white/90 rounded-full">
-                      <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                      <span className="text-sm font-semibold">{deal.property.rating.toFixed(1)}</span>
-                    </div>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Content */}
                   <div className="p-4">
                     <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1 line-clamp-1 group-hover:text-[var(--casita-orange)] transition-colors">
                       {deal.property.name}
                     </h3>
-
-                    <div className="flex items-center gap-1 text-sm text-[var(--casita-gray-500)] mb-3">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>{deal.property.location.city}</span>
+                    <div className="flex items-center gap-2 text-[var(--casita-gray-500)] text-sm mb-3">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>{deal.dates}</span>
+                      </div>
+                      <span className="text-[var(--casita-gray-300)]">|</span>
+                      <span>Sleeps {deal.property.maxGuests}</span>
                     </div>
-
-                    {/* Deal Details */}
-                    <div className="flex items-center justify-between pt-3 border-t border-[var(--casita-gray-100)]">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="w-4 h-4 text-[var(--casita-gray-400)]" />
-                        <span className="text-[var(--casita-gray-700)]">
-                          {formatDate(deal.checkIn)} - {formatDate(deal.checkOut)}
+                    <div className="flex items-center gap-2 text-[var(--casita-gray-500)] text-xs mb-3">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        <span>{deal.property.location.city}</span>
+                      </div>
+                      {deal.property.bedrooms && (
+                        <>
+                          <span className="text-[var(--casita-gray-300)]">|</span>
+                          <div className="flex items-center gap-1">
+                            <BedDouble className="w-3 h-3" />
+                            <span>{deal.property.bedrooms} bed{deal.property.bedrooms > 1 ? 's' : ''}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-baseline justify-between">
+                      <div>
+                        <span className="text-[var(--casita-gray-400)] text-sm line-through mr-2">
+                          {formatPrice(deal.originalPrice)}
+                        </span>
+                        <span className="text-2xl font-bold text-[var(--casita-orange)]">
+                          {formatPrice(deal.finalPrice)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Clock className="w-4 h-4 text-[var(--casita-gray-400)]" />
-                        <span className="font-medium text-[var(--casita-gray-900)]">
-                          {deal.nights} nights
-                        </span>
-                      </div>
+                      <span className="text-[var(--casita-gray-500)] text-xs">{deal.nights} nights</span>
                     </div>
-
-                    {/* Total Price */}
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="text-xs text-[var(--casita-gray-500)]">Total with fees</span>
-                      <span className="text-lg font-bold text-[var(--casita-gray-900)]">
-                        ${deal.totalPrice}
-                      </span>
-                    </div>
+                    <p className="text-xs text-[var(--casita-gray-500)] mt-2">
+                      From {formatPrice(deal.property.price.perNight)}/night
+                    </p>
                   </div>
                 </Link>
               ))}
@@ -324,12 +364,12 @@ export default function DealsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 bg-[var(--casita-orange)]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Tag className="w-5 h-5 text-[var(--casita-orange)]" />
+                <Flame className="w-5 h-5 text-[var(--casita-orange)]" />
               </div>
               <div>
-                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Under $100/Night</h3>
+                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Starting from $99/Night</h3>
                 <p className="text-sm text-[var(--casita-gray-600)]">
-                  All deals include taxes and fees, no surprises at checkout.
+                  Our most affordable properties. Book directly and save on fees!
                 </p>
               </div>
             </div>
@@ -338,20 +378,20 @@ export default function DealsPage() {
                 <Calendar className="w-5 h-5 text-[var(--casita-turquoise)]" />
               </div>
               <div>
-                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Short Stays</h3>
+                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Multi-Night Savings</h3>
                 <p className="text-sm text-[var(--casita-gray-600)]">
-                  Perfect for quick getaways - 2, 3, or 4 night stays.
+                  Save up to 25% on stays of 2-5 nights. The longer you stay, the more you save!
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 bg-[var(--casita-coral)]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Flame className="w-5 h-5 text-[var(--casita-coral)]" />
+                <Star className="w-5 h-5 text-[var(--casita-coral)]" />
               </div>
               <div>
-                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Limited Time</h3>
+                <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Top-Rated Properties</h3>
                 <p className="text-sm text-[var(--casita-gray-600)]">
-                  Deals update daily based on availability. Book fast!
+                  All our properties are from verified Superhosts with excellent reviews.
                 </p>
               </div>
             </div>

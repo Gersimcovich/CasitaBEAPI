@@ -35,11 +35,10 @@ const GRADIENTS = [
   'from-amber-100/30 to-[var(--casita-coral)]/20',
 ];
 
-// Generate deal dates based on property index
-function generateDealDates(index: number): { dates: string; nights: number } {
+// Generate deal dates based on property index and nights count
+function generateDealDates(index: number, nights: number): string {
   const today = new Date();
   const startOffset = 14 + (index * 7); // Stagger start dates
-  const nights = [3, 4, 5, 7][index % 4]; // Vary nights
 
   const checkIn = new Date(today);
   checkIn.setDate(today.getDate() + startOffset);
@@ -47,10 +46,7 @@ function generateDealDates(index: number): { dates: string; nights: number } {
   checkOut.setDate(checkIn.getDate() + nights);
 
   const formatDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  return {
-    dates: `${formatDate(checkIn)} - ${formatDate(checkOut)}`,
-    nights
-  };
+  return `${formatDate(checkIn)} - ${formatDate(checkOut)}`;
 }
 
 // Get icon type based on property characteristics
@@ -70,10 +66,14 @@ function getIconType(property: Property): 'city' | 'beach' | 'arts' | 'nature' {
   return 'city';
 }
 
+// Max base price for deals - with ~15% fees, $85 base -> ~$100 all-in
+// Max base price for deals - starting from $99/night
+const MAX_BASE_PRICE_FOR_DEALS = 100;
+
 function LowestPricesSection({ properties, formatPrice }: { properties: Property[]; formatPrice: (price: number) => string }) {
-  // Get unique cities from budget properties (under $100/night)
+  // Get unique cities from budget properties (starting from $99/night)
   const citiesFromBudgetProperties = useMemo(() => {
-    const budgetProps = properties.filter(p => p.price.perNight < 100);
+    const budgetProps = properties.filter(p => p.price.perNight <= MAX_BASE_PRICE_FOR_DEALS);
     const cities = new Set<string>();
     budgetProps.forEach(property => {
       if (property.location.city) {
@@ -85,11 +85,11 @@ function LowestPricesSection({ properties, formatPrice }: { properties: Property
 
   const [selectedCity, setSelectedCity] = useState(citiesFromBudgetProperties[0] || 'Miami Beach');
 
-  // Filter properties under $100/night for the selected city, multi-night stays
+  // Filter properties for deals in the selected city
   const budgetDeals = useMemo(() => {
-    // Filter properties that are less than $100 per night and in selected city
+    // Filter properties with affordable base prices
     const budgetProperties = properties
-      .filter(p => p.price.perNight < 100 && p.location.city === selectedCity)
+      .filter(p => p.price.perNight <= MAX_BASE_PRICE_FOR_DEALS && p.location.city === selectedCity)
       .sort((a, b) => {
         // Sort by price first (lowest), then by review count (highest)
         if (a.price.perNight !== b.price.perNight) {
@@ -102,7 +102,7 @@ function LowestPricesSection({ properties, formatPrice }: { properties: Property
     return budgetProperties.slice(0, 4).map((property, index) => {
       // Generate multi-night stay deals (2+ nights)
       const nights = [2, 3, 4, 5][index % 4]; // Always more than 1 night
-      const { dates } = generateDealDates(index);
+      const dates = generateDealDates(index, nights);
       const discount = [10, 15, 20, 25][index % 4]; // Promotional discounts
       const originalPrice = property.price.perNight * nights;
       const finalPrice = Math.round(originalPrice * (1 - discount / 100));
@@ -157,7 +157,7 @@ function LowestPricesSection({ properties, formatPrice }: { properties: Property
                 Deals
               </h2>
               <p className="text-[var(--casita-gray-500)] text-sm mt-1">
-                Less than $100 per night
+                Starting from $99 per night
               </p>
             </div>
           </div>

@@ -161,6 +161,7 @@ export const translations = {
       stat1: '5-Star Reviews',
       stat2: 'Gross Revenue',
       stat3: 'Occupancy Rate',
+      stat4: 'Guest Exposure',
       // Superhost section
       superhostBadge: 'The Superhost Advantage',
       superhostTitle: 'Your Property Deserves First Page Visibility',
@@ -404,6 +405,7 @@ export const translations = {
       stat1: 'Reseñas 5 Estrellas',
       stat2: 'Ingresos Brutos',
       stat3: 'Tasa de Ocupación',
+      stat4: 'Exposición de Huéspedes',
       // Superhost section
       superhostBadge: 'La Ventaja Superhost',
       superhostTitle: 'Tu Propiedad Merece Visibilidad en Primera Página',
@@ -647,6 +649,7 @@ export const translations = {
       stat1: 'Avaliações 5 Estrelas',
       stat2: 'Receita Bruta',
       stat3: 'Taxa de Ocupação',
+      stat4: 'Exposição de Hóspedes',
       // Superhost section
       superhostBadge: 'A Vantagem Superhost',
       superhostTitle: 'Sua Propriedade Merece Visibilidade na Primeira Página',

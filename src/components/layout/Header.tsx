@@ -389,10 +389,10 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - pushed to right */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg transition-colors text-[var(--casita-gray-700)]"
+            className="lg:hidden ml-auto p-2 rounded-lg transition-colors text-[var(--casita-gray-700)]"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
