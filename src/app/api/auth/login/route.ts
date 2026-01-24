@@ -30,8 +30,8 @@ export async function POST(request: Request) {
     if (!existingUser) {
       // User doesn't exist - needs to register
       return NextResponse.json<AuthResponse>({
-        success: true,
-        message: 'Account not found. Please create an account.',
+        success: false,
+        message: 'Account not found. Try creating an account.',
         requiresRegistration: true,
       });
     }
