@@ -49,7 +49,7 @@ export default function Footer() {
                   href="https://www.instagram.com/casitastays"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+                  className="w-8 h-8 bg-white/20 rounded-full hover:bg-white/30 transition-colors flex items-center justify-center"
                   title="Follow us on Instagram"
                 >
                   <Instagram className="w-4 h-4" />
@@ -58,7 +58,7 @@ export default function Footer() {
                   href="https://wa.me/17866947577"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+                  className="w-8 h-8 bg-white/20 rounded-full hover:bg-white/30 transition-colors flex items-center justify-center"
                   title="Chat with us on WhatsApp"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
