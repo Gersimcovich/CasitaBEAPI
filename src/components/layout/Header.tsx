@@ -7,6 +7,7 @@ import { Menu, X, ShoppingCart, User, Trash2, LogOut, Award, Settings, MapPin, T
 import { useLocale } from '@/contexts/LocaleContext';
 import { useCart } from '@/contexts/CartContext';
 import { useUser } from '@/contexts/UserContext';
+import { useCapacitor } from '@/hooks/useCapacitor';
 import AuthModal from '@/components/auth/AuthModal';
 
 export default function Header() {
@@ -24,6 +25,7 @@ export default function Header() {
   const [isCartHovered, setIsCartHovered] = useState(false);
   const cartHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const locationsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { isCapacitor, isIOS } = useCapacitor();
 
   // Fetch cities for locations dropdown
   useEffect(() => {
@@ -73,16 +75,21 @@ export default function Header() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setIsScrolled(currentScrollY > 50);
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+
+      // For app: hide immediately when scrolling down, show when scrolling up
+      // For website: only hide after scrolling past 100px
+      const scrollThreshold = isCapacitor ? 10 : 100;
+
+      if (currentScrollY > lastScrollY && currentScrollY > scrollThreshold) {
         setIsHidden(true);
-      } else {
+      } else if (currentScrollY < lastScrollY) {
         setIsHidden(false);
       }
       setLastScrollY(currentScrollY);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  }, [lastScrollY, isCapacitor]);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -94,6 +101,72 @@ export default function Header() {
     }
   }, [isUserMenuOpen]);
 
+  // App-specific header (simplified for iOS/Android app)
+  if (isCapacitor) {
+    return (
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white ${
+          isScrolled ? 'shadow-md' : ''
+        } ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
+        style={isIOS ? { paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' } : undefined}
+      >
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-12">
+            {/* Logo */}
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/casita-logo.png"
+                alt="Casita"
+                width={120}
+                height={32}
+                className="h-7 w-auto"
+                priority
+              />
+            </Link>
+
+            {/* Center Navigation - Simplified for App */}
+            <nav className="flex items-center gap-1">
+              <Link
+                href="/properties"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] hover:bg-[var(--casita-cream)] rounded-lg transition-colors font-medium"
+              >
+                <Building2 className="w-4 h-4" />
+                {t.nav.properties}
+              </Link>
+              <Link
+                href="/reservation"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[var(--casita-gray-700)] hover:text-[var(--casita-orange)] hover:bg-[var(--casita-cream)] rounded-lg transition-colors font-medium"
+              >
+                <CalendarCheck className="w-4 h-4" />
+                {t.nav.manageReservation || 'My Reservation'}
+              </Link>
+            </nav>
+
+            {/* Right Side - Simple Person Icon for Auth */}
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+                isAuthenticated
+                  ? 'bg-[var(--casita-gray-900)] text-white'
+                  : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-200)]'
+              }`}
+            >
+              {isAuthenticated && user ? (
+                <span className="text-sm font-semibold">{user.firstName[0]}</span>
+              ) : (
+                <User className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Auth Modal */}
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      </header>
+    );
+  }
+
+  // Website header (full navigation)
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white ${

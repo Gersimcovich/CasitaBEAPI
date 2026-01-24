@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Mail, User, Phone, Globe, ChevronLeft, Loader2 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -334,9 +335,20 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     }
   };
 
+  // Track if we're mounted (for SSR compatibility with portal)
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   if (!isOpen) return null;
 
-  return (
+  // Use portal to render outside any stacking context (like fixed header)
+  // Only use portal after mounting (client-side)
+  if (!isMounted) return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-[9999] overflow-y-auto">
       {/* Backdrop */}
       <div
@@ -592,6 +604,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         </div>
       </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
