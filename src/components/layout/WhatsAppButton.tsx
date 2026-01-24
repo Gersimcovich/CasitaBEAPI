@@ -25,10 +25,7 @@ export default function WhatsAppButton() {
   }, [isDismissed]);
 
   return (
-    <div
-      className="fixed bottom-6 right-6 z-50 flex items-end gap-3"
-      style={{ bottom: 'max(1.5rem, calc(env(safe-area-inset-bottom) + 0.5rem))' }}
-    >
+    <div className="fixed bottom-6 right-6 z-50 flex items-end gap-3">
       {/* Tooltip */}
       {isTooltipVisible && !isDismissed && (
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-3 max-w-[200px] animate-scale-in">
