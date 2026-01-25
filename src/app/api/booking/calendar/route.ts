@@ -1,6 +1,19 @@
 import { NextResponse } from 'next/server';
-import { getCalendar as getCalendarBeapi, isConfigured as isBeapiConfigured } from '@/lib/guesty-beapi';
 import { getCalendar as getCalendarLegacy } from '@/lib/guesty';
+
+// Generate array of dates between from and to (YYYY-MM-DD format)
+function generateDateRange(from: string, to: string): string[] {
+  const dates: string[] = [];
+  const current = new Date(from);
+  const end = new Date(to);
+
+  while (current < end) {
+    dates.push(current.toISOString().split('T')[0]);
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -44,46 +57,20 @@ export async function GET(request: Request) {
   }
 
   try {
-    let calendar: Array<{ date: string; available: boolean; price?: number; minNights?: number }> = [];
+    // Use legacy getCalendar which tries: memory cache -> disk cache -> Open API -> BEAPI
+    // It throws an error if ALL sources fail
+    const calendar = await getCalendarLegacy(listingId, from, to);
 
-    // Strategy 1: Try BEAPI calendar
-    if (isBeapiConfigured()) {
-      try {
-        const beapiCalendar = await getCalendarBeapi(listingId, from, to);
-        if (beapiCalendar && beapiCalendar.length > 0) {
-          calendar = beapiCalendar;
-        }
-      } catch {
-        // BEAPI failed, try legacy
-      }
-    }
-
-    // Strategy 2: Try legacy Guesty calendar
-    if (calendar.length === 0) {
-      try {
-        const legacyCalendar = await getCalendarLegacy(listingId, from, to);
-        if (legacyCalendar && legacyCalendar.length > 0) {
-          calendar = legacyCalendar.map(day => ({
-            date: day.date,
-            available: day.status === 'available',
-            price: day.price,
-            minNights: day.minNights,
-          }));
-        }
-      } catch {
-        // Legacy failed too
-      }
-    }
-
-    // If no calendar data, return empty (allows booking attempt - availability verified at booking time)
-    if (calendar.length === 0) {
+    if (!calendar || calendar.length === 0) {
+      // Can't get availability - block all dates to prevent double bookings
+      const allDatesBlocked = generateDateRange(from, to);
       return NextResponse.json({
         success: true,
         listingId,
         from,
         to,
-        availability: [],
-        blockedDates: [],
+        availability: allDatesBlocked.map(date => ({ date, available: false })),
+        blockedDates: allDatesBlocked,
         currency: 'USD',
       });
     }
@@ -91,14 +78,14 @@ export async function GET(request: Request) {
     // Transform for frontend use
     const availability = calendar.map(day => ({
       date: day.date,
-      available: day.available,
+      available: day.status === 'available',
       price: day.price,
       minNights: day.minNights,
     }));
 
     // Get blocked dates for easy filtering
     const blockedDates = calendar
-      .filter(day => !day.available)
+      .filter(day => day.status !== 'available')
       .map(day => day.date);
 
     return NextResponse.json({
@@ -108,19 +95,20 @@ export async function GET(request: Request) {
       to,
       availability,
       blockedDates,
-      currency: 'USD',
+      currency: calendar[0]?.currency || 'USD',
     });
   } catch (error) {
-    console.error('Error fetching calendar:', error);
+    console.error('Calendar API error:', error);
 
-    // Return empty calendar on error (allow booking attempt)
+    // Can't get availability - block all dates to prevent double bookings
+    const allDatesBlocked = generateDateRange(from, to);
     return NextResponse.json({
       success: true,
       listingId,
       from,
       to,
-      availability: [],
-      blockedDates: [],
+      availability: allDatesBlocked.map(date => ({ date, available: false })),
+      blockedDates: allDatesBlocked,
       currency: 'USD',
     });
   }
