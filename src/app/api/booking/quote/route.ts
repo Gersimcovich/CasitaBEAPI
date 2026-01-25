@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getQuote } from '@/lib/guesty';
+import { createQuote as createQuoteBeapi, isConfigured as isBeapiConfigured, getListings as getListingsBeapi } from '@/lib/guesty-beapi';
+import { getQuote as getQuoteLegacy } from '@/lib/guesty';
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -17,8 +18,7 @@ export async function POST(request: Request) {
   }
 
   // Validate dates - compare as strings (YYYY-MM-DD format) to avoid timezone issues
-  // Same-day reservations are allowed until 11:59 PM local time
-  const todayStr = new Date().toLocaleDateString('en-CA'); // Returns YYYY-MM-DD format
+  const todayStr = new Date().toLocaleDateString('en-CA');
 
   if (checkIn < todayStr) {
     return NextResponse.json(
@@ -41,77 +41,119 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Get quote from Guesty
-    const quoteResult = await getQuote({
-      listingId,
-      checkIn,
-      checkOut,
-      guestsCount: guestsCount || 1,
-    });
+    // Calculate nights
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const nightsCount = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (!quoteResult.available) {
-      return NextResponse.json({
-        success: false,
-        available: false,
-        unavailableDates: quoteResult.unavailableDates,
-        listing: quoteResult.listing,
-        error: quoteResult.unavailableDates.length > 0
-          ? 'These dates are already booked. Try adjusting your stay!'
-          : 'This cozy spot can\'t fit that many guests. Try a larger property!',
-      });
-    }
+    // Strategy 1: Try BEAPI quote
+    if (isBeapiConfigured()) {
+      try {
+        const beapiQuote = await createQuoteBeapi({
+          listingId,
+          checkInDateLocalized: checkIn,
+          checkOutDateLocalized: checkOut,
+          guestsCount: guestsCount || 1,
+        });
 
-    return NextResponse.json({
-      success: true,
-      available: true,
-      quote: quoteResult.quote,
-      listing: quoteResult.listing,
-    });
-  } catch (error) {
-    console.error('Error getting quote:', error);
-
-    // Parse error for user-friendly message
-    let userMessage = 'We couldn\'t check availability right now. Please try again in a moment!';
-    let errorCode = 'UNKNOWN_ERROR';
-
-    if (error instanceof Error) {
-      const errorText = error.message;
-
-      // Parse Guesty BEAPI error codes
-      if (errorText.includes('LISTING_IS_NOT_AVAILABLE')) {
-        if (errorText.includes('allotment')) {
-          userMessage = 'Not enough rooms available for those dates. Try different dates or fewer rooms!';
-          errorCode = 'NO_AVAILABILITY';
-        } else if (errorText.includes('minNights')) {
-          userMessage = 'This stay requires a minimum number of nights. Add a few more nights to your trip!';
-          errorCode = 'MIN_NIGHTS';
-        } else if (errorText.includes('maxNights')) {
-          userMessage = 'This stay has a maximum night limit. Shorten your trip a bit!';
-          errorCode = 'MAX_NIGHTS';
-        } else if (errorText.includes('closed') || errorText.includes('hardBlocked')) {
-          userMessage = 'This property isn\'t available for those dates. Try different dates!';
-          errorCode = 'DATES_BLOCKED';
-        } else {
-          userMessage = 'These dates are already booked. Try adjusting your stay!';
-          errorCode = 'NOT_AVAILABLE';
+        if (beapiQuote) {
+          return NextResponse.json({
+            success: true,
+            available: true,
+            quote: {
+              nightsCount,
+              pricePerNight: Math.round(beapiQuote.money.fareAccommodation / nightsCount),
+              accommodation: beapiQuote.money.fareAccommodation,
+              cleaningFee: beapiQuote.money.fareCleaning || 0,
+              serviceFee: beapiQuote.money.hostServiceFee || 0,
+              taxes: beapiQuote.money.totalTaxes || 0,
+              total: beapiQuote.money.totalPrice,
+              currency: beapiQuote.money.currency || 'USD',
+            },
+          });
         }
-      } else if (errorText.includes('TOO_MANY_REQUESTS') || errorText.includes('429')) {
-        userMessage = 'We\'re experiencing high traffic. Please wait a moment and try again - your dates may still be available!';
-        errorCode = 'RATE_LIMITED';
-      } else if (errorText.includes('UNAUTHORIZED') || errorText.includes('401')) {
-        userMessage = 'Let\'s try that again. Please refresh the page!';
-        errorCode = 'AUTH_ERROR';
-      } else if (errorText.includes('not found') || errorText.includes('404')) {
-        userMessage = 'This charming spot is no longer available. Explore our other properties!';
-        errorCode = 'NOT_FOUND';
+      } catch (e) {
+        console.warn('BEAPI quote failed:', e);
       }
     }
+
+    // Strategy 2: Try legacy Guesty quote
+    try {
+      const quoteResult = await getQuoteLegacy({
+        listingId,
+        checkIn,
+        checkOut,
+        guestsCount: guestsCount || 1,
+      });
+
+      if (!quoteResult.available) {
+        return NextResponse.json({
+          success: false,
+          available: false,
+          unavailableDates: quoteResult.unavailableDates,
+          error: quoteResult.unavailableDates?.length > 0
+            ? 'These dates are already booked. Try adjusting your stay!'
+            : 'This cozy spot can\'t fit that many guests. Try a larger property!',
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        available: true,
+        quote: quoteResult.quote,
+      });
+    } catch (e) {
+      console.warn('Legacy quote failed:', e);
+    }
+
+    // Strategy 3: Estimate from listing base price
+    try {
+      const listings = await getListingsBeapi({ limit: 100 });
+      const listing = listings.find(l => l._id === listingId);
+
+      if (listing && listing.prices?.basePrice) {
+        const basePrice = listing.prices.basePrice;
+        const cleaningFee = listing.prices.cleaningFee || 0;
+        const accommodation = basePrice * nightsCount;
+        const serviceFee = Math.round(accommodation * 0.10); // Estimate 10% service fee
+        const taxes = Math.round(accommodation * 0.13); // Estimate 13% taxes
+        const total = accommodation + cleaningFee + serviceFee + taxes;
+
+        return NextResponse.json({
+          success: true,
+          available: true,
+          quote: {
+            nightsCount,
+            pricePerNight: basePrice,
+            accommodation,
+            cleaningFee,
+            serviceFee,
+            taxes,
+            total,
+            currency: listing.prices.currency || 'USD',
+            estimated: true, // Flag that this is an estimate
+          },
+        });
+      }
+    } catch (e) {
+      console.warn('Estimate from listing failed:', e);
+    }
+
+    // All strategies failed
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'We couldn\'t check availability right now. Please try again in a moment!',
+      },
+      { status: 500 }
+    );
+  } catch (error) {
+    console.error('Error getting quote:', error);
 
     return NextResponse.json(
       {
         success: false,
-        error: userMessage,
-        errorCode,
+        error: 'We couldn\'t check availability right now. Please try again in a moment!',
       },
       { status: 500 }
     );
