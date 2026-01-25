@@ -53,8 +53,8 @@ export async function GET(request: Request) {
         if (beapiCalendar && beapiCalendar.length > 0) {
           calendar = beapiCalendar;
         }
-      } catch (e) {
-        console.warn('BEAPI calendar failed:', e);
+      } catch {
+        // BEAPI failed, try legacy
       }
     }
 
@@ -70,12 +70,12 @@ export async function GET(request: Request) {
             minNights: day.minNights,
           }));
         }
-      } catch (e) {
-        console.warn('Legacy calendar failed:', e);
+      } catch {
+        // Legacy failed too
       }
     }
 
-    // If no calendar data, return empty but successful (allow booking attempt)
+    // If no calendar data, return empty (allows booking attempt - availability verified at booking time)
     if (calendar.length === 0) {
       return NextResponse.json({
         success: true,
