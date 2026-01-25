@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createQuote as createQuoteBeapi, isConfigured as isBeapiConfigured, getListings as getListingsBeapi } from '@/lib/guesty-beapi';
-import { getQuote as getQuoteLegacy } from '@/lib/guesty';
+import { getQuote as getQuoteLegacy, getListings as getListingsLegacy } from '@/lib/guesty';
+import { guestyProperties } from '@/data/guestyData';
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -106,17 +107,52 @@ export async function POST(request: Request) {
       console.warn('Legacy quote failed:', e);
     }
 
-    // Strategy 3: Estimate from listing base price
+    // Strategy 3: Estimate from BEAPI listing base price
+    if (isBeapiConfigured()) {
+      try {
+        const listings = await getListingsBeapi({ limit: 100 });
+        const listing = listings.find(l => l._id === listingId);
+
+        if (listing && listing.prices?.basePrice) {
+          const basePrice = listing.prices.basePrice;
+          const cleaningFee = listing.prices.cleaningFee || 0;
+          const accommodation = basePrice * nightsCount;
+          const serviceFee = Math.round(accommodation * 0.10);
+          const taxes = Math.round(accommodation * 0.13);
+          const total = accommodation + cleaningFee + serviceFee + taxes;
+
+          return NextResponse.json({
+            success: true,
+            available: true,
+            quote: {
+              nightsCount,
+              pricePerNight: basePrice,
+              accommodation,
+              cleaningFee,
+              serviceFee,
+              taxes,
+              total,
+              currency: listing.prices.currency || 'USD',
+              estimated: true,
+            },
+          });
+        }
+      } catch (e) {
+        console.warn('BEAPI estimate failed:', e);
+      }
+    }
+
+    // Strategy 4: Estimate from legacy listing
     try {
-      const listings = await getListingsBeapi({ limit: 100 });
+      const listings = await getListingsLegacy({ active: true, limit: 100, useCache: true });
       const listing = listings.find(l => l._id === listingId);
 
       if (listing && listing.prices?.basePrice) {
         const basePrice = listing.prices.basePrice;
         const cleaningFee = listing.prices.cleaningFee || 0;
         const accommodation = basePrice * nightsCount;
-        const serviceFee = Math.round(accommodation * 0.10); // Estimate 10% service fee
-        const taxes = Math.round(accommodation * 0.13); // Estimate 13% taxes
+        const serviceFee = Math.round(accommodation * 0.10);
+        const taxes = Math.round(accommodation * 0.13);
         const total = accommodation + cleaningFee + serviceFee + taxes;
 
         return NextResponse.json({
@@ -131,12 +167,39 @@ export async function POST(request: Request) {
             taxes,
             total,
             currency: listing.prices.currency || 'USD',
-            estimated: true, // Flag that this is an estimate
+            estimated: true,
           },
         });
       }
     } catch (e) {
-      console.warn('Estimate from listing failed:', e);
+      console.warn('Legacy estimate failed:', e);
+    }
+
+    // Strategy 5: Estimate from static data
+    const staticProperty = guestyProperties.find(p => p.id === listingId || p.slug === listingId);
+    if (staticProperty && staticProperty.price?.perNight) {
+      const basePrice = staticProperty.price.perNight;
+      const cleaningFee = staticProperty.price.cleaningFee || 0;
+      const accommodation = basePrice * nightsCount;
+      const serviceFee = Math.round(accommodation * 0.10);
+      const taxes = Math.round(accommodation * 0.13);
+      const total = accommodation + cleaningFee + serviceFee + taxes;
+
+      return NextResponse.json({
+        success: true,
+        available: true,
+        quote: {
+          nightsCount,
+          pricePerNight: basePrice,
+          accommodation,
+          cleaningFee,
+          serviceFee,
+          taxes,
+          total,
+          currency: staticProperty.price.currency || 'USD',
+          estimated: true,
+        },
+      });
     }
 
     // All strategies failed
