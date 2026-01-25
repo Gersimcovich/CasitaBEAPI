@@ -215,8 +215,30 @@ const GUESTY_OPEN_API_CLIENT_SECRET = process.env.GUESTY_CLIENT_SECRET || '';
 const GUESTY_OPEN_API_URL = 'https://open-api.guesty.com/v1';
 const GUESTY_OPEN_API_AUTH_URL = 'https://open-api.guesty.com/oauth2/token';
 
-// Open API token cache
+// Open API token cache (with file persistence for serverless)
+const OPEN_API_TOKEN_FILE = '/tmp/open-api-token.json';
 let openApiToken: { token: string; expiresAt: number } | null = null;
+
+async function loadOpenApiTokenFromFile(): Promise<{ token: string; expiresAt: number } | null> {
+  try {
+    const content = await fs.readFile(OPEN_API_TOKEN_FILE, 'utf-8');
+    const data = JSON.parse(content);
+    if (data.expiresAt > Date.now() + 5 * 60 * 1000) {
+      return data;
+    }
+  } catch {
+    // File doesn't exist or is invalid
+  }
+  return null;
+}
+
+async function saveOpenApiTokenToFile(token: string, expiresAt: number): Promise<void> {
+  try {
+    await fs.writeFile(OPEN_API_TOKEN_FILE, JSON.stringify({ token, expiresAt }));
+  } catch {
+    // Ignore file write errors
+  }
+}
 
 // Track which API is currently active (1 = primary, 2 = secondary, 3 = tertiary)
 let activeApiIndex = 1;
@@ -419,11 +441,39 @@ interface CalendarDay {
 }
 
 // Token cache - BEAPI tokens last 24 hours (separate cache for each API)
+// File-based persistence for serverless cold starts
+const BEAPI_TOKEN_FILES = {
+  1: '/tmp/beapi-token-1.json',
+  2: '/tmp/beapi-token-2.json',
+  3: '/tmp/beapi-token-3.json',
+};
+
 const cachedTokens: { [key: number]: { token: string; expiresAt: number } | null } = {
   1: null,
   2: null,
   3: null,
 };
+
+async function loadBeapiTokenFromFile(apiIndex: number): Promise<{ token: string; expiresAt: number } | null> {
+  try {
+    const content = await fs.readFile(BEAPI_TOKEN_FILES[apiIndex as 1 | 2 | 3], 'utf-8');
+    const data = JSON.parse(content);
+    if (data.expiresAt > Date.now() + 5 * 60 * 1000) {
+      return data;
+    }
+  } catch {
+    // File doesn't exist or is invalid
+  }
+  return null;
+}
+
+async function saveBeapiTokenToFile(apiIndex: number, token: string, expiresAt: number): Promise<void> {
+  try {
+    await fs.writeFile(BEAPI_TOKEN_FILES[apiIndex as 1 | 2 | 3], JSON.stringify({ token, expiresAt }));
+  } catch {
+    // Ignore file write errors
+  }
+}
 
 // AGGRESSIVE CACHING to minimize API calls and prevent rate limiting
 // Listings cache - 24 hours (properties rarely change, this is the main data)
@@ -475,12 +525,20 @@ function hasOpenApi(): boolean {
 }
 
 /**
- * Get Open API access token
+ * Get Open API access token (with file persistence for serverless)
  */
 async function getOpenApiAccessToken(): Promise<string> {
-  // Check cache
+  // Check memory cache first
   if (openApiToken && openApiToken.expiresAt > Date.now()) {
     return openApiToken.token;
+  }
+
+  // Check file cache (persists across serverless cold starts)
+  const fileToken = await loadOpenApiTokenFromFile();
+  if (fileToken) {
+    openApiToken = fileToken;
+    console.log('🔑 Open API token loaded from file cache');
+    return fileToken.token;
   }
 
   if (!hasOpenApi()) {
@@ -507,12 +565,17 @@ async function getOpenApiAccessToken(): Promise<string> {
   }
 
   const data = await response.json();
+  const expiresAt = Date.now() + (data.expires_in - 300) * 1000;
+
   openApiToken = {
     token: data.access_token,
-    expiresAt: Date.now() + (data.expires_in - 300) * 1000,
+    expiresAt,
   };
 
-  console.log('✅ Authenticated with Open API');
+  // Save to file for persistence
+  await saveOpenApiTokenToFile(data.access_token, expiresAt);
+
+  console.log('✅ Open API token cached (memory + file)');
   return data.access_token;
 }
 
@@ -692,9 +755,17 @@ async function getAccessToken(retryCount = 0, attemptedApis: Set<number> = new S
   // Get the right cached token for current API
   const cachedToken = cachedTokens[activeApiIndex];
 
-  // Check cache - BEAPI tokens last 24 hours
+  // Check memory cache - BEAPI tokens last 24 hours
   if (cachedToken && cachedToken.expiresAt > Date.now()) {
     return cachedToken.token;
+  }
+
+  // Check file cache (persists across serverless cold starts)
+  const fileToken = await loadBeapiTokenFromFile(activeApiIndex);
+  if (fileToken) {
+    cachedTokens[activeApiIndex] = fileToken;
+    console.log(`🔑 BEAPI token ${activeApiIndex} loaded from file cache`);
+    return fileToken.token;
   }
 
   const { clientId, clientSecret } = getCredentials(activeApiIndex);
@@ -756,15 +827,19 @@ async function getAccessToken(retryCount = 0, attemptedApis: Set<number> = new S
     const data: GuestyToken = await response.json();
 
     // Cache token for the current API (expires in 24 hours, we refresh 5 min early)
+    const expiresAt = Date.now() + (data.expires_in - 300) * 1000;
     const tokenData = {
       token: data.access_token,
-      expiresAt: Date.now() + (data.expires_in - 300) * 1000,
+      expiresAt,
     };
 
     cachedTokens[activeApiIndex] = tokenData;
 
+    // Save to file for persistence across serverless cold starts
+    await saveBeapiTokenToFile(activeApiIndex, data.access_token, expiresAt);
+
     const apiNames = { 1: 'primary', 2: 'secondary', 3: 'tertiary' };
-    console.log(`✅ Authenticated with BEAPI ${apiNames[activeApiIndex as keyof typeof apiNames]} credentials`);
+    console.log(`✅ BEAPI ${apiNames[activeApiIndex as keyof typeof apiNames]} token cached (memory + file)`);
     return data.access_token;
   } catch (error) {
     // Network error - try other API if available

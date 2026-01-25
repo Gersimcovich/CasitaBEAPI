@@ -10,6 +10,7 @@
  */
 
 import Bottleneck from 'bottleneck';
+import { promises as fs } from 'fs';
 
 // ============================================================================
 // CONFIGURATION
@@ -97,15 +98,46 @@ function recordFailure(is429: boolean): void {
 }
 
 // ============================================================================
-// TOKEN CACHE
+// TOKEN CACHE (with file persistence for serverless)
 // ============================================================================
+
+const TOKEN_FILE = '/tmp/beapi-token.json';
 
 let cachedToken: { token: string; expiresAt: number } | null = null;
 
+async function loadTokenFromFile(): Promise<{ token: string; expiresAt: number } | null> {
+  try {
+    const content = await fs.readFile(TOKEN_FILE, 'utf-8');
+    const data = JSON.parse(content);
+    if (data.expiresAt > Date.now() + 5 * 60 * 1000) {
+      return data;
+    }
+  } catch {
+    // File doesn't exist or is invalid
+  }
+  return null;
+}
+
+async function saveTokenToFile(token: string, expiresAt: number): Promise<void> {
+  try {
+    await fs.writeFile(TOKEN_FILE, JSON.stringify({ token, expiresAt }));
+  } catch {
+    // Ignore file write errors
+  }
+}
+
 async function getBeapiToken(): Promise<string> {
-  // Return cached token if still valid (with 5 min buffer)
+  // Check memory cache first
   if (cachedToken && cachedToken.expiresAt > Date.now() + 5 * 60 * 1000) {
     return cachedToken.token;
+  }
+
+  // Check file cache (persists across serverless cold starts within same instance)
+  const fileToken = await loadTokenFromFile();
+  if (fileToken) {
+    cachedToken = fileToken;
+    console.log('🔑 BEAPI token loaded from file cache');
+    return fileToken.token;
   }
 
   console.log('🔑 Fetching new BEAPI token...');
@@ -129,12 +161,17 @@ async function getBeapiToken(): Promise<string> {
   }
 
   const data = await response.json();
+  const expiresAt = Date.now() + TTL.TOKEN;
+
   cachedToken = {
     token: data.access_token,
-    expiresAt: Date.now() + TTL.TOKEN,
+    expiresAt,
   };
 
-  console.log('✅ BEAPI token cached');
+  // Save to file for persistence
+  await saveTokenToFile(data.access_token, expiresAt);
+
+  console.log('✅ BEAPI token cached (memory + file)');
   return cachedToken.token;
 }
 
