@@ -1,6 +1,100 @@
 import { NextResponse } from 'next/server';
-import { getListing, convertGuestyToProperty } from '@/lib/guesty';
+import { getListings as getListingsBeapi, getListing as getListingBeapi, isConfigured as isBeapiConfigured, BeapiListing } from '@/lib/guesty-beapi';
+import { getListings as getListingsLegacy, convertGuestyToProperty } from '@/lib/guesty';
+import { guestyProperties } from '@/data/guestyData';
 import { Property } from '@/types';
+
+// Generate location title from address (same as listings route)
+function generateLocationTitle(address: string | undefined, city: string | undefined, neighborhood?: string): string {
+  if (!address || !city) return 'Property';
+
+  const cityLower = city.toLowerCase();
+
+  if (cityLower.includes('orlando') || cityLower.includes('kissimmee') || cityLower.includes('davenport') || cityLower.includes('champions gate')) {
+    if (neighborhood) return neighborhood;
+    const streetPart = address.split(',')[0].trim();
+    const match = streetPart.match(/^(\d+)\s+(.+)$/);
+    if (match) {
+      const streetName = match[2]
+        .replace(/\bStreet\b/gi, 'St').replace(/\bAvenue\b/gi, 'Ave')
+        .replace(/\bDrive\b/gi, 'Dr').replace(/\bBoulevard\b/gi, 'Blvd')
+        .replace(/\bRoad\b/gi, 'Rd').replace(/\bLane\b/gi, 'Ln');
+      return `${streetName}, ${city}`;
+    }
+    return `${streetPart}, ${city}`;
+  }
+
+  const streetPart = address.split(',')[0].trim();
+  const match = streetPart.match(/^(\d+)\s+(.+)$/);
+  if (!match) return `${streetPart}, ${city}`;
+
+  const streetNumber = parseInt(match[1], 10);
+  const streetName = match[2]
+    .replace(/\bStreet\b/gi, 'St').replace(/\bAvenue\b/gi, 'Ave')
+    .replace(/\bDrive\b/gi, 'Dr').replace(/\bBoulevard\b/gi, 'Blvd')
+    .replace(/\bRoad\b/gi, 'Rd').replace(/\bLane\b/gi, 'Ln');
+
+  if (cityLower.includes('miami beach') || cityLower.includes('bal harbour') || cityLower.includes('surfside')) {
+    if (streetNumber > 0) {
+      const crossStreet = Math.round(streetNumber / 100);
+      if (crossStreet > 0 && crossStreet <= 200) {
+        const suffix = crossStreet === 1 ? 'st' : crossStreet === 2 ? 'nd' : crossStreet === 3 ? 'rd' :
+          (crossStreet >= 11 && crossStreet <= 13) ? 'th' :
+          crossStreet % 10 === 1 ? 'st' : crossStreet % 10 === 2 ? 'nd' : crossStreet % 10 === 3 ? 'rd' : 'th';
+        return `${streetName} & ${crossStreet}${suffix} St`;
+      }
+    }
+  }
+
+  return `${streetName}, ${city}`;
+}
+
+// Convert BEAPI listing to Property format (same as listings route)
+function convertBeapiToProperty(listing: BeapiListing): Property {
+  const neighborhood = listing.publicDescription?.neighborhood;
+  const locationTitle = generateLocationTitle(listing.address?.full, listing.address?.city, neighborhood);
+
+  return {
+    id: listing._id,
+    name: locationTitle,
+    slug: listing._id,
+    description: listing.publicDescription?.summary || '',
+    shortDescription: listing.publicDescription?.summary?.substring(0, 150) || '',
+    type: 'boutique-hotel',
+    images: listing.pictures?.map(p => p.large || p.original).filter(Boolean) || [],
+    price: {
+      perNight: listing.prices?.basePrice || 0,
+      cleaningFee: listing.prices?.cleaningFee,
+      currency: listing.prices?.currency || 'USD',
+    },
+    location: {
+      address: listing.address?.full || '',
+      city: listing.address?.city || '',
+      country: listing.address?.country || '',
+      neighborhood: neighborhood,
+      coordinates: {
+        lat: listing.address?.lat || 0,
+        lng: listing.address?.lng || 0,
+      },
+    },
+    amenities: listing.amenities || [],
+    rating: listing.reviews?.avg || 4.5,
+    reviewCount: listing.reviews?.count || 0,
+    maxGuests: listing.accommodates || 2,
+    bedrooms: listing.bedrooms || 1,
+    bathrooms: listing.bathrooms || 1,
+    isFeatured: false,
+    isBeachfront: false,
+    petFriendly: listing.petsAllowed || listing.amenities?.some(a => a.toLowerCase().includes('pet')) || false,
+    distanceToBeach: 2000,
+    locationPerks: [],
+    policies: {
+      checkIn: '3:00 PM',
+      checkOut: '11:00 AM',
+      cancellation: 'Flexible',
+    },
+  };
+}
 
 export async function GET(
   request: Request,
@@ -9,10 +103,55 @@ export async function GET(
   const { id } = await params;
 
   try {
-    const listing = await getListing(id);
+    let property: Property | null = null;
 
-    // Check if listing is null/undefined (can happen with fallback mode or API errors)
-    if (!listing) {
+    // Strategy 1: Try BEAPI individual listing
+    if (isBeapiConfigured()) {
+      try {
+        const listing = await getListingBeapi(id);
+        if (listing) {
+          property = convertBeapiToProperty(listing);
+        }
+      } catch (e) {
+        console.warn('BEAPI individual listing failed:', e);
+      }
+    }
+
+    // Strategy 2: Try BEAPI listings and find by ID
+    if (!property && isBeapiConfigured()) {
+      try {
+        const listings = await getListingsBeapi({ limit: 100 });
+        const found = listings.find(l => l._id === id);
+        if (found) {
+          property = convertBeapiToProperty(found);
+        }
+      } catch (e) {
+        console.warn('BEAPI listings search failed:', e);
+      }
+    }
+
+    // Strategy 3: Try legacy Guesty client
+    if (!property) {
+      try {
+        const listings = await getListingsLegacy({ active: true, limit: 100, useCache: true });
+        const found = listings.find(l => l._id === id);
+        if (found) {
+          property = convertGuestyToProperty(found) as Property;
+        }
+      } catch (e) {
+        console.warn('Legacy Guesty failed:', e);
+      }
+    }
+
+    // Strategy 4: Check static fallback data
+    if (!property) {
+      const staticProperty = guestyProperties.find(p => p.id === id || p.slug === id);
+      if (staticProperty) {
+        property = staticProperty;
+      }
+    }
+
+    if (!property) {
       return NextResponse.json(
         {
           success: false,
@@ -22,8 +161,6 @@ export async function GET(
       );
     }
 
-    const property = convertGuestyToProperty(listing) as Property;
-
     return NextResponse.json({
       success: true,
       data: property,
@@ -31,40 +168,12 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching listing:', error);
 
-    let userMessage = 'We couldn\'t load this property right now. Give it another try!';
-    let statusCode = 500;
-
-    if (error instanceof Error) {
-      const errorText = error.message.toLowerCase();
-
-      // Check for 404/not found errors (including BEAPI format "Guesty BEAPI error: 404")
-      if (errorText.includes('not found') || errorText.includes('404') || errorText.includes('does not exist')) {
-        userMessage = 'This charming spot is no longer available. Explore our other beautiful properties!';
-        statusCode = 404;
-      } else if (errorText.includes('too_many_requests') || errorText.includes('429') || errorText.includes('rate limit')) {
-        userMessage = 'We\'re experiencing high traffic. Please wait a moment and try again!';
-        statusCode = 429;
-      } else if (errorText.includes('unauthorized') || errorText.includes('401') || errorText.includes('authentication')) {
-        userMessage = 'Let\'s try that again. Please refresh the page.';
-        statusCode = 401;
-      } else if (errorText.includes('timeout') || errorText.includes('etimedout') || errorText.includes('timed out')) {
-        userMessage = 'Taking a bit longer than expected. Please try again!';
-        statusCode = 504;
-      } else if (errorText.includes('network') || errorText.includes('econnrefused') || errorText.includes('fetch failed')) {
-        userMessage = 'Looks like there\'s a connection hiccup. Check your internet and try again!';
-        statusCode = 503;
-      } else if (errorText.includes('400') || errorText.includes('bad request') || errorText.includes('invalid')) {
-        userMessage = 'This charming spot is no longer available. Explore our other beautiful properties!';
-        statusCode = 404;
-      }
-    }
-
     return NextResponse.json(
       {
         success: false,
-        error: userMessage,
+        error: 'We couldn\'t load this property right now. Give it another try!',
       },
-      { status: statusCode }
+      { status: 500 }
     );
   }
 }
