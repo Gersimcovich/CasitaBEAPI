@@ -17,6 +17,8 @@ import {
   BedDouble,
   PawPrint,
   Users,
+  Award,
+  ExternalLink,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Property } from '@/types';
@@ -393,13 +395,35 @@ export default function HomeContent({ properties }: HomeContentProps) {
         </div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <h2 className="font-serif text-4xl md:text-5xl font-bold text-white mb-6">
-            {t.cta.title}
+          {/* Superhost Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full mb-6">
+            <Award className="w-5 h-5 text-[var(--casita-orange)]" />
+            <span className="text-sm font-semibold text-white">Verified Superhost</span>
+          </div>
+
+          <h2 className="font-serif text-4xl md:text-5xl font-bold text-white mb-4 flex items-center justify-center gap-3">
+            <Shield className="w-10 h-10 md:w-12 md:h-12 text-[var(--casita-orange)]" />
+            Book in Confidence
           </h2>
-          <p className="text-white text-xl mb-10 max-w-2xl mx-auto">
+          <p className="text-white/90 text-lg md:text-xl mb-4 max-w-2xl mx-auto">
+            {t.cta.title}
+          </p>
+          <p className="text-white/80 text-base mb-8 max-w-2xl mx-auto">
             {t.cta.subtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="https://www.airbnb.com/users/show/7936498#reviews"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#FF5A5F] text-white rounded-full font-semibold hover:bg-[#E04E53] transition-colors shadow-lg hover:shadow-xl"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.001 18.275c-1.353-1.697-2.148-3.184-2.413-4.457-.263-1.267-.057-2.32.614-3.134.395-.479.894-.806 1.449-.954.275-.073.547-.11.814-.11.932 0 1.728.457 2.175 1.17.263.423.39.91.39 1.402 0 .736-.234 1.56-.713 2.448-.36.665-.871 1.433-1.52 2.282-.424.555-.874 1.113-1.343 1.67l-.453.566-.453-.566c-.469-.557-.919-1.115-1.343-1.67-.649-.849-1.16-1.617-1.52-2.282-.479-.888-.713-1.712-.713-2.448 0-.492.127-.979.39-1.402.447-.713 1.243-1.17 2.175-1.17.267 0 .539.037.814.11.555.148 1.054.475 1.449.954.671.814.877 1.867.614 3.134-.265 1.273-1.06 2.76-2.413 4.457z"/>
+              </svg>
+              See All 60,000+ Reviews on Airbnb
+              <ExternalLink className="w-4 h-4" />
+            </a>
             <Link href="/properties">
               <Button variant="primary" size="lg">
                 {t.cta.exploreAll}
