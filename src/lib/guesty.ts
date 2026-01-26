@@ -1363,8 +1363,8 @@ export async function searchListings(params: {
 
 /**
  * Get calendar availability for a listing
- * STRATEGY: Memory cache -> Disk cache -> Open API -> BEAPI -> Stale cache
- * Saves all successful results to disk for persistence
+ * STRATEGY: Memory cache -> Disk cache -> BEAPI (best availability) -> Open API -> Stale cache
+ * BEAPI has proper availability status, Open API availability-pricing may not be accurate
  */
 export async function getCalendar(
   listingId: string,
@@ -1397,25 +1397,7 @@ export async function getCalendar(
     return diskCalendar;
   }
 
-  // STEP 3: Try Open API first (has dynamic pricing)
-  if (hasOpenApi()) {
-    try {
-      console.log('📅 Trying Open API for dynamic calendar pricing...');
-      const openApiCalendar = await getCalendarFromOpenApi(listingId, from, to, cacheKey);
-      if (openApiCalendar.length > 0) {
-        const uniquePrices = new Set(openApiCalendar.map(d => d.price));
-        console.log(`✅ Open API: ${openApiCalendar.length} days, ${uniquePrices.size} unique prices`);
-
-        // Save to disk for persistence
-        await saveCalendarToDisk(listingId, openApiCalendar);
-        return openApiCalendar;
-      }
-    } catch (openApiError) {
-      console.warn('Open API calendar failed, trying BEAPI:', openApiError);
-    }
-  }
-
-  // STEP 4: Try BEAPI (for availability status)
+  // STEP 3: Try BEAPI FIRST (has proper availability status)
   if (!areBothApisRateLimited()) {
     try {
       console.log('📅 Trying BEAPI for calendar...');
@@ -1465,6 +1447,24 @@ export async function getCalendar(
     }
   } else {
     console.log('⚠️ All BEAPI credentials rate limited');
+  }
+
+  // STEP 4: Try Open API as fallback (has dynamic pricing but may not have accurate availability)
+  if (hasOpenApi()) {
+    try {
+      console.log('📅 Trying Open API for calendar (fallback)...');
+      const openApiCalendar = await getCalendarFromOpenApi(listingId, from, to, cacheKey);
+      if (openApiCalendar.length > 0) {
+        const uniquePrices = new Set(openApiCalendar.map(d => d.price));
+        console.log(`✅ Open API: ${openApiCalendar.length} days, ${uniquePrices.size} unique prices`);
+
+        // Save to disk for persistence
+        await saveCalendarToDisk(listingId, openApiCalendar);
+        return openApiCalendar;
+      }
+    } catch (openApiError) {
+      console.warn('Open API calendar failed:', openApiError);
+    }
   }
 
   // STEP 5: Return stale memory cache if available
