@@ -12,8 +12,8 @@ interface Review {
   propertyName?: string;
 }
 
-// Airbnb profile URL - links directly to reviews section
-const AIRBNB_REVIEWS_URL = 'https://www.airbnb.com/users/show/7936498#reviews';
+// Airbnb profile URL - Bueno, Bonito y Barato account
+const AIRBNB_REVIEWS_URL = 'https://www.airbnb.com/users/profile/1463191591712637070';
 
 export default function ReviewsCarousel() {
   const [reviews, setReviews] = useState<Review[]>([]);
