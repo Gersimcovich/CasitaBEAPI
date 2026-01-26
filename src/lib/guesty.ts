@@ -442,8 +442,9 @@ interface CalendarDay {
 
 // Token cache - BEAPI tokens last 24 hours (separate cache for each API)
 // File-based persistence for serverless cold starts
+// NOTE: Primary uses same file as guesty-beapi.ts to share cached tokens
 const BEAPI_TOKEN_FILES = {
-  1: '/tmp/beapi-token-1.json',
+  1: '/tmp/beapi-token.json',  // Shared with guesty-beapi.ts
   2: '/tmp/beapi-token-2.json',
   3: '/tmp/beapi-token-3.json',
 };
