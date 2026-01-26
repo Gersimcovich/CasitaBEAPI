@@ -118,8 +118,8 @@ export const translations = {
     },
     // CTA
     cta: {
-      title: 'Bueno, Bonito y Barato',
-      subtitle: 'Only account in USA in Airbnb with over 60,000 reviews Superhost.',
+      title: '',
+      subtitle: 'Casita is a multi-year Airbnb superhost with over 60,000 real reviews.',
       exploreAll: 'Explore All Properties',
     },
     // Footer
@@ -362,8 +362,8 @@ export const translations = {
     },
     // CTA
     cta: {
-      title: 'Bueno, Bonito y Barato',
-      subtitle: 'La única cuenta en USA en Airbnb con más de 60,000 reseñas Superhost.',
+      title: '',
+      subtitle: 'Casita es un superhost de Airbnb con varios años de experiencia y más de 60,000 reseñas reales.',
       exploreAll: 'Explorar Todas las Propiedades',
     },
     // Footer
@@ -606,8 +606,8 @@ export const translations = {
     },
     // CTA
     cta: {
-      title: 'Bueno, Bonito y Barato',
-      subtitle: 'A única conta nos EUA no Airbnb com mais de 60.000 avaliações Superhost.',
+      title: '',
+      subtitle: 'Casita é um superhost do Airbnb com vários anos de experiência e mais de 60.000 avaliações reais.',
       exploreAll: 'Explorar Todas as Propriedades',
     },
     // Footer
