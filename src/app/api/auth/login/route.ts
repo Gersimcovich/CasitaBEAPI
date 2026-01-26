@@ -63,17 +63,27 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Login error:', error);
 
-    // Check if it's a MongoDB connection error
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    if (errorMessage.includes('MONGODB_URI') || errorMessage.includes('MongoClient')) {
+    console.error('Login error details:', errorMessage);
+
+    // Check if it's a MongoDB connection error
+    if (errorMessage.includes('MONGODB_URI') || errorMessage.includes('MongoClient') || errorMessage.includes('connect')) {
       return NextResponse.json<AuthResponse>(
-        { success: false, message: 'Service temporarily unavailable. Please try again later.' },
+        { success: false, message: 'Database connection failed. Please try again.' },
+        { status: 503 }
+      );
+    }
+
+    // Check if it's a network/DNS error
+    if (errorMessage.includes('ENOTFOUND') || errorMessage.includes('getaddrinfo')) {
+      return NextResponse.json<AuthResponse>(
+        { success: false, message: 'Network error. Please check your connection.' },
         { status: 503 }
       );
     }
 
     return NextResponse.json<AuthResponse>(
-      { success: false, message: 'An error occurred. Please try again.' },
+      { success: false, message: `Login failed: ${errorMessage.slice(0, 100)}` },
       { status: 500 }
     );
   }
