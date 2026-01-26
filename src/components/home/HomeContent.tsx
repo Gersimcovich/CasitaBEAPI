@@ -405,10 +405,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
             <Shield className="w-10 h-10 md:w-12 md:h-12 text-[var(--casita-orange)]" />
             Book in Confidence
           </h2>
-          <p className="text-white/90 text-lg md:text-xl mb-4 max-w-2xl mx-auto">
-            {t.cta.title}
-          </p>
-          <p className="text-white/80 text-base mb-8 max-w-2xl mx-auto">
+          <p className="text-white text-xl md:text-2xl mb-8 max-w-2xl mx-auto font-medium">
             {t.cta.subtitle}
           </p>
           <a

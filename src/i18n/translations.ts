@@ -119,7 +119,7 @@ export const translations = {
     // CTA
     cta: {
       title: '',
-      subtitle: 'Casita is a multi-year Airbnb superhost with over 60,000 real reviews.',
+      subtitle: 'Casita is a multi-year Airbnb Superhost with over 60,000 real reviews.',
       exploreAll: 'Explore All Properties',
     },
     // Footer
