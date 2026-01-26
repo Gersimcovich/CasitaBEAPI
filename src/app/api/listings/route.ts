@@ -177,6 +177,8 @@ export async function GET(request: Request) {
   const guests = searchParams.get('guests');
   const minPrice = searchParams.get('minPrice');
   const maxPrice = searchParams.get('maxPrice');
+  const checkIn = searchParams.get('checkIn');
+  const checkOut = searchParams.get('checkOut');
 
   try {
     let properties: Property[] = [];
@@ -186,7 +188,13 @@ export async function GET(request: Request) {
     if (isBeapiConfigured()) {
       try {
         console.log('📡 Trying Guesty BEAPI client...');
-        const listings = await getListingsBeapi({ limit: 100 });
+        // BEAPI supports filtering by availability dates - only returns listings with available units
+        const beapiParams: { limit: number; checkIn?: string; checkOut?: string; minOccupancy?: number } = { limit: 100 };
+        if (checkIn) beapiParams.checkIn = checkIn;
+        if (checkOut) beapiParams.checkOut = checkOut;
+        if (guests) beapiParams.minOccupancy = parseInt(guests);
+
+        const listings = await getListingsBeapi(beapiParams);
         const converted = listings
           .filter(l => l.active !== false)
           .map(convertBeapiToProperty);
@@ -194,7 +202,7 @@ export async function GET(request: Request) {
         if (hasValidData(converted)) {
           properties = converted;
           source = 'beapi';
-          console.log(`✅ BEAPI returned ${properties.length} valid listings`);
+          console.log(`✅ BEAPI returned ${properties.length} available listings${checkIn ? ` for ${checkIn} to ${checkOut}` : ''}`);
         } else {
           console.log('⚠️ BEAPI returned sparse data, trying fallback...');
         }
@@ -204,16 +212,20 @@ export async function GET(request: Request) {
     }
 
     // Fallback to legacy client if BEAPI failed or returned bad data
+    // Note: Legacy client does NOT filter by availability dates (would require too many API calls)
     if (!hasValidData(properties)) {
       try {
         console.log('📡 Trying legacy Guesty client...');
+        if (checkIn) {
+          console.log('⚠️ Legacy client cannot filter by availability - showing all listings');
+        }
         const listings = await getListingsLegacy({ active: true, limit: 100, useCache: true });
         const converted = listings.map(convertGuestyToProperty);
 
         if (hasValidData(converted)) {
           properties = converted;
           source = 'legacy';
-          console.log(`✅ Legacy client returned ${properties.length} valid listings`);
+          console.log(`✅ Legacy client returned ${properties.length} listings (availability not filtered)`);
         } else {
           console.log('⚠️ Legacy client returned sparse data, using static fallback...');
         }
@@ -249,11 +261,15 @@ export async function GET(request: Request) {
     // Sort by best reviews
     properties = sortByBestReviews(properties);
 
+    // Only BEAPI filters by availability dates - legacy/static show all listings
+    const availabilityFiltered = !!(checkIn && checkOut && source === 'beapi');
+
     return NextResponse.json({
       success: true,
       data: properties,
       count: properties.length,
-      source, // Include source for debugging
+      source,
+      availabilityFiltered, // true if results are filtered by date availability
     });
   } catch (error) {
     console.error('Error fetching listings:', error);

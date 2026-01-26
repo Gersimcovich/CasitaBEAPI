@@ -40,6 +40,7 @@ import { Property, SortOption } from '@/types';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useCapacitor } from '@/hooks/useCapacitor';
 import dynamic from 'next/dynamic';
+import ReviewsCarousel from '@/components/reviews/ReviewsCarousel';
 
 // Dynamically import map component (client-side only, no SSR)
 const PropertyMap = dynamic(() => import('@/components/map/PropertyMap'), {
@@ -905,6 +906,9 @@ function PropertiesContent() {
     <>
       <SearchHeader />
       <ResultsCount />
+
+      {/* Reviews Carousel - only on web */}
+      {!isCapacitor && <ReviewsCarousel />}
 
       {/* Add padding for fixed app header */}
       <div

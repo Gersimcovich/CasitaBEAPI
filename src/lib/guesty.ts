@@ -1402,17 +1402,31 @@ export async function getCalendar(
   if (!areBothApisRateLimited()) {
     try {
       console.log('📅 Trying BEAPI for calendar...');
-      const data = await beapiFetch<{
-        data: Array<{
+      // BEAPI calendar endpoint can return either 'data' or 'days' array
+      // and status can be either 'status' string or 'available' boolean
+      const response = await beapiFetch<{
+        data?: Array<{
           date: string;
-          status: string;
-          price: number;
+          status?: string;
+          available?: boolean;
+          price?: number;
           minNights?: number;
-          currency: string;
+          currency?: string;
+        }>;
+        days?: Array<{
+          date: string;
+          status?: string;
+          available?: boolean;
+          price?: number;
+          minNights?: number;
+          currency?: string;
         }>;
       }>(`/listings/${listingId}/calendar?from=${from}&to=${to}`);
 
-      const rawDays = data.data || [];
+      // Handle both 'data' and 'days' response formats
+      const rawDays = response.data || response.days || [];
+      console.log(`📅 BEAPI response keys: ${Object.keys(response).join(', ')}, days count: ${rawDays.length}`);
+
       if (rawDays.length > 0) {
         const priceSample = rawDays.slice(0, 5).map(d => `${d.date}: $${d.price}`);
         console.log(`📅 BEAPI Calendar: ${priceSample.join(', ')} ...`);
@@ -1425,13 +1439,28 @@ export async function getCalendar(
         }
       }
 
-      const calendar = rawDays.map(day => ({
-        date: day.date,
-        status: day.status as 'available' | 'booked' | 'blocked',
-        price: day.price,
-        minNights: day.minNights,
-        currency: day.currency || 'USD',
-      }));
+      // Handle both 'status' string and 'available' boolean formats
+      const calendar = rawDays.map(day => {
+        let status: 'available' | 'booked' | 'blocked';
+        if (day.status) {
+          // Use status string directly (available, unavailable, reserved, booked)
+          status = day.status === 'available' ? 'available' : 'booked';
+        } else if (day.available !== undefined) {
+          // Convert boolean to status
+          status = day.available ? 'available' : 'booked';
+        } else {
+          // Default to available if no status info
+          status = 'available';
+        }
+
+        return {
+          date: day.date,
+          status,
+          price: day.price || 0,
+          minNights: day.minNights,
+          currency: day.currency || 'USD',
+        };
+      });
 
       // Cache to memory
       calendarCache.set(cacheKey, {

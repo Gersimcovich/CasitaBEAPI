@@ -390,6 +390,8 @@ export async function getListing(listingId: string): Promise<BeapiListing | null
 
 /**
  * Get calendar/availability for a listing - cached for 5 minutes
+ * Handles both 'data' and 'days' response formats from BEAPI
+ * Handles both 'status' string and 'available' boolean fields
  */
 export async function getCalendar(
   listingId: string,
@@ -402,10 +404,18 @@ export async function getCalendar(
   minNights?: number;
 }>> {
   try {
-    const data = await beapiFetch<{
-      days: Array<{
+    const response = await beapiFetch<{
+      data?: Array<{
         date: string;
-        available: boolean;
+        status?: string;
+        available?: boolean;
+        price?: number;
+        minNights?: number;
+      }>;
+      days?: Array<{
+        date: string;
+        status?: string;
+        available?: boolean;
         price?: number;
         minNights?: number;
       }>;
@@ -413,7 +423,30 @@ export async function getCalendar(
       `/listings/${listingId}/calendar?from=${from}&to=${to}`,
       { ttl: TTL.CALENDAR }
     );
-    return data.days || [];
+
+    // Handle both 'data' and 'days' response formats
+    const rawDays = response.data || response.days || [];
+
+    // Convert to consistent format with 'available' boolean
+    return rawDays.map(day => {
+      let available: boolean;
+      if (day.status !== undefined) {
+        // Convert status string to boolean (available, unavailable, reserved, booked)
+        available = day.status === 'available';
+      } else if (day.available !== undefined) {
+        available = day.available;
+      } else {
+        // Default to available if no status info
+        available = true;
+      }
+
+      return {
+        date: day.date,
+        available,
+        price: day.price,
+        minNights: day.minNights,
+      };
+    });
   } catch {
     return [];
   }

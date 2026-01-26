@@ -161,45 +161,45 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
   return (
     <div className="w-full max-w-4xl mx-auto px-4 relative z-20" ref={searchBarRef}>
       <div className="bg-white rounded-full shadow-2xl border border-[var(--casita-gray-100)] transition-all duration-300">
-        <div className="flex items-center h-[72px]">
+        <div className="flex items-center h-[72px] min-w-0">
           {/* Left section: Pills for completed selections */}
           {step !== 'destination' && (
-            <div className="flex items-center gap-2 pl-6 flex-shrink-0">
+            <div className="flex items-center gap-2 pl-3 sm:pl-6 min-w-0 flex-shrink overflow-hidden">
               {/* Destination Pill */}
               <button
                 onClick={() => {
                   setStep('destination');
                   setShowCityDropdown(true);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors min-w-0"
               >
-                <MapPin className="w-4 h-4 text-[var(--casita-orange)]" />
-                <span className="text-sm font-medium text-[var(--casita-gray-900)]">{destination}</span>
+                <MapPin className="w-4 h-4 text-[var(--casita-orange)] flex-shrink-0" />
+                <span className="text-sm font-medium text-[var(--casita-gray-900)] truncate max-w-[80px] sm:max-w-[150px]">{destination}</span>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     clearDestination();
                   }}
-                  className="p-0.5 hover:bg-[var(--casita-gray-200)] rounded-full transition-colors"
+                  className="p-0.5 hover:bg-[var(--casita-gray-200)] rounded-full transition-colors flex-shrink-0"
                 >
                   <X className="w-3.5 h-3.5 text-[var(--casita-gray-500)]" />
                 </button>
               </button>
 
-              {/* Dates Pill - shown when on guests step */}
+              {/* Dates Pill - shown when on guests step, hidden on mobile to save space */}
               {step === 'guests' && checkIn && checkOut && (
                 <button
                   onClick={() => setStep('dates')}
-                  className="flex items-center gap-2 px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors"
+                  className="hidden sm:flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors"
                 >
-                  <Calendar className="w-4 h-4 text-[var(--casita-orange)]" />
-                  <span className="text-sm font-medium text-[var(--casita-gray-900)]">{formatDateRange()}</span>
+                  <Calendar className="w-4 h-4 text-[var(--casita-orange)] flex-shrink-0" />
+                  <span className="text-sm font-medium text-[var(--casita-gray-900)] whitespace-nowrap">{formatDateRange()}</span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       clearDates();
                     }}
-                    className="p-0.5 hover:bg-[var(--casita-gray-200)] rounded-full transition-colors"
+                    className="p-0.5 hover:bg-[var(--casita-gray-200)] rounded-full transition-colors flex-shrink-0"
                   >
                     <X className="w-3.5 h-3.5 text-[var(--casita-gray-500)]" />
                   </button>
@@ -415,11 +415,11 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
           </div>
 
           {/* Right section: Search Button */}
-          <div className="pr-3 flex-shrink-0">
+          <div className="pr-2 sm:pr-3 flex-shrink-0">
             <button
               onClick={handleSearch}
               disabled={!destination}
-              className="flex items-center justify-center gap-2 bg-[var(--casita-orange)] text-white px-6 py-4 rounded-full font-bold hover:bg-[var(--casita-orange-dark)] transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 bg-[var(--casita-orange)] text-white px-4 sm:px-6 py-3 sm:py-4 rounded-full font-bold hover:bg-[var(--casita-orange-dark)] transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Search className="w-5 h-5" />
               <span className="hidden sm:inline">{t.search.search}</span>
