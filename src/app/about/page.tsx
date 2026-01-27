@@ -186,8 +186,8 @@ export default function AboutPage() {
               </div>
               <div className="flex items-center justify-center gap-3 text-[var(--casita-gray-600)]">
                 <Mail className="w-5 h-5 text-[var(--casita-orange)]" />
-                <a href="mailto:hola@hellocasita.com" className="hover:text-[var(--casita-orange)] transition-colors">
-                  hola@hellocasita.com
+                <a href="mailto:reservations@hellocasita.com" className="hover:text-[var(--casita-orange)] transition-colors">
+                  reservations@hellocasita.com
                 </a>
               </div>
             </div>

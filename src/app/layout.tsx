@@ -4,6 +4,7 @@ import { LocaleProvider } from "@/contexts/LocaleContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { UserProvider } from "@/contexts/UserContext";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
+import BottomTabBar from "@/components/layout/BottomTabBar";
 import "./globals.css";
 
 // Viewport configuration for mobile optimization
@@ -99,6 +100,7 @@ export default function RootLayout({
           <UserProvider>
             <CartProvider>
               {children}
+              <BottomTabBar />
               <WhatsAppButton />
             </CartProvider>
           </UserProvider>

@@ -137,11 +137,11 @@ export default function HelpPage() {
               </div>
               <span>(786) 694-7577</span>
             </a>
-            <a href="mailto:hola@hellocasita.com" className="flex items-center gap-3 text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
+            <a href="mailto:reservations@hellocasita.com" className="flex items-center gap-3 text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
               <div className="w-10 h-10 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center">
                 <Mail className="w-5 h-5 text-[var(--casita-orange)]" />
               </div>
-              <span>hola@hellocasita.com</span>
+              <span>reservations@hellocasita.com</span>
             </a>
             <div className="flex items-center gap-3 text-[var(--casita-gray-600)]">
               <div className="w-10 h-10 rounded-full bg-[var(--casita-turquoise)]/10 flex items-center justify-center">

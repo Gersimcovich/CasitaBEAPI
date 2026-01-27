@@ -6,8 +6,8 @@ if (process.env.SENDGRID_API_KEY) {
 }
 
 // Email sender configuration
-const FROM_EMAIL = process.env.EMAIL_FROM || 'hola@hellocasita.com';
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || 'hola@hellocasita.com';
+const FROM_EMAIL = process.env.EMAIL_FROM || 'reservations@hellocasita.com';
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || 'reservations@hellocasita.com';
 
 // Generic email sending function via SendGrid
 async function sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {

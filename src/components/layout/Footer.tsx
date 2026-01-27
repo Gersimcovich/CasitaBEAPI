@@ -4,10 +4,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Instagram, Mail, Phone } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
+import { useCapacitor } from '@/hooks/useCapacitor';
 
 export default function Footer() {
   const { t } = useLocale();
+  const { isCapacitor } = useCapacitor();
   const currentYear = new Date().getFullYear();
+
+  // Hide footer in native app — bottom tab bar replaces it
+  if (isCapacitor) return null;
 
   return (
     <footer className="bg-[var(--casita-orange)] text-white relative overflow-hidden">
@@ -149,9 +154,9 @@ export default function Footer() {
             <h4 className="font-semibold text-sm mb-3">Contact</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="mailto:hola@hellocasita.com" className="text-white/80 hover:text-white transition-colors flex items-center gap-2">
+                <a href="mailto:reservations@hellocasita.com" className="text-white/80 hover:text-white transition-colors flex items-center gap-2">
                   <Mail className="w-3.5 h-3.5" />
-                  hola@hellocasita.com
+                  reservations@hellocasita.com
                 </a>
               </li>
               <li>

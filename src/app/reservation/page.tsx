@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Button from '@/components/ui/Button';
@@ -22,6 +22,7 @@ import {
   Phone,
 } from 'lucide-react';
 import Image from 'next/image';
+import { useUser } from '@/contexts/UserContext';
 
 interface Reservation {
   id: string;
@@ -34,17 +35,44 @@ interface Reservation {
   checkOut: string;
   guests: number;
   totalPrice: number;
+  nightsCount?: number;
   status: 'confirmed' | 'pending' | 'cancelled';
   canModify: boolean;
   canCancel: boolean;
 }
 
 export default function ManageReservationPage() {
+  const { user, isAuthenticated } = useUser();
   const [lastName, setLastName] = useState('');
   const [confirmationCode, setConfirmationCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reservation, setReservation] = useState<Reservation | null>(null);
+
+  // Logged-in user's reservations
+  const [myReservations, setMyReservations] = useState<Reservation[]>([]);
+  const [myResLoading, setMyResLoading] = useState(false);
+  const [showManualLookup, setShowManualLookup] = useState(false);
+
+  // Auto-fetch reservations for logged-in users
+  useEffect(() => {
+    if (isAuthenticated && user?.email) {
+      setMyResLoading(true);
+      fetch('/api/reservation/my-reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.reservations) {
+            setMyReservations(data.reservations);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setMyResLoading(false));
+    }
+  }, [isAuthenticated, user?.email]);
 
   // Modify dates state
   const [showModifyDates, setShowModifyDates] = useState(false);
@@ -242,15 +270,96 @@ export default function ManageReservationPage() {
               <CalendarCheck className="w-8 h-8 text-[var(--casita-orange)]" />
             </div>
             <h1 className="text-3xl font-bold text-[var(--casita-gray-900)] mb-2">
-              Manage Your Reservation
+              {isAuthenticated ? 'My Reservations' : 'Manage Your Reservation'}
             </h1>
             <p className="text-[var(--casita-gray-600)]">
-              Look up your booking to view details, modify dates, or cancel
+              {isAuthenticated
+                ? 'View your upcoming and past bookings'
+                : 'Look up your booking to view details, modify dates, or cancel'}
             </p>
           </div>
 
-          {/* Lookup Form */}
-          {!reservation && (
+          {/* Logged-in user: Show their reservations */}
+          {isAuthenticated && !reservation && (
+            <div className="space-y-4 mb-8">
+              {myResLoading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-[var(--casita-orange)] mb-3" />
+                  <p className="text-sm text-[var(--casita-gray-500)]">Loading your reservations...</p>
+                </div>
+              ) : myReservations.length > 0 ? (
+                <>
+                  {myReservations.map((res) => (
+                    <button
+                      key={res.id}
+                      onClick={() => {
+                        setReservation(res);
+                        setNewCheckIn(new Date(res.checkIn));
+                        setNewCheckOut(new Date(res.checkOut));
+                      }}
+                      className="w-full bg-white rounded-2xl shadow-sm border border-[var(--casita-gray-100)] overflow-hidden hover:shadow-md transition-shadow text-left"
+                    >
+                      <div className="flex">
+                        {res.propertyImage && (
+                          <div className="relative w-28 h-28 flex-shrink-0">
+                            <Image
+                              src={res.propertyImage}
+                              alt={res.propertyName}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1 p-4">
+                          <div className="flex items-start justify-between">
+                            <h3 className="font-semibold text-[var(--casita-gray-900)] text-sm line-clamp-1">
+                              {res.propertyName}
+                            </h3>
+                            {getStatusBadge(res.status)}
+                          </div>
+                          <p className="text-xs text-[var(--casita-gray-500)] mt-1 flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {formatDate(res.checkIn)} - {formatDate(res.checkOut)}
+                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-[var(--casita-gray-500)] font-mono">
+                              {res.confirmationCode}
+                            </span>
+                            {res.totalPrice > 0 && (
+                              <span className="text-sm font-bold text-[var(--casita-gray-900)]">
+                                ${res.totalPrice.toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+
+                  {/* Still allow manual lookup */}
+                  {!showManualLookup && (
+                    <button
+                      onClick={() => setShowManualLookup(true)}
+                      className="w-full text-center text-sm text-[var(--casita-orange)] hover:underline py-2"
+                    >
+                      Look up a different reservation
+                    </button>
+                  )}
+                </>
+              ) : (
+                <div className="bg-white rounded-2xl shadow-sm border border-[var(--casita-gray-100)] p-8 text-center">
+                  <CalendarCheck className="w-12 h-12 text-[var(--casita-gray-300)] mx-auto mb-3" />
+                  <p className="text-[var(--casita-gray-600)] mb-1">No reservations found</p>
+                  <p className="text-sm text-[var(--casita-gray-400)]">
+                    Book your first stay to see it here
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Lookup Form (guests or manual lookup for logged-in users) */}
+          {!reservation && (!isAuthenticated || showManualLookup) && (
             <div className="bg-white rounded-2xl shadow-sm border border-[var(--casita-gray-100)] p-6">
               <form onSubmit={handleLookup} className="space-y-4">
                 <div>

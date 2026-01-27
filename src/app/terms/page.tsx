@@ -140,7 +140,7 @@ export default function TermsPage() {
               <p className="font-semibold text-[var(--casita-gray-900)]">Casita Vacation Rentals LLC</p>
               <p>436 Ocean Dr</p>
               <p>Miami Beach, FL 33139</p>
-              <p className="mt-2">Email: hola@hellocasita.com</p>
+              <p className="mt-2">Email: reservations@hellocasita.com</p>
             </div>
 
           </div>

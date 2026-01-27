@@ -96,9 +96,9 @@ export async function POST(request: Request) {
 // GET endpoint to check email configuration status
 export async function GET() {
   const hasSendGrid = !!process.env.SENDGRID_API_KEY && process.env.SENDGRID_API_KEY !== 'your_sendgrid_api_key_here';
-  const fromEmail = process.env.EMAIL_FROM || 'hola@hellocasita.com';
-  const supportEmail = process.env.SUPPORT_EMAIL || 'hola@hellocasita.com';
-  const hostEmail = process.env.HOST_EMAIL || 'hola@hellocasita.com';
+  const fromEmail = process.env.EMAIL_FROM || 'reservations@hellocasita.com';
+  const supportEmail = process.env.SUPPORT_EMAIL || 'reservations@hellocasita.com';
+  const hostEmail = process.env.HOST_EMAIL || 'reservations@hellocasita.com';
 
   return NextResponse.json({
     status: hasSendGrid ? 'configured' : 'not_configured',

@@ -125,12 +125,11 @@ export default function Header() {
                 )}
               </button>
 
-              {/* App User Dropdown Menu */}
+              {/* App User Dropdown Menu - simplified (main nav in bottom tab bar) */}
               {isAppMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-[var(--casita-gray-100)] py-2 animate-scale-in z-50">
                   {isAuthenticated && user ? (
                     <>
-                      {/* Logged in user header */}
                       <div className="px-4 py-3 border-b border-[var(--casita-gray-100)]">
                         <p className="font-semibold text-[var(--casita-gray-900)]">{user.firstName} {user.lastName}</p>
                         <div className="flex items-center gap-1 mt-1">
@@ -139,33 +138,6 @@ export default function Header() {
                         </div>
                       </div>
                       <div className="py-1">
-                        <Link
-                          href="/properties"
-                          onClick={() => setIsAppMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                        >
-                          <Building2 className="w-4 h-4" />
-                          {t.nav.properties}
-                        </Link>
-                        <Link
-                          href="/reservation"
-                          onClick={() => setIsAppMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                        >
-                          <CalendarCheck className="w-4 h-4" />
-                          {t.nav.manageReservation || 'My Reservation'}
-                        </Link>
-                      </div>
-                      <hr className="my-1 border-[var(--casita-gray-100)]" />
-                      <div className="py-1">
-                        <Link
-                          href="/account"
-                          onClick={() => setIsAppMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                        >
-                          <User className="w-4 h-4" />
-                          {t.nav.myAccount || 'My Account'}
-                        </Link>
                         <Link
                           href="/help"
                           onClick={() => setIsAppMenuOpen(false)}
@@ -191,26 +163,6 @@ export default function Header() {
                     </>
                   ) : (
                     <>
-                      {/* Guest user */}
-                      <div className="py-1">
-                        <Link
-                          href="/properties"
-                          onClick={() => setIsAppMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                        >
-                          <Building2 className="w-4 h-4" />
-                          {t.nav.properties}
-                        </Link>
-                        <Link
-                          href="/reservation"
-                          onClick={() => setIsAppMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-[var(--casita-gray-700)] hover:bg-[var(--casita-gray-50)]"
-                        >
-                          <CalendarCheck className="w-4 h-4" />
-                          {t.nav.manageReservation || 'My Reservation'}
-                        </Link>
-                      </div>
-                      <hr className="my-1 border-[var(--casita-gray-100)]" />
                       <div className="py-1">
                         <button
                           onClick={() => {

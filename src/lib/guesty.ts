@@ -2541,6 +2541,40 @@ export async function lookupReservation(
 }
 
 /**
+ * Get reservations for a guest by email address
+ */
+export async function getReservationsByEmail(
+  email: string
+): Promise<GuestyReservation[]> {
+  if (!hasOpenApi()) {
+    console.warn('Open API not configured for reservation lookup');
+    return [];
+  }
+
+  try {
+    const filters = JSON.stringify([
+      { operator: '$eq', field: 'guest.email', value: email.toLowerCase() }
+    ]);
+
+    const fields = '_id confirmationCode status checkInDateLocalized checkOutDateLocalized guestsCount guest listing money nightsCount source';
+
+    const data = await openApiFetchWithMethod<{
+      results: GuestyReservation[];
+      count: number;
+    }>(`/reservations?filters=${encodeURIComponent(filters)}&fields=${encodeURIComponent(fields)}&limit=50&sort=-checkInDateLocalized`);
+
+    if (!data.results || data.results.length === 0) {
+      return [];
+    }
+
+    return data.results;
+  } catch (error) {
+    console.error('Error fetching reservations by email:', error);
+    return [];
+  }
+}
+
+/**
  * Get full reservation details by ID
  */
 export async function getReservationById(

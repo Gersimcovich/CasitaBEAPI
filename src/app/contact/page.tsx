@@ -38,7 +38,7 @@ Message:
 ${formData.message}`;
 
     // Open mailto link to send email directly
-    const mailtoLink = `mailto:hola@hellocasita.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mailtoLink = `mailto:reservations@hellocasita.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailtoLink;
 
     setSubmitted(true);
@@ -128,8 +128,8 @@ ${formData.message}`;
                   </div>
                   <div>
                     <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Email</h3>
-                    <a href="mailto:hola@hellocasita.com" className="text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
-                      hola@hellocasita.com
+                    <a href="mailto:reservations@hellocasita.com" className="text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
+                      reservations@hellocasita.com
                     </a>
                   </div>
                 </div>
