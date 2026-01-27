@@ -356,9 +356,6 @@ export default function PropertyCard({ property, showMap = false, onPreviewClick
                   {formatPrice(dynamicPrice ?? property.price.perNight)}
                 </span>
                 <span className="text-[var(--casita-gray-500)] ml-1">/ {t.properties.perNight}</span>
-                {dynamicPrice && nightsCount > 1 && (
-                  <span className="text-xs text-[var(--casita-gray-400)] ml-2">(avg)</span>
-                )}
               </>
             )}
           </div>

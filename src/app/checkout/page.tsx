@@ -640,26 +640,18 @@ function CheckoutContent() {
                   </div>
                 </div>
 
-                {/* Price Breakdown - Simplified for direct booking */}
+                {/* Price Breakdown - All-in pricing for direct booking */}
                 <div className="py-6 border-b border-[var(--casita-gray-100)]">
                   <h3 className="font-semibold text-[var(--casita-gray-900)] mb-4">Price Details</h3>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-[var(--casita-gray-600)]">
-                        {formatCurrency(Math.round((quote.accommodation + quote.cleaningFee) / quote.nightsCount))} x {quote.nightsCount} night{quote.nightsCount > 1 ? 's' : ''}
+                        {formatCurrency(Math.round(quote.total / quote.nightsCount))} x {quote.nightsCount} night{quote.nightsCount > 1 ? 's' : ''}
                       </span>
                       <span className="text-[var(--casita-gray-900)]">
-                        {formatCurrency(quote.accommodation + quote.cleaningFee)}
+                        {formatCurrency(quote.total)}
                       </span>
                     </div>
-                    {quote.taxes > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-[var(--casita-gray-600)]">Taxes & fees</span>
-                        <span className="text-[var(--casita-gray-900)]">
-                          {formatCurrency(quote.taxes)}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -672,7 +664,7 @@ function CheckoutContent() {
                     </span>
                   </div>
                   <p className="text-xs text-[var(--casita-gray-500)] mt-1">
-                    You will be charged in {quote.currency}
+                    All taxes and fees included. No hidden charges.
                   </p>
                 </div>
 

@@ -89,11 +89,10 @@ export default function BookingWidget({
   }, [rooms.length]);
 
   // Get dynamic price - QUOTE is the source of truth for pricing
-  // Shows combined rate (accommodation + cleaning) per night for simpler display
+  // Shows FINAL all-in rate per night (accommodation + cleaning + taxes)
   const dynamicPricePerNight = useMemo(() => {
-    // When we have a quote, show combined rate per night (accommodation + cleaning)
     if (quote && quote.nightsCount > 0) {
-      return Math.round((quote.accommodation + quote.cleaningFee) / quote.nightsCount);
+      return Math.round(quote.total / quote.nightsCount);
     }
     // Fall back to static listing price when no quote available
     return pricePerNight;
@@ -288,9 +287,6 @@ export default function BookingWidget({
             {formatCurrency(dynamicPricePerNight)}
           </span>
           <span className="text-[var(--casita-gray-600)]"> / night</span>
-          {quote && quote.nightsCount > 1 && (
-            <span className="text-xs text-[var(--casita-gray-500)] ml-1">(avg for {quote.nightsCount} nights)</span>
-          )}
         </div>
         {reviewCount > 0 && (
           <div className="flex items-center gap-1">
@@ -540,16 +536,16 @@ export default function BookingWidget({
         </div>
       )}
 
-      {/* Price Breakdown - Simplified for direct booking (no service fees!) */}
+      {/* Price Breakdown - All-in pricing for direct booking (no hidden fees!) */}
       {quote && !isLoadingQuote && (
         <div className="mb-4 space-y-2 text-sm">
-          {/* Combined nightly rate (accommodation + cleaning spread across nights) */}
+          {/* All-in nightly rate (includes accommodation, cleaning, taxes) */}
           <div className="flex justify-between">
             <span className="text-[var(--casita-gray-600)]">
-              {formatCurrency(Math.round((quote.accommodation + quote.cleaningFee) / quote.nightsCount))} x {quote.nightsCount} night{quote.nightsCount > 1 ? 's' : ''} {rooms.length > 1 ? `x ${rooms.length} rooms` : ''}
+              {formatCurrency(Math.round(quote.total / quote.nightsCount))} x {quote.nightsCount} night{quote.nightsCount > 1 ? 's' : ''} {rooms.length > 1 ? `x ${rooms.length} rooms` : ''}
             </span>
             <span className="text-[var(--casita-gray-900)]">
-              {formatCurrency((quote.accommodation + quote.cleaningFee) * rooms.length)}
+              {formatCurrency(quote.total * rooms.length)}
             </span>
           </div>
           {/* Multi-room discount */}
@@ -559,15 +555,7 @@ export default function BookingWidget({
                 <Percent className="w-3 h-3" />
                 Multi-room discount ({Math.round(multiRoomDiscount * 100)}%)
               </span>
-              <span>-{formatCurrency((quote.accommodation + quote.cleaningFee) * rooms.length * multiRoomDiscount)}</span>
-            </div>
-          )}
-          {quote.taxes > 0 && (
-            <div className="flex justify-between">
-              <span className="text-[var(--casita-gray-600)]">Taxes & fees</span>
-              <span className="text-[var(--casita-gray-900)]">
-                {formatCurrency((quote.taxes * rooms.length) * (1 - multiRoomDiscount))}
-              </span>
+              <span>-{formatCurrency(quote.total * rooms.length * multiRoomDiscount)}</span>
             </div>
           )}
           <div className="flex justify-between pt-3 border-t border-[var(--casita-gray-200)] font-semibold">
@@ -576,6 +564,9 @@ export default function BookingWidget({
               {formatCurrency((quote.total * rooms.length) * (1 - multiRoomDiscount))}
             </span>
           </div>
+          <p className="text-xs text-[var(--casita-gray-500)]">
+            Includes all taxes and fees. No hidden charges.
+          </p>
           {multiRoomDiscount > 0 && (
             <div className="text-xs text-green-600 text-right">
               You save {formatCurrency(quote.total * rooms.length * multiRoomDiscount)}!

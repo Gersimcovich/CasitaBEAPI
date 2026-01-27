@@ -58,17 +58,25 @@ export async function POST(request: Request) {
         });
 
         if (beapiQuote) {
+          // Direct booking: no service fee (hostServiceFee is Guesty's commission to host, not guest)
+          // Total = accommodation + cleaning + taxes only
+          const accommodation = beapiQuote.money.fareAccommodation;
+          const cleaningFee = beapiQuote.money.fareCleaning || 0;
+          const taxes = beapiQuote.money.totalTaxes || 0;
+          const directTotal = accommodation + cleaningFee + taxes;
+
           return NextResponse.json({
             success: true,
             available: true,
             quote: {
+              quoteId: beapiQuote._id,
               nightsCount,
-              pricePerNight: Math.round(beapiQuote.money.fareAccommodation / nightsCount),
-              accommodation: beapiQuote.money.fareAccommodation,
-              cleaningFee: beapiQuote.money.fareCleaning || 0,
-              serviceFee: beapiQuote.money.hostServiceFee || 0,
-              taxes: beapiQuote.money.totalTaxes || 0,
-              total: beapiQuote.money.totalPrice,
+              pricePerNight: Math.round(directTotal / nightsCount), // All-in price per night
+              accommodation,
+              cleaningFee,
+              serviceFee: 0, // No service fee for direct bookings
+              taxes,
+              total: directTotal,
               currency: beapiQuote.money.currency || 'USD',
             },
           });
@@ -117,19 +125,18 @@ export async function POST(request: Request) {
           const basePrice = listing.prices.basePrice;
           const cleaningFee = listing.prices.cleaningFee || 0;
           const accommodation = basePrice * nightsCount;
-          const serviceFee = Math.round(accommodation * 0.10);
           const taxes = Math.round(accommodation * 0.13);
-          const total = accommodation + cleaningFee + serviceFee + taxes;
+          const total = accommodation + cleaningFee + taxes; // No service fee for direct bookings
 
           return NextResponse.json({
             success: true,
             available: true,
             quote: {
               nightsCount,
-              pricePerNight: basePrice,
+              pricePerNight: Math.round(total / nightsCount), // All-in price per night
               accommodation,
               cleaningFee,
-              serviceFee,
+              serviceFee: 0,
               taxes,
               total,
               currency: listing.prices.currency || 'USD',
@@ -151,19 +158,18 @@ export async function POST(request: Request) {
         const basePrice = listing.prices.basePrice;
         const cleaningFee = listing.prices.cleaningFee || 0;
         const accommodation = basePrice * nightsCount;
-        const serviceFee = Math.round(accommodation * 0.10);
         const taxes = Math.round(accommodation * 0.13);
-        const total = accommodation + cleaningFee + serviceFee + taxes;
+        const total = accommodation + cleaningFee + taxes; // No service fee for direct bookings
 
         return NextResponse.json({
           success: true,
           available: true,
           quote: {
             nightsCount,
-            pricePerNight: basePrice,
+            pricePerNight: Math.round(total / nightsCount), // All-in price per night
             accommodation,
             cleaningFee,
-            serviceFee,
+            serviceFee: 0,
             taxes,
             total,
             currency: listing.prices.currency || 'USD',
@@ -181,19 +187,18 @@ export async function POST(request: Request) {
       const basePrice = staticProperty.price.perNight;
       const cleaningFee = staticProperty.price.cleaningFee || 0;
       const accommodation = basePrice * nightsCount;
-      const serviceFee = Math.round(accommodation * 0.10);
       const taxes = Math.round(accommodation * 0.13);
-      const total = accommodation + cleaningFee + serviceFee + taxes;
+      const total = accommodation + cleaningFee + taxes; // No service fee for direct bookings
 
       return NextResponse.json({
         success: true,
         available: true,
         quote: {
           nightsCount,
-          pricePerNight: basePrice,
+          pricePerNight: Math.round(total / nightsCount), // All-in price per night
           accommodation,
           cleaningFee,
-          serviceFee,
+          serviceFee: 0,
           taxes,
           total,
           currency: staticProperty.price.currency || 'USD',
