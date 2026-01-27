@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useCapacitor } from '@/hooks/useCapacitor';
 
 const WHATSAPP_NUMBER = '17866947577';
 const DEFAULT_MESSAGE = 'Hi! I have a question about booking a property on Casita.';
@@ -9,6 +10,7 @@ const DEFAULT_MESSAGE = 'Hi! I have a question about booking a property on Casit
 export default function WhatsAppButton() {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const { isCapacitor } = useCapacitor();
 
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;
 
@@ -24,8 +26,11 @@ export default function WhatsAppButton() {
     return () => clearTimeout(timer);
   }, [isDismissed]);
 
+  // In app mode, position above the bottom tab bar
+  const bottomClass = isCapacitor ? 'bottom-24' : 'bottom-6';
+
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex items-end gap-3">
+    <div className={`fixed ${bottomClass} right-6 z-50 flex items-end gap-3`}>
       {/* Tooltip */}
       {isTooltipVisible && !isDismissed && (
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-3 max-w-[200px] animate-scale-in">

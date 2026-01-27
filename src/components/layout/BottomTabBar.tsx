@@ -2,15 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, CalendarCheck, User } from 'lucide-react';
+import { Search, User, HelpCircle } from 'lucide-react';
 import { useCapacitor } from '@/hooks/useCapacitor';
 import { useUser } from '@/contexts/UserContext';
 
 const tabs = [
-  { href: '/', icon: Home, label: 'Explore' },
   { href: '/properties', icon: Search, label: 'Search' },
-  { href: '/reservation', icon: CalendarCheck, label: 'Trips' },
-  { href: '/account', icon: User, label: 'Profile' },
+  { href: '/account', icon: User, label: 'Account', center: true },
+  { href: '/help', icon: HelpCircle, label: 'Help' },
 ];
 
 export default function BottomTabBar() {
@@ -21,7 +20,7 @@ export default function BottomTabBar() {
   // Only render in Capacitor (native app) mode
   if (!isCapacitor) return null;
 
-  // Hide on checkout and property detail pages (they have their own nav)
+  // Hide on checkout pages
   if (pathname.startsWith('/checkout')) return null;
 
   const isActive = (href: string) => {
@@ -38,6 +37,30 @@ export default function BottomTabBar() {
         {tabs.map((tab) => {
           const active = isActive(tab.href);
           const Icon = tab.icon;
+
+          // Center elevated account button
+          if (tab.center) {
+            return (
+              <Link
+                key={tab.href}
+                href={isAuthenticated ? tab.href : '/login'}
+                className="flex flex-col items-center justify-center flex-1 h-full -mt-3"
+              >
+                <div
+                  className={`w-11 h-11 rounded-full flex items-center justify-center shadow-md ${
+                    active
+                      ? 'bg-[var(--casita-orange)] text-white'
+                      : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-500)]'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className={`text-[9px] mt-0.5 ${active ? 'font-semibold text-[var(--casita-orange)]' : 'font-medium text-[var(--casita-gray-400)]'}`}>
+                  {isAuthenticated ? 'Account' : 'Log in'}
+                </span>
+              </Link>
+            );
+          }
 
           return (
             <Link
