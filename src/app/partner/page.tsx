@@ -227,8 +227,73 @@ export default function PartnerPage() {
         </div>
       </section>
 
-      {/* Services Section */}
+      {/* Marriott Homes & Villas Section */}
       <section className="py-20 bg-[var(--casita-gray-50)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 text-[var(--casita-orange)] mb-4">
+                <Building2 className="w-5 h-5" />
+                <span className="font-semibold uppercase tracking-wider text-sm">{t.partner.marriottBadge}</span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-[var(--casita-gray-900)] mb-6">
+                {t.partner.marriottTitle}
+              </h2>
+              <p className="text-lg text-[var(--casita-gray-600)] mb-8">
+                {t.partner.marriottDesc}
+              </p>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-[var(--casita-orange)]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Users className="w-6 h-6 text-[var(--casita-orange)]" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">{t.partner.marriottBonvoyMembers}</h3>
+                    <p className="text-[var(--casita-gray-600)] text-sm">{t.partner.marriottBonvoyMembersDesc}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-[var(--casita-orange)]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Star className="w-6 h-6 text-[var(--casita-orange)]" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">{t.partner.marriottBookWithPoints}</h3>
+                    <p className="text-[var(--casita-gray-600)] text-sm">{t.partner.marriottBookWithPointsDesc}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-[var(--casita-orange)]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Eye className="w-6 h-6 text-[var(--casita-orange)]" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">{t.partner.marriottPremiumVisibility}</h3>
+                    <p className="text-[var(--casita-gray-600)] text-sm">{t.partner.marriottPremiumVisibilityDesc}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Marriott visual card */}
+            <div className="bg-gradient-to-br from-white to-[var(--casita-gray-50)] rounded-3xl p-8 border border-[var(--casita-gray-100)]">
+              <div className="text-center">
+                <img
+                  src="/hvmi-social-logo.avif"
+                  alt="Marriott Homes & Villas"
+                  className="w-full max-w-sm mx-auto rounded-2xl mb-6"
+                />
+                <div className="bg-white rounded-xl p-6 border border-[var(--casita-gray-100)]">
+                  <div className="text-sm text-[var(--casita-gray-500)] uppercase tracking-wider mb-2">{t.partner.marriottPartnership}</div>
+                  <div className="text-[var(--casita-orange)] font-semibold text-lg">{t.partner.marriottQualifying}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 bg-[var(--casita-orange)]/10 px-4 py-2 rounded-full mb-4">
