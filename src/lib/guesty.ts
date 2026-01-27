@@ -374,6 +374,14 @@ interface GuestyReservation {
     currency: string;
   };
   nightsCount: number;
+  listing?: {
+    _id: string;
+    title?: string;
+    nickname?: string;
+    picture?: { thumbnail?: string };
+    pictures?: { thumbnail?: string }[];
+    address?: { full?: string };
+  };
 }
 
 interface GuestyGuest {

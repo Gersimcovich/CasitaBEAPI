@@ -409,7 +409,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
             {t.cta.subtitle}
           </p>
           <a
-            href="https://www.airbnb.com/users/profile/1463191591712637070"
+            href="https://www.airbnb.com/p/casita"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#FF5A5F] text-white rounded-full font-semibold hover:bg-[#E04E53] transition-colors shadow-lg hover:shadow-xl"

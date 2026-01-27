@@ -12,8 +12,8 @@ interface Review {
   propertyName?: string;
 }
 
-// Airbnb profile URL - Bueno, Bonito y Barato account
-const AIRBNB_REVIEWS_URL = 'https://www.airbnb.com/users/profile/1463191591712637070';
+// Airbnb profile URL - Casita account
+const AIRBNB_REVIEWS_URL = 'https://www.airbnb.com/p/casita';
 
 export default function ReviewsCarousel() {
   const [reviews, setReviews] = useState<Review[]>([]);
