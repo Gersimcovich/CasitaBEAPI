@@ -78,6 +78,7 @@ const translations = {
     createYourAccount: 'Create your account',
     joinCasita: 'Join Casita to track your reservations and earn points.',
     codeExpires: 'Code expires in 10 minutes',
+    checkSpam: "Can't find it? Check your spam or junk folder.",
     accountNotFound: 'No account found with this email. Let\'s create one!',
   },
   es: {
@@ -105,6 +106,7 @@ const translations = {
     createYourAccount: 'Crea tu cuenta',
     joinCasita: 'Unete a Casita para seguir tus reservas y ganar puntos.',
     codeExpires: 'El codigo expira en 10 minutos',
+    checkSpam: '¿No lo encuentras? Revisa tu carpeta de spam o correo no deseado.',
     accountNotFound: 'No encontramos una cuenta con este correo. ¡Vamos a crear una!',
   },
   pt: {
@@ -132,6 +134,7 @@ const translations = {
     createYourAccount: 'Crie sua conta',
     joinCasita: 'Junte-se a Casita para acompanhar suas reservas e ganhar pontos.',
     codeExpires: 'O codigo expira em 10 minutos',
+    checkSpam: 'Nao encontrou? Verifique sua pasta de spam ou lixo eletronico.',
     accountNotFound: 'Nao encontramos uma conta com este email. Vamos criar uma!',
   },
 };
@@ -574,8 +577,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 ))}
               </div>
 
-              <p className="text-xs text-[var(--casita-gray-500)] text-center mb-6">
+              <p className="text-xs text-[var(--casita-gray-500)] text-center mb-1">
                 {t.codeExpires}
+              </p>
+              <p className="text-xs text-[var(--casita-gray-400)] text-center mb-6">
+                {t.checkSpam}
               </p>
 
               <button
