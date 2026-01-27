@@ -19,9 +19,15 @@ import { promises as fs } from 'fs';
 const BEAPI_URL = 'https://booking.guesty.com/api';
 const BEAPI_AUTH_URL = 'https://booking.guesty.com/oauth2/token';
 
-// BEAPI has SEPARATE credentials from Open API
-const BEAPI_CLIENT_ID = process.env.GUESTY_BEAPI_CLIENT_ID || '';
-const BEAPI_CLIENT_SECRET = process.env.GUESTY_BEAPI_CLIENT_SECRET || '';
+// BEAPI has TWO instances with separate credentials:
+// 1. Request to Book (RTB) - for browsing, calendar, quotes, and inquiries
+// 2. Instant Booking - for confirmed reservations with payment
+const BEAPI_RTB_CLIENT_ID = process.env.GUESTY_BEAPI_CLIENT_ID || '';
+const BEAPI_RTB_CLIENT_SECRET = process.env.GUESTY_BEAPI_CLIENT_SECRET || '';
+const BEAPI_INSTANT_CLIENT_ID = process.env.GUESTY_BEAPI_INSTANT_CLIENT_ID || '';
+const BEAPI_INSTANT_CLIENT_SECRET = process.env.GUESTY_BEAPI_INSTANT_CLIENT_SECRET || '';
+
+export type BeapiInstance = 'rtb' | 'instant';
 
 // Cache TTLs (in milliseconds)
 const TTL = {
@@ -101,13 +107,25 @@ function recordFailure(is429: boolean): void {
 // TOKEN CACHE (with file persistence for serverless)
 // ============================================================================
 
-const TOKEN_FILE = '/tmp/beapi-token.json';
+// Separate token files and caches per instance
+const TOKEN_FILES: Record<BeapiInstance, string> = {
+  rtb: '/tmp/beapi-token-rtb.json',
+  instant: '/tmp/beapi-token-instant.json',
+};
 
-let cachedToken: { token: string; expiresAt: number } | null = null;
+const cachedTokens: Record<BeapiInstance, { token: string; expiresAt: number } | null> = {
+  rtb: null,
+  instant: null,
+};
 
-async function loadTokenFromFile(): Promise<{ token: string; expiresAt: number } | null> {
+const INSTANCE_CREDENTIALS: Record<BeapiInstance, { clientId: string; clientSecret: string }> = {
+  rtb: { clientId: BEAPI_RTB_CLIENT_ID, clientSecret: BEAPI_RTB_CLIENT_SECRET },
+  instant: { clientId: BEAPI_INSTANT_CLIENT_ID, clientSecret: BEAPI_INSTANT_CLIENT_SECRET },
+};
+
+async function loadTokenFromFile(instance: BeapiInstance): Promise<{ token: string; expiresAt: number } | null> {
   try {
-    const content = await fs.readFile(TOKEN_FILE, 'utf-8');
+    const content = await fs.readFile(TOKEN_FILES[instance], 'utf-8');
     const data = JSON.parse(content);
     if (data.expiresAt > Date.now() + 5 * 60 * 1000) {
       return data;
@@ -118,29 +136,36 @@ async function loadTokenFromFile(): Promise<{ token: string; expiresAt: number }
   return null;
 }
 
-async function saveTokenToFile(token: string, expiresAt: number): Promise<void> {
+async function saveTokenToFile(instance: BeapiInstance, token: string, expiresAt: number): Promise<void> {
   try {
-    await fs.writeFile(TOKEN_FILE, JSON.stringify({ token, expiresAt }));
+    await fs.writeFile(TOKEN_FILES[instance], JSON.stringify({ token, expiresAt }));
   } catch {
     // Ignore file write errors
   }
 }
 
-async function getBeapiToken(): Promise<string> {
+async function getBeapiToken(instance: BeapiInstance = 'rtb'): Promise<string> {
+  const cached = cachedTokens[instance];
+
   // Check memory cache first
-  if (cachedToken && cachedToken.expiresAt > Date.now() + 5 * 60 * 1000) {
-    return cachedToken.token;
+  if (cached && cached.expiresAt > Date.now() + 5 * 60 * 1000) {
+    return cached.token;
   }
 
   // Check file cache (persists across serverless cold starts within same instance)
-  const fileToken = await loadTokenFromFile();
+  const fileToken = await loadTokenFromFile(instance);
   if (fileToken) {
-    cachedToken = fileToken;
-    console.log('🔑 BEAPI token loaded from file cache');
+    cachedTokens[instance] = fileToken;
+    console.log(`🔑 BEAPI [${instance}] token loaded from file cache`);
     return fileToken.token;
   }
 
-  console.log('🔑 Fetching new BEAPI token...');
+  const creds = INSTANCE_CREDENTIALS[instance];
+  if (!creds.clientId || !creds.clientSecret) {
+    throw new Error(`BEAPI [${instance}] credentials not configured`);
+  }
+
+  console.log(`🔑 Fetching new BEAPI [${instance}] token...`);
 
   const response = await fetch(BEAPI_AUTH_URL, {
     method: 'POST',
@@ -149,30 +174,30 @@ async function getBeapiToken(): Promise<string> {
     },
     body: new URLSearchParams({
       grant_type: 'client_credentials',
-      client_id: BEAPI_CLIENT_ID,
-      client_secret: BEAPI_CLIENT_SECRET,
+      client_id: creds.clientId,
+      client_secret: creds.clientSecret,
       scope: 'booking_engine:api',
     }),
   });
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Failed to get BEAPI token: ${response.status} - ${error}`);
+    throw new Error(`Failed to get BEAPI [${instance}] token: ${response.status} - ${error}`);
   }
 
   const data = await response.json();
   const expiresAt = Date.now() + TTL.TOKEN;
 
-  cachedToken = {
+  cachedTokens[instance] = {
     token: data.access_token,
     expiresAt,
   };
 
   // Save to file for persistence
-  await saveTokenToFile(data.access_token, expiresAt);
+  await saveTokenToFile(instance, data.access_token, expiresAt);
 
-  console.log('✅ BEAPI token cached (memory + file)');
-  return cachedToken.token;
+  console.log(`✅ BEAPI [${instance}] token cached (memory + file)`);
+  return cachedTokens[instance]!.token;
 }
 
 // ============================================================================
@@ -210,13 +235,14 @@ interface FetchOptions {
   body?: Record<string, unknown>;
   ttl?: number;
   skipCache?: boolean;
+  instance?: BeapiInstance;
 }
 
 async function beapiFetch<T>(
   endpoint: string,
   options: FetchOptions = {}
 ): Promise<T> {
-  const { method = 'GET', body, ttl, skipCache = false } = options;
+  const { method = 'GET', body, ttl, skipCache = false, instance = 'rtb' } = options;
   const cacheKey = `beapi:${endpoint}:${body ? JSON.stringify(body) : ''}`;
 
   // Check cache first (for GET requests)
@@ -240,7 +266,7 @@ async function beapiFetch<T>(
 
   // Rate-limited fetch
   return limiter.schedule(async () => {
-    const token = await getBeapiToken();
+    const token = await getBeapiToken(instance);
 
     const fetchOptions: RequestInit = {
       method,
@@ -531,10 +557,108 @@ export async function createQuote(params: {
 }
 
 /**
- * Check if BEAPI is configured
+ * Create a quote using the Instant Booking instance
+ * Required before creating an instant reservation
+ */
+export async function createInstantQuote(params: {
+  listingId: string;
+  checkInDateLocalized: string;
+  checkOutDateLocalized: string;
+  guestsCount: number;
+  coupons?: string[];
+}): Promise<{
+  _id: string;
+  ratePlans?: Array<{ _id: string }>;
+  money: {
+    fareAccommodation: number;
+    fareCleaning: number;
+    totalTaxes: number;
+    hostServiceFee: number;
+    currency: string;
+    hostPayout: number;
+    totalPrice: number;
+  };
+  expireAt: string;
+} | null> {
+  try {
+    return await beapiFetch('/reservations/quotes', {
+      method: 'POST',
+      body: params,
+      instance: 'instant',
+    });
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Create an instant reservation (confirmed booking with payment)
+ * Uses the Instant Booking BEAPI instance
+ */
+export async function createInstantReservation(params: {
+  quoteId: string;
+  ratePlanId: string;
+  ccToken: string;
+  guest: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+  };
+}): Promise<Record<string, unknown>> {
+  return beapiFetch(`/reservations/quotes/${params.quoteId}/instant`, {
+    method: 'POST',
+    body: {
+      ratePlanId: params.ratePlanId,
+      ccToken: params.ccToken,
+      guest: params.guest,
+    },
+    instance: 'instant',
+  });
+}
+
+/**
+ * Create a booking inquiry (request to book)
+ * Uses the Request to Book BEAPI instance
+ */
+export async function createInquiryReservation(params: {
+  quoteId: string;
+  ratePlanId: string;
+  guest: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+  };
+  message?: string;
+  ccToken?: string;
+}): Promise<Record<string, unknown>> {
+  const body: Record<string, unknown> = {
+    ratePlanId: params.ratePlanId,
+    guest: params.guest,
+  };
+  if (params.message) body.message = params.message;
+  if (params.ccToken) body.ccToken = params.ccToken;
+
+  return beapiFetch(`/reservations/quotes/${params.quoteId}/inquiry`, {
+    method: 'POST',
+    body,
+    instance: 'rtb',
+  });
+}
+
+/**
+ * Check if BEAPI Request to Book is configured
  */
 export function isConfigured(): boolean {
-  return !!(BEAPI_CLIENT_ID && BEAPI_CLIENT_SECRET);
+  return !!(BEAPI_RTB_CLIENT_ID && BEAPI_RTB_CLIENT_SECRET);
+}
+
+/**
+ * Check if BEAPI Instant Booking is configured
+ */
+export function isInstantConfigured(): boolean {
+  return !!(BEAPI_INSTANT_CLIENT_ID && BEAPI_INSTANT_CLIENT_SECRET);
 }
 
 /**
