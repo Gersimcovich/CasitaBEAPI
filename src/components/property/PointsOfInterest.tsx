@@ -121,10 +121,20 @@ const POINTS_OF_INTEREST_BY_REGION: Record<string, PointOfInterest[]> = {
     { id: 'fort-zachary', name: 'Fort Zachary Beach', shortName: 'Fort Zachary Beach', lat: 24.5453, lng: -81.8113, icon: Waves, category: 'beach' },
     { id: 'hemingway', name: 'Hemingway Home', shortName: 'Hemingway Home', lat: 24.5511, lng: -81.8004, icon: LandPlot, category: 'culture' },
   ],
-  // Default fallback (generic US)
-  'default': [
-    { id: 'airport', name: 'Nearest Airport', shortName: 'Airport', lat: 0, lng: 0, icon: Plane, category: 'airport' },
-    { id: 'downtown', name: 'Downtown', shortName: 'Downtown', lat: 0, lng: 0, icon: Building2, category: 'area' },
+  // Puerto Iguazú / Iguazú Falls region (Argentina/Brazil)
+  'puerto iguazu': [
+    { id: 'igr', name: 'Cataratas del Iguazú Airport', shortName: 'IGR Airport', lat: -25.7373, lng: -54.4734, icon: Plane, category: 'airport' },
+    { id: 'igu', name: 'Foz do Iguaçu Airport (Brazil)', shortName: 'IGU Airport', lat: -25.5963, lng: -54.4871, icon: Plane, category: 'airport' },
+    { id: 'iguazu-falls-ar', name: 'Iguazú Falls (Argentine Side)', shortName: 'Iguazú Falls (AR)', lat: -25.6953, lng: -54.4367, icon: Waves, category: 'attraction' },
+    { id: 'iguazu-falls-br', name: 'Iguazú Falls (Brazilian Side)', shortName: 'Iguazú Falls (BR)', lat: -25.6952, lng: -54.4367, icon: Waves, category: 'attraction' },
+    { id: 'devils-throat', name: "Devil's Throat (Garganta del Diablo)", shortName: "Devil's Throat", lat: -25.6867, lng: -54.4484, icon: Waves, category: 'attraction' },
+    { id: 'bird-park', name: 'Parque das Aves (Bird Park)', shortName: 'Bird Park', lat: -25.6274, lng: -54.4836, icon: TreePalm, category: 'attraction' },
+    { id: 'hito-tres-fronteras', name: 'Hito Tres Fronteras', shortName: 'Triple Border', lat: -25.5955, lng: -54.5770, icon: LandPlot, category: 'culture' },
+    { id: 'la-aripuca', name: 'La Aripuca', shortName: 'La Aripuca', lat: -25.5816, lng: -54.5681, icon: TreePalm, category: 'culture' },
+    { id: 'duty-free-iguazu', name: 'Duty Free Shop Puerto Iguazú', shortName: 'Duty Free Shop', lat: -25.5975, lng: -54.5750, icon: ShoppingBag, category: 'shopping' },
+    { id: 'downtown-iguazu', name: 'Downtown Puerto Iguazú', shortName: 'Downtown', lat: -25.5988, lng: -54.5786, icon: Building2, category: 'area' },
+    { id: 'itaipu-dam', name: 'Itaipú Dam', shortName: 'Itaipú Dam', lat: -25.4083, lng: -54.5886, icon: Building2, category: 'attraction' },
+    { id: 'foz-downtown', name: 'Foz do Iguaçu (Brazil)', shortName: 'Foz do Iguaçu', lat: -25.5163, lng: -54.5854, icon: Building2, category: 'area' },
   ],
 };
 
@@ -206,6 +216,13 @@ const CITY_TO_REGION: Record<string, string> = {
   'marathon': 'key west',
   'florida keys': 'key west',
   'keys': 'key west',
+  // Puerto Iguazú area
+  'puerto iguazú': 'puerto iguazu',
+  'puerto iguazu': 'puerto iguazu',
+  'iguazu': 'puerto iguazu',
+  'iguazú': 'puerto iguazu',
+  'foz do iguaçu': 'puerto iguazu',
+  'foz do iguacu': 'puerto iguazu',
 };
 
 // Calculate distance between two coordinates using Haversine formula
@@ -271,11 +288,16 @@ export default function PointsOfInterest({
   // Determine the region based on city name
   const region = useMemo(() => {
     const normalizedCity = city.toLowerCase().trim();
-    return CITY_TO_REGION[normalizedCity] || 'miami'; // Default to Miami if city not found
+    return CITY_TO_REGION[normalizedCity] || null;
   }, [city]);
 
   // Get points of interest for this region
-  const regionPOIs = POINTS_OF_INTEREST_BY_REGION[region] || POINTS_OF_INTEREST_BY_REGION['miami'];
+  const regionPOIs = region ? POINTS_OF_INTEREST_BY_REGION[region] : null;
+
+  // Don't render if no POI data for this location
+  if (!regionPOIs) {
+    return null;
+  }
 
   // Calculate distances and sort by proximity
   const nearbyPlaces = useMemo(() => {
