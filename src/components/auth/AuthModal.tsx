@@ -61,7 +61,7 @@ const translations = {
     continue: 'Continue',
     firstName: 'First Name',
     lastName: 'Last Name',
-    phone: 'Phone (optional)',
+    phone: 'Phone',
     country: 'Country',
     selectCountry: 'Select country',
     language: 'Preferred Language',
@@ -88,7 +88,7 @@ const translations = {
     continue: 'Continuar',
     firstName: 'Nombre',
     lastName: 'Apellido',
-    phone: 'Telefono (opcional)',
+    phone: 'Telefono',
     country: 'Pais',
     selectCountry: 'Selecciona pais',
     language: 'Idioma Preferido',
@@ -115,7 +115,7 @@ const translations = {
     continue: 'Continuar',
     firstName: 'Nome',
     lastName: 'Sobrenome',
-    phone: 'Telefone (opcional)',
+    phone: 'Telefone',
     country: 'Pais',
     selectCountry: 'Selecione pais',
     language: 'Idioma Preferido',
@@ -486,13 +486,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <div>
                   <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-1">
                     <Phone className="w-4 h-4 inline mr-1" />
-                    {t.phone}
+                    {t.phone} *
                   </label>
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+1 (555) 123-4567"
+                    required
                     className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl text-[var(--casita-gray-900)] focus:outline-none focus:ring-2 focus:ring-[var(--casita-orange)]/20 focus:border-[var(--casita-orange)]"
                   />
                 </div>
@@ -536,7 +537,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
               <button
                 type="submit"
-                disabled={isLoading || !firstName || !lastName}
+                disabled={isLoading || !firstName || !lastName || !phone}
                 className="w-full mt-6 py-3 px-4 bg-[var(--casita-orange)] text-white font-medium rounded-xl hover:bg-[var(--casita-orange)]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
               >
                 {isLoading ? (
