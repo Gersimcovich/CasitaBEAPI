@@ -21,6 +21,7 @@ import {
   Clock,
   Users,
   Zap,
+  Globe,
 } from 'lucide-react';
 
 export default function PartnerPage() {
@@ -361,6 +362,7 @@ export default function PartnerPage() {
                 <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.managementItem1}</li>
                 <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.managementItem2}</li>
                 <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.managementItem3}</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500" /> {t.partner.managementItem4}</li>
               </ul>
             </div>
           </div>
@@ -442,85 +444,53 @@ export default function PartnerPage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-gradient-to-br from-[var(--casita-orange)] to-[var(--casita-orange-dark)]">
+      <section className="py-20 bg-[var(--casita-gray-50)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-[var(--casita-gray-900)] mb-4">
               {t.partner.howItWorksTitle}
             </h2>
-            <p className="text-xl text-white/80">{t.partner.howItWorksSubtitle}</p>
+            <p className="text-lg text-[var(--casita-gray-600)]">{t.partner.howItWorksSubtitle}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <span className="text-3xl font-bold text-[var(--casita-orange)]">1</span>
+            {/* Step 1: Pricing & Revenue */}
+            <div className="bg-white rounded-2xl p-8 border border-[var(--casita-gray-100)] text-center hover:shadow-lg transition-shadow relative">
+              <div className="inline-flex items-center justify-center w-8 h-8 bg-[var(--casita-orange)] rounded-full text-white text-sm font-bold mb-5">
+                1
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">{t.partner.step1Title}</h3>
-              <p className="text-white/80">{t.partner.step1Desc}</p>
+              <div className="w-14 h-14 bg-[var(--casita-orange)]/10 rounded-xl flex items-center justify-center mx-auto mb-5">
+                <TrendingUp className="w-7 h-7 text-[var(--casita-orange)]" />
+              </div>
+              <h3 className="text-xl font-semibold text-[var(--casita-gray-900)] mb-3">{t.partner.step1Title}</h3>
+              <p className="text-[var(--casita-gray-600)] text-sm">{t.partner.step1Desc}</p>
             </div>
 
-            <div className="text-center">
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <span className="text-3xl font-bold text-[var(--casita-orange)]">2</span>
+            {/* Step 2: Distribution */}
+            <div className="bg-white rounded-2xl p-8 border border-[var(--casita-gray-100)] text-center hover:shadow-lg transition-shadow relative">
+              <div className="inline-flex items-center justify-center w-8 h-8 bg-[var(--casita-orange)] rounded-full text-white text-sm font-bold mb-5">
+                2
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">{t.partner.step2Title}</h3>
-              <p className="text-white/80">{t.partner.step2Desc}</p>
+              <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-5">
+                <Globe className="w-7 h-7 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-[var(--casita-gray-900)] mb-3">{t.partner.step2Title}</h3>
+              <p className="text-[var(--casita-gray-600)] text-sm">{t.partner.step2Desc}</p>
             </div>
 
-            <div className="text-center">
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <span className="text-3xl font-bold text-[var(--casita-orange)]">3</span>
+            {/* Step 3: Enjoy New Sales */}
+            <div className="bg-white rounded-2xl p-8 border border-[var(--casita-gray-100)] text-center hover:shadow-lg transition-shadow relative">
+              <div className="inline-flex items-center justify-center w-8 h-8 bg-[var(--casita-orange)] rounded-full text-white text-sm font-bold mb-5">
+                3
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">{t.partner.step3Title}</h3>
-              <p className="text-white/80">{t.partner.step3Desc}</p>
-            </div>
-          </div>
-
-          {/* Switch & Fast Onboarding Highlights */}
-          <div className="mt-16 grid md:grid-cols-2 gap-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-6 h-6 text-[var(--casita-orange)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{t.partner.switchingTitle}</h3>
-                  <p className="text-white/80 text-sm">{t.partner.switchingDesc}</p>
-                </div>
+              <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-5">
+                <DollarSign className="w-7 h-7 text-green-600" />
               </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-6 h-6 text-[var(--casita-orange)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{t.partner.fastOnboardingTitle}</h3>
-                  <p className="text-white/80 text-sm">{t.partner.fastOnboardingDesc}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Seamless Integration */}
-          <div className="mt-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-6 h-6 text-[var(--casita-orange)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{t.partner.seamlessTitle}</h3>
-                  <p className="text-white/80 text-sm">{t.partner.seamlessDesc}</p>
-                </div>
+              <h3 className="text-xl font-semibold text-[var(--casita-gray-900)] mb-3">{t.partner.step3Title}</h3>
+              <p className="text-[var(--casita-gray-600)] text-sm mb-4">{t.partner.step3Desc}</p>
+              <div className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-200">
+                <Shield className="w-3.5 h-3.5" />
+                {t.partner.paymentBadge}
               </div>
             </div>
           </div>
