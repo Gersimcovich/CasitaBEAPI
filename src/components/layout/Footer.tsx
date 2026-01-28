@@ -169,32 +169,24 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Superhost / Airbnb Reviews */}
+        {/* Bottom Bar */}
         <div className="border-t border-white/20 mt-6 pt-4">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+          <div className="flex flex-col items-center gap-4">
+            {/* Superhost Badge */}
             <a
               href="https://www.airbnb.com/p/casita"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full transition-colors flex-wrap justify-center"
             >
-              <Award className="w-4 h-4 text-yellow-300" />
-              <span className="text-sm font-semibold">Verified Superhost</span>
-              <span className="text-white/60 text-sm">|</span>
-              <span className="text-sm">60,000+ Reviews on Airbnb</span>
-              <ExternalLink className="w-3.5 h-3.5 text-white/70" />
+              <Award className="w-4 h-4 text-yellow-300 flex-shrink-0" />
+              <span className="text-sm font-semibold whitespace-nowrap">Verified Superhost</span>
+              <span className="text-white/60 text-sm hidden sm:inline">|</span>
+              <span className="text-sm whitespace-nowrap">60,000+ Reviews on Airbnb</span>
+              <ExternalLink className="w-3.5 h-3.5 text-white/70 flex-shrink-0" />
             </a>
-          </div>
-        </div>
 
-        {/* Bottom Bar - Inline */}
-        <div className="border-t border-white/20 pt-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-white/70 text-xs">
-              &copy; {currentYear} Hello Casita. {t.footer.rights}
-            </p>
-
-            {/* Payment Methods - Mobile only (desktop shows next to social icons) */}
+            {/* Payment Methods - Mobile only */}
             <div className="flex md:hidden items-center gap-1.5 flex-wrap justify-center">
               <span className="text-white/60 text-xs mr-1">We accept</span>
               <div className="bg-white/90 rounded px-1.5 py-0.5" title="Visa">
@@ -214,6 +206,11 @@ export default function Footer() {
                 <span className="text-white text-[10px] font-bold">affirm</span>
               </div>
             </div>
+
+            {/* Copyright */}
+            <p className="text-white/70 text-xs">
+              &copy; {currentYear} Hello Casita. {t.footer.rights}
+            </p>
           </div>
         </div>
       </div>

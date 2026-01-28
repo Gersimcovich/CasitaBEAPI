@@ -510,154 +510,101 @@ export default function PartnerPage() {
         </div>
       </section>
 
-      {/* Contact Form */}
-      <section className="py-20 bg-[var(--casita-gray-900)]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              {t.partner.ctaTitle}
-            </h2>
-            <p className="text-xl text-[var(--casita-gray-400)]">
-              {t.partner.ctaSubtitle}
-            </p>
-          </div>
+      {/* Partner Inquiry Section */}
+      <section className="relative py-24 md:py-32 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="/partnerwithuscasita.jpg"
+            alt=""
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/60" />
+        </div>
 
+        <div className="relative max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
           {isSubmitted ? (
-            <div className="bg-white rounded-2xl p-12 text-center">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-10 h-10 text-green-600" />
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-10 text-center shadow-2xl">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-2xl font-semibold text-[var(--casita-gray-900)] mb-4">
+              <h3 className="text-2xl font-semibold text-[var(--casita-gray-900)] mb-3">
                 {t.partner.formSuccess}
               </h3>
               <p className="text-[var(--casita-gray-600)]">{t.partner.formSuccessDesc}</p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 md:p-12">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formName} *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl focus:outline-none focus:border-[var(--casita-orange)]"
-                  />
-                </div>
+            <form onSubmit={handleSubmit} className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 md:p-10 shadow-2xl">
+              {/* Integrated heading */}
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-[var(--casita-gray-900)] mb-2">
+                  {t.partner.ctaTitle}
+                </h2>
+                <p className="text-sm text-[var(--casita-gray-500)] leading-relaxed">
+                  {t.partner.ctaSubtitle}
+                </p>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formEmail} *</label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl focus:outline-none focus:border-[var(--casita-orange)]"
-                  />
-                </div>
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl focus:outline-none focus:border-[var(--casita-orange)] bg-white/80 placeholder-[var(--casita-gray-400)]"
+                  placeholder={`${t.partner.formName} *`}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formPhone}</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl focus:outline-none focus:border-[var(--casita-orange)]"
-                  />
-                </div>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl focus:outline-none focus:border-[var(--casita-orange)] bg-white/80 placeholder-[var(--casita-gray-400)]"
+                  placeholder={`${t.partner.formEmail} *`}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formPropertyType}</label>
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, propertyType: 'vacation' })}
-                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-colors ${
-                        formData.propertyType === 'vacation'
-                          ? 'bg-[var(--casita-orange)] text-white border-[var(--casita-orange)]'
-                          : 'border-[var(--casita-gray-200)] hover:border-[var(--casita-gray-400)]'
-                      }`}
-                    >
-                      <Home className="w-4 h-4" />
-                      <span className="text-sm">{t.partner.formPropertyTypeVacation}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, propertyType: 'hotel' })}
-                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-colors ${
-                        formData.propertyType === 'hotel'
-                          ? 'bg-[var(--casita-orange)] text-white border-[var(--casita-orange)]'
-                          : 'border-[var(--casita-gray-200)] hover:border-[var(--casita-gray-400)]'
-                      }`}
-                    >
-                      <Building2 className="w-4 h-4" />
-                      <span className="text-sm">{t.partner.formPropertyTypeHotel}</span>
-                    </button>
-                  </div>
-                </div>
+                <input
+                  type="text"
+                  required
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl focus:outline-none focus:border-[var(--casita-orange)] bg-white/80 placeholder-[var(--casita-gray-400)]"
+                  placeholder={`${t.partner.formLocation} *`}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formLocation} *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl focus:outline-none focus:border-[var(--casita-orange)]"
-                    placeholder="Miami Beach, FL"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formUnits}</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.units}
-                    onChange={(e) => setFormData({ ...formData, units: e.target.value })}
-                    className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl focus:outline-none focus:border-[var(--casita-orange)]"
-                    placeholder="1"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-[var(--casita-gray-700)] mb-2">{t.partner.formMessage}</label>
-                  <textarea
-                    rows={4}
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl focus:outline-none focus:border-[var(--casita-orange)] resize-none"
-                    placeholder={t.partner.formMessagePlaceholder}
-                  />
-                </div>
+                <textarea
+                  rows={3}
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  className="w-full px-4 py-3 border border-[var(--casita-gray-200)] rounded-xl focus:outline-none focus:border-[var(--casita-orange)] bg-white/80 resize-none placeholder-[var(--casita-gray-400)]"
+                  placeholder={t.partner.formMessagePlaceholder}
+                />
               </div>
 
               {submitError && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
                   {submitError}
                 </div>
               )}
 
-              <div className="mt-8">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-3 bg-[var(--casita-orange)] text-white px-8 py-4 rounded-xl font-semibold hover:bg-[var(--casita-orange-dark)] transition-colors disabled:opacity-70"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>{t.partner.formSubmitting}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-5 h-5" />
-                      <span>{t.partner.formSubmit}</span>
-                    </>
-                  )}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full mt-6 flex items-center justify-center gap-2 bg-[var(--casita-orange)] text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-[var(--casita-orange-dark)] transition-colors disabled:opacity-70"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>{t.partner.formSubmitting}</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>{t.partner.formSubmit}</span>
+                  </>
+                )}
+              </button>
             </form>
           )}
         </div>
