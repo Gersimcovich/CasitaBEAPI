@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Instagram, Mail, Phone, Award, ExternalLink } from 'lucide-react';
+import { Instagram, Mail, Phone } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useCapacitor } from '@/hooks/useCapacitor';
 
@@ -172,20 +172,6 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-white/20 mt-6 pt-4">
           <div className="flex flex-col items-center gap-4">
-            {/* Superhost Badge */}
-            <a
-              href="https://www.airbnb.com/p/casita"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full transition-colors flex-wrap justify-center"
-            >
-              <Award className="w-4 h-4 text-yellow-300 flex-shrink-0" />
-              <span className="text-sm font-semibold whitespace-nowrap">Verified Superhost</span>
-              <span className="text-white/60 text-sm hidden sm:inline">|</span>
-              <span className="text-sm whitespace-nowrap">60,000+ Reviews on Airbnb</span>
-              <ExternalLink className="w-3.5 h-3.5 text-white/70 flex-shrink-0" />
-            </a>
-
             {/* Payment Methods - Mobile only */}
             <div className="flex md:hidden items-center gap-1.5 flex-wrap justify-center">
               <span className="text-white/60 text-xs mr-1">We accept</span>
