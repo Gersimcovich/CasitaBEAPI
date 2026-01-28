@@ -507,6 +507,23 @@ export default function PartnerPage() {
               </div>
             </div>
           </div>
+
+          {/* Seamless Integration */}
+          <div className="mt-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-[var(--casita-orange)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-2">{t.partner.seamlessTitle}</h3>
+                  <p className="text-white/80 text-sm">{t.partner.seamlessDesc}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
