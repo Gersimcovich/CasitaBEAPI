@@ -455,10 +455,7 @@ export default function PartnerPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {/* Step 1: Pricing & Revenue */}
-            <div className="bg-white rounded-2xl p-8 border border-[var(--casita-gray-100)] text-center hover:shadow-lg transition-shadow relative">
-              <div className="inline-flex items-center justify-center w-8 h-8 bg-[var(--casita-orange)] rounded-full text-white text-sm font-bold mb-5">
-                1
-              </div>
+            <div className="bg-white rounded-2xl p-8 border border-[var(--casita-gray-100)] text-center hover:shadow-lg transition-shadow">
               <div className="w-14 h-14 bg-[var(--casita-orange)]/10 rounded-xl flex items-center justify-center mx-auto mb-5">
                 <TrendingUp className="w-7 h-7 text-[var(--casita-orange)]" />
               </div>
@@ -467,10 +464,7 @@ export default function PartnerPage() {
             </div>
 
             {/* Step 2: Distribution */}
-            <div className="bg-white rounded-2xl p-8 border border-[var(--casita-gray-100)] text-center hover:shadow-lg transition-shadow relative">
-              <div className="inline-flex items-center justify-center w-8 h-8 bg-[var(--casita-orange)] rounded-full text-white text-sm font-bold mb-5">
-                2
-              </div>
+            <div className="bg-white rounded-2xl p-8 border border-[var(--casita-gray-100)] text-center hover:shadow-lg transition-shadow">
               <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-5">
                 <Globe className="w-7 h-7 text-blue-600" />
               </div>
@@ -479,10 +473,7 @@ export default function PartnerPage() {
             </div>
 
             {/* Step 3: Enjoy New Sales */}
-            <div className="bg-white rounded-2xl p-8 border border-[var(--casita-gray-100)] text-center hover:shadow-lg transition-shadow relative">
-              <div className="inline-flex items-center justify-center w-8 h-8 bg-[var(--casita-orange)] rounded-full text-white text-sm font-bold mb-5">
-                3
-              </div>
+            <div className="bg-white rounded-2xl p-8 border border-[var(--casita-gray-100)] text-center hover:shadow-lg transition-shadow">
               <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-5">
                 <DollarSign className="w-7 h-7 text-green-600" />
               </div>
