@@ -116,6 +116,13 @@ async function loadCalendarFromDisk(listingId: string): Promise<CalendarDay[] | 
 
     const calendarData = allCalendars[listingId];
     if (calendarData) {
+      // Expire disk cache after 1 hour to avoid returning stale availability
+      const savedTime = new Date(calendarData.savedAt).getTime();
+      const DISK_CACHE_MAX_AGE = 60 * 60 * 1000; // 1 hour
+      if (Date.now() - savedTime > DISK_CACHE_MAX_AGE) {
+        console.log(`📂 Disk calendar for ${listingId} expired (saved: ${calendarData.savedAt})`);
+        return null;
+      }
       console.log(`📂 Loaded calendar for ${listingId} from disk (saved: ${calendarData.savedAt})`);
       return calendarData.days;
     }
@@ -495,7 +502,7 @@ const LISTING_CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
 
 // Calendar cache - 4 hours (balance between freshness and API calls)
 const calendarCache = new Map<string, { data: CalendarDay[]; expiresAt: number }>();
-const CALENDAR_CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 hours
+const CALENDAR_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
 // Quote cache - 2 hours (quotes valid for 24h in Guesty, but prices can change)
 const quoteCache = new Map<string, { data: ReservationQuote; expiresAt: number }>();
@@ -1410,30 +1417,26 @@ export async function getCalendar(
   if (!areBothApisRateLimited()) {
     try {
       console.log('📅 Trying BEAPI for calendar...');
-      // BEAPI calendar endpoint can return either 'data' or 'days' array
-      // and status can be either 'status' string or 'available' boolean
-      const response = await beapiFetch<{
-        data?: Array<{
-          date: string;
-          status?: string;
-          available?: boolean;
-          price?: number;
-          minNights?: number;
-          currency?: string;
-        }>;
-        days?: Array<{
-          date: string;
-          status?: string;
-          available?: boolean;
-          price?: number;
-          minNights?: number;
-          currency?: string;
-        }>;
-      }>(`/listings/${listingId}/calendar?from=${from}&to=${to}`);
+      // BEAPI calendar returns a raw array of day objects
+      type CalendarDayRaw = {
+        date: string;
+        status?: string;
+        available?: boolean;
+        price?: number;
+        minNights?: number;
+        currency?: string;
+        cta?: boolean;
+        ctd?: boolean;
+      };
+      const response = await beapiFetch<
+        CalendarDayRaw[] | { data?: CalendarDayRaw[]; days?: CalendarDayRaw[] }
+      >(`/listings/${listingId}/calendar?from=${from}&to=${to}`);
 
-      // Handle both 'data' and 'days' response formats
-      const rawDays = response.data || response.days || [];
-      console.log(`📅 BEAPI response keys: ${Object.keys(response).join(', ')}, days count: ${rawDays.length}`);
+      // Handle response: BEAPI returns a raw array, not wrapped in {data/days}
+      const rawDays = Array.isArray(response)
+        ? response
+        : (response.data || response.days || []);
+      console.log(`📅 BEAPI calendar: ${rawDays.length} days, isArray=${Array.isArray(response)}`);
 
       if (rawDays.length > 0) {
         const priceSample = rawDays.slice(0, 5).map(d => `${d.date}: $${d.price}`);

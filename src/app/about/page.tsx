@@ -65,6 +65,57 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Press & Recognition */}
+      <section className="py-16 bg-[var(--casita-gray-50)]">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-3xl font-bold text-[var(--casita-gray-900)] mb-10 text-center">
+              Industry Recognition
+            </h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Airbnb Superhost Panel */}
+              <div className="bg-white rounded-2xl overflow-hidden border border-[var(--casita-gray-100)] shadow-sm">
+                <img
+                  src="/airbnb-panel.jpg"
+                  alt="Georgia Whalen speaking at the Airbnb Superhost Panel in Miami"
+                  className="w-full h-64 object-cover"
+                />
+                <div className="p-6">
+                  <div className="inline-flex items-center gap-1.5 bg-[var(--casita-orange)]/10 text-[var(--casita-orange)] text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                    <Award className="w-3.5 h-3.5" />
+                    Airbnb Superhost Panel
+                  </div>
+                  <p className="text-[var(--casita-gray-600)] text-sm leading-relaxed">
+                    Selected from thousands of hosts across Florida as one of four panelists for
+                    Airbnb's inaugural Superhost Panel in Miami — sharing insights on hospitality
+                    innovation and the future of short-term rentals.
+                  </p>
+                </div>
+              </div>
+
+              {/* Guesty Interview */}
+              <div className="bg-white rounded-2xl overflow-hidden border border-[var(--casita-gray-100)] shadow-sm">
+                <img
+                  src="/guesty-interview.jpg"
+                  alt="Georgia Whalen and German Daniel Simcovich interviewed by Guesty"
+                  className="w-full h-64 object-cover"
+                />
+                <div className="p-6">
+                  <div className="inline-flex items-center gap-1.5 bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                    <Star className="w-3.5 h-3.5" />
+                    Guesty Top Operators
+                  </div>
+                  <p className="text-[var(--casita-gray-600)] text-sm leading-relaxed">
+                    Featured by Guesty, one of the world's largest property management platforms,
+                    in an exclusive interview recognizing Casita as top operators in Miami Beach.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Who We Are */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">

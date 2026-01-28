@@ -430,28 +430,26 @@ export async function getCalendar(
   minNights?: number;
 }>> {
   try {
-    const response = await beapiFetch<{
-      data?: Array<{
-        date: string;
-        status?: string;
-        available?: boolean;
-        price?: number;
-        minNights?: number;
-      }>;
-      days?: Array<{
-        date: string;
-        status?: string;
-        available?: boolean;
-        price?: number;
-        minNights?: number;
-      }>;
-    }>(
+    type CalendarDayRaw = {
+      date: string;
+      status?: string;
+      available?: boolean;
+      price?: number;
+      minNights?: number;
+      cta?: boolean;
+      ctd?: boolean;
+    };
+    const response = await beapiFetch<
+      CalendarDayRaw[] | { data?: CalendarDayRaw[]; days?: CalendarDayRaw[] }
+    >(
       `/listings/${listingId}/calendar?from=${from}&to=${to}`,
       { ttl: TTL.CALENDAR }
     );
 
-    // Handle both 'data' and 'days' response formats
-    const rawDays = response.data || response.days || [];
+    // Handle response: BEAPI returns a raw array, not wrapped in {data/days}
+    const rawDays = Array.isArray(response)
+      ? response
+      : (response.data || response.days || []);
 
     // Convert to consistent format with 'available' boolean
     return rawDays.map(day => {
