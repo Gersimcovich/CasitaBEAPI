@@ -130,49 +130,50 @@ export default function BookingWidget({
     }));
   };
 
-  // Fetch blocked dates when component mounts
-  useEffect(() => {
-    const fetchBlockedDates = async () => {
-      setIsLoadingCalendar(true);
-      setCalendarError(null);
-      try {
-        const today = new Date();
-        const sixMonthsLater = new Date();
-        sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+  // Fetch blocked dates
+  const fetchBlockedDates = async () => {
+    setIsLoadingCalendar(true);
+    setCalendarError(null);
+    try {
+      const today = new Date();
+      const sixMonthsLater = new Date();
+      sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
 
-        const from = today.toISOString().split('T')[0];
-        const to = sixMonthsLater.toISOString().split('T')[0];
+      const from = today.toISOString().split('T')[0];
+      const to = sixMonthsLater.toISOString().split('T')[0];
 
-        const response = await fetch(
-          `/api/booking/calendar?listingId=${listingId}&from=${from}&to=${to}`
-        );
-        const data = await response.json();
+      const response = await fetch(
+        `/api/booking/calendar?listingId=${listingId}&from=${from}&to=${to}`
+      );
+      const data = await response.json();
 
-        if (data.success) {
-          if (data.blockedDates) {
-            setBlockedDates(data.blockedDates.map((d: string) => new Date(d)));
-          }
-          // Store prices from calendar data
-          if (data.availability) {
-            const prices = new Map<string, number>();
-            data.availability.forEach((day: { date: string; price: number }) => {
-              if (day.price > 0) {
-                prices.set(day.date, day.price);
-              }
-            });
-            setCalendarPrices(prices);
-          }
-        } else if (!data.success) {
-          setCalendarError(data.error || 'Unable to load availability');
+      if (data.success) {
+        if (data.blockedDates) {
+          setBlockedDates(data.blockedDates.map((d: string) => new Date(d)));
         }
-      } catch (error) {
-        console.error('Error fetching blocked dates:', error);
-        setCalendarError('Unable to load calendar. Please try again.');
-      } finally {
-        setIsLoadingCalendar(false);
+        // Store prices from calendar data
+        if (data.availability) {
+          const prices = new Map<string, number>();
+          data.availability.forEach((day: { date: string; price: number }) => {
+            if (day.price > 0) {
+              prices.set(day.date, day.price);
+            }
+          });
+          setCalendarPrices(prices);
+        }
+      } else if (!data.success) {
+        setCalendarError(data.error || 'Unable to load availability');
       }
-    };
+    } catch (error) {
+      console.error('Error fetching blocked dates:', error);
+      setCalendarError('Unable to load calendar. Please try again.');
+    } finally {
+      setIsLoadingCalendar(false);
+    }
+  };
 
+  // Fetch on mount
+  useEffect(() => {
     fetchBlockedDates();
   }, [listingId]);
 
@@ -308,16 +309,22 @@ export default function BookingWidget({
           </div>
         )}
 
-        {/* Calendar error state - show warning but still allow date selection */}
+        {/* Calendar error state */}
         {!isLoadingCalendar && calendarError && (
-          <div className="px-4 pt-3 pb-1 text-center">
-            <p className="text-xs text-[var(--casita-gray-500)]">Availability will be confirmed at checkout.</p>
+          <div className="p-4 text-center">
+            <p className="text-sm text-[var(--casita-gray-600)]">Unable to load availability</p>
+            <button
+              onClick={fetchBlockedDates}
+              className="mt-2 text-sm text-[var(--casita-orange)] hover:underline font-medium"
+            >
+              Try again
+            </button>
           </div>
         )}
 
 
         {/* Date inputs */}
-        {!isLoadingCalendar && (
+        {!isLoadingCalendar && !calendarError && (
           <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[var(--casita-gray-200)]">
             <div className="p-3 sm:p-3">
               <label className="block text-xs font-semibold text-[var(--casita-gray-700)] uppercase mb-1">
