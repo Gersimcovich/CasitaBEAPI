@@ -108,7 +108,8 @@ async function saveCalendarToDisk(listingId: string, days: CalendarDay[]): Promi
 }
 
 // Load calendar data from persistent storage
-async function loadCalendarFromDisk(listingId: string): Promise<CalendarDay[] | null> {
+// maxAgeMs controls how old cached data can be (default 1h fresh, up to 24h stale fallback)
+async function loadCalendarFromDisk(listingId: string, maxAgeMs?: number): Promise<CalendarDay[] | null> {
   try {
     const filePath = path.join(DATA_DIR, 'calendar.json');
     const fileContent = await fs.readFile(filePath, 'utf-8');
@@ -116,11 +117,10 @@ async function loadCalendarFromDisk(listingId: string): Promise<CalendarDay[] | 
 
     const calendarData = allCalendars[listingId];
     if (calendarData) {
-      // Expire disk cache after 1 hour to avoid returning stale availability
       const savedTime = new Date(calendarData.savedAt).getTime();
-      const DISK_CACHE_MAX_AGE = 60 * 60 * 1000; // 1 hour
-      if (Date.now() - savedTime > DISK_CACHE_MAX_AGE) {
-        console.log(`📂 Disk calendar for ${listingId} expired (saved: ${calendarData.savedAt})`);
+      const maxAge = maxAgeMs ?? 60 * 60 * 1000; // default 1 hour
+      if (Date.now() - savedTime > maxAge) {
+        console.log(`📂 Disk calendar for ${listingId} expired (saved: ${calendarData.savedAt}, maxAge: ${Math.round(maxAge / 60000)}m)`);
         return null;
       }
       console.log(`📂 Loaded calendar for ${listingId} from disk (saved: ${calendarData.savedAt})`);
@@ -1512,6 +1512,20 @@ export async function getCalendar(
   if (cached && cached.data.length > 0) {
     console.warn('All calendar APIs failed, returning stale memory cache');
     return cached.data;
+  }
+
+  // STEP 6: Last resort - try stale disk cache (up to 24h old)
+  // Stale availability data is far better than blocking all dates
+  const STALE_DISK_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
+  const staleDiskCalendar = await loadCalendarFromDisk(listingId, STALE_DISK_MAX_AGE);
+  if (staleDiskCalendar && staleDiskCalendar.length > 0) {
+    console.warn(`⚠️ Using stale disk cache for ${listingId} (all APIs failed)`);
+    // Refresh memory cache with stale data so subsequent requests don't hit disk
+    calendarCache.set(cacheKey, {
+      data: staleDiskCalendar,
+      expiresAt: Date.now() + (5 * 60 * 1000), // 5 min - short TTL for stale data
+    });
+    return staleDiskCalendar;
   }
 
   throw new Error('All APIs unavailable - calendar data not found');

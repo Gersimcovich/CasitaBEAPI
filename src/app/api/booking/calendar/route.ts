@@ -57,22 +57,19 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Use legacy getCalendar which tries: memory cache -> disk cache -> Open API -> BEAPI
-    // It throws an error if ALL sources fail
+    // Tries: memory cache -> disk cache -> BEAPI -> Open API -> stale disk cache (24h)
+    // Only throws if ALL sources fail (including stale cache)
     const calendar = await getCalendarLegacy(listingId, from, to);
 
     if (!calendar || calendar.length === 0) {
-      // Can't get availability - block all dates to prevent double bookings
-      const allDatesBlocked = generateDateRange(from, to);
+      // No data from any source — return error so frontend can show "try again"
       return NextResponse.json({
-        success: true,
+        success: false,
+        error: 'Calendar data temporarily unavailable. Please try again shortly.',
         listingId,
         from,
         to,
-        availability: allDatesBlocked.map(date => ({ date, available: false })),
-        blockedDates: allDatesBlocked,
-        currency: 'USD',
-      });
+      }, { status: 503 });
     }
 
     // Transform for frontend use
@@ -100,16 +97,13 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Calendar API error:', error);
 
-    // Can't get availability - block all dates to prevent double bookings
-    const allDatesBlocked = generateDateRange(from, to);
+    // All sources failed — return error instead of fake blocked dates
     return NextResponse.json({
-      success: true,
+      success: false,
+      error: 'Calendar data temporarily unavailable. Please try again shortly.',
       listingId,
       from,
       to,
-      availability: allDatesBlocked.map(date => ({ date, available: false })),
-      blockedDates: allDatesBlocked,
-      currency: 'USD',
-    });
+    }, { status: 503 });
   }
 }

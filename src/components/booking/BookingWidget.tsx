@@ -308,17 +308,16 @@ export default function BookingWidget({
           </div>
         )}
 
-        {/* Calendar error state */}
+        {/* Calendar error state - show warning but still allow date selection */}
         {!isLoadingCalendar && calendarError && (
-          <div className="p-4 text-center">
-            <p className="text-sm text-[var(--casita-gray-600)]">{calendarError}</p>
-            <p className="text-xs text-[var(--casita-gray-500)] mt-1">Availability will be verified when you book.</p>
+          <div className="px-4 pt-3 pb-1 text-center">
+            <p className="text-xs text-[var(--casita-gray-500)]">Availability will be confirmed at checkout.</p>
           </div>
         )}
 
 
         {/* Date inputs */}
-        {!isLoadingCalendar && !calendarError && (
+        {!isLoadingCalendar && (
           <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[var(--casita-gray-200)]">
             <div className="p-3 sm:p-3">
               <label className="block text-xs font-semibold text-[var(--casita-gray-700)] uppercase mb-1">
