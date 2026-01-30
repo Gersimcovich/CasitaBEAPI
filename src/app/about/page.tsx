@@ -28,11 +28,14 @@ export default function AboutPage() {
               About <span className="text-[var(--casita-orange)]">Casita</span>
             </h1>
             <p className="text-xl text-[var(--casita-gray-600)] leading-relaxed">
-              Florida&apos;s largest Superhost, pioneering the boutique hotel experience
-              on Airbnb since 2018. What began as a bold idea in Miami Beach helped reshape
-              the hospitality landscape—proving that intimate, design-forward spaces with
-              the right amenities could outperform traditional hotels and inspire a new
-              generation of modern stays worldwide.
+              Florida&apos;s largest Superhost and home to Miami Beach&apos;s first exclusive
+              Airbnb hotel, launched in 2018. We replaced the traditional front desk with
+              a welcoming bar and reimagined check-in entirely—every guest arrives to a
+              seamless app-based experience with 24/7 digital concierge support. What began
+              as a bold experiment in boutique hospitality helped reshape the industry,
+              proving that intimate, design-forward spaces with the right amenities
+              outperform traditional hotels and inspire a new generation of modern
+              stays worldwide.
             </p>
           </div>
         </div>
@@ -64,7 +67,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-start gap-3">
                   <Target className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Our Mission</strong> — Building a curated global network of boutique hotels designed for the modern traveler. We laid the foundation for what has become a new wave in hospitality—compact, thoughtfully designed spaces with the right amenities that unlock the local adventure of each destination. What major brands like Moxy and Marriott later embraced, Casita pioneered: proving that today&apos;s guests choose authenticity, local charm, and personalized experiences over generic luxury</p>
+                  <p className="m-0"><strong>Our Mission</strong> — To build a curated global network of boutique hotels that unlock the local adventure of each destination for the modern traveler</p>
                 </div>
               </div>
             </div>
