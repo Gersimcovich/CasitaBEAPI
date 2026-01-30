@@ -3,7 +3,6 @@
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Star, TrendingUp, Award, Target } from 'lucide-react';
-import BeforeAfterSlider from '@/components/ui/BeforeAfterSlider';
 
 export default function AboutPage() {
   return (
@@ -114,16 +113,6 @@ export default function AboutPage() {
                   <p className="m-0"><strong>Reinventing the Hotel Experience</strong> — We took a conventional hotel and transformed it with next-generation hospitality software, smart technology hardware, and a warm, design-driven interior that feels like home—outperforming traditional operators by <strong className="text-[var(--casita-orange)]">over 40%</strong> in revenue</p>
                 </div>
 
-                {/* Before & After Slider — aligned with text (offset by icon + gap) */}
-                <div className="ml-9">
-                  <BeforeAfterSlider
-                    beforeSrc="/hotel-before.jpg"
-                    afterSrc="/hotel-after.jpg"
-                    beforeAlt="Historic Art Deco hotel before Casita"
-                    afterAlt="The hotel after Casita transformation"
-                  />
-                </div>
-
                 <div className="flex items-start gap-3">
                   <Award className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
                   <p className="m-0"><strong>Airbnb Superhost Advisory Panel</strong> — Selected among elite hosts worldwide to shape the future of hospitality alongside Airbnb leadership</p>
@@ -131,6 +120,55 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Target className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
                   <p className="m-0"><strong>Our Mission</strong> — Curating a global collection of boutique hotels rooted in the culture and character of each destination — because a room is never the destination, it&apos;s the gateway to experiencing a place like a true local</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The Transformation */}
+      <section className="py-16 bg-[var(--casita-gray-50)]">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-3xl font-bold text-[var(--casita-gray-900)] mb-10 text-center">
+              The Transformation
+            </h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Before */}
+              <div className="bg-white rounded-2xl overflow-hidden border border-[var(--casita-gray-100)] shadow-sm">
+                <img
+                  src="/hotel-before.jpg"
+                  alt="Historic Art Deco hotel before Casita"
+                  className="w-full h-64 object-cover"
+                />
+                <div className="p-6">
+                  <div className="inline-flex items-center gap-1.5 bg-[var(--casita-gray-100)] text-[var(--casita-gray-600)] text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                    Before Casita
+                  </div>
+                  <p className="text-[var(--casita-gray-600)] text-sm leading-relaxed">
+                    A classic Art Deco boutique hotel in Miami Beach — traditional operations,
+                    conventional front desk, and standard hospitality management.
+                  </p>
+                </div>
+              </div>
+
+              {/* After */}
+              <div className="bg-white rounded-2xl overflow-hidden border border-[var(--casita-gray-100)] shadow-sm">
+                <img
+                  src="/hotel-after.jpg"
+                  alt="The hotel after Casita transformation"
+                  className="w-full h-64 object-cover"
+                />
+                <div className="p-6">
+                  <div className="inline-flex items-center gap-1.5 bg-[var(--casita-orange)]/10 text-[var(--casita-orange)] text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    After Casita — +40% Revenue
+                  </div>
+                  <p className="text-[var(--casita-gray-600)] text-sm leading-relaxed">
+                    Reimagined with next-generation hospitality software, smart technology hardware,
+                    and a warm, design-driven interior — outperforming traditional operators.
+                  </p>
                 </div>
               </div>
             </div>
