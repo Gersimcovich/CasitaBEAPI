@@ -129,7 +129,7 @@ export default function PartnerPage() {
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-4xl mx-auto">
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
-              <div className="text-3xl md:text-4xl font-bold text-[var(--casita-orange)] mb-2">60K+</div>
+              <div className="text-3xl md:text-4xl font-bold text-[var(--casita-orange)] mb-2">{totalReviews.toLocaleString()}</div>
               <div className="text-white/70 text-sm">{t.partner.stat1}</div>
             </div>
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
@@ -141,8 +141,8 @@ export default function PartnerPage() {
               <div className="text-white/70 text-sm">{t.partner.stat3}</div>
             </div>
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center">
-              <div className="text-3xl md:text-4xl font-bold text-[var(--casita-orange)] mb-2">150M+</div>
-              <div className="text-white/70 text-sm">{t.partner.stat4 || 'Guest Exposure'}</div>
+              <div className="text-3xl md:text-4xl font-bold text-[var(--casita-orange)] mb-2">{totalGuestsHosted.toLocaleString()}+</div>
+              <div className="text-white/70 text-sm">{t.partner.guestsHosted || 'Guests Hosted'}</div>
             </div>
           </div>
         </div>

@@ -10,7 +10,7 @@ export default function AboutPage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-28 pb-16 bg-gradient-to-br from-[var(--casita-gray-50)] to-white relative overflow-hidden">
+      <section className="pt-28 pb-8 bg-gradient-to-br from-[var(--casita-gray-50)] to-white relative overflow-hidden">
         {/* Decorative images */}
         <img
           src="/palm.webp"
@@ -58,6 +58,10 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Home className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
                   <p className="m-0"><strong>Industry-Leading Hotel Transformation</strong> — First operators to successfully convert traditional hotels into Airbnb boutique experiences, consistently outperforming competitors by <strong className="text-[var(--casita-orange)]">over 33%</strong> in revenue generation</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Target className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
+                  <p className="m-0"><strong>Our Mission</strong> — Building a curated global network of boutique hotels designed for the modern traveler—guests who value authenticity, local charm, and the personalized experience that defines a new era of hospitality</p>
                 </div>
               </div>
             </div>
@@ -116,23 +120,23 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Who We Are */}
+      {/* Our Story & Mission */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-[var(--casita-gray-900)] mb-6 text-center">
-              Who We Are
-            </h2>
-            <div className="prose prose-lg mx-auto text-[var(--casita-gray-600)]">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center">
+                <Target className="w-6 h-6 text-[var(--casita-orange)]" />
+              </div>
+              <h2 className="text-3xl font-bold text-[var(--casita-gray-900)]">
+                Our Story
+              </h2>
+            </div>
+            <div className="prose prose-lg mx-auto text-[var(--casita-gray-600)] text-center mb-10">
               <p className="mb-6">
-                What started as a vision to reimagine hospitality has grown into Florida's largest
+                What started as a vision to reimagine hospitality has grown into Florida&apos;s largest
                 Airbnb Superhost operation. Based in the heart of Miami Beach, we pioneered the
                 concept of bringing the personalized Airbnb experience to full-service hotels.
-              </p>
-              <p className="mb-6">
-                With over 60,000 five-star reviews and $50 million+ in gross revenue generated for our
-                property partners, we've proven that the boutique hotel experience and short-term
-                rental flexibility can coexist—and thrive together.
               </p>
               <p>
                 Our team provides 24/7 bilingual guest support, ensuring every guest feels at home
@@ -141,76 +145,39 @@ export default function AboutPage() {
                 passive income without the hassle.
               </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="py-16 bg-[var(--casita-gray-50)]">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto">
-            <div className="text-center">
-              <div className="w-14 h-14 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center mx-auto mb-4">
-                <Star className="w-7 h-7 text-[var(--casita-orange)]" />
-              </div>
-              <div className="text-3xl font-bold text-[var(--casita-gray-900)]">60K+</div>
-              <div className="text-[var(--casita-gray-600)]">5-Star Reviews</div>
-            </div>
-            <div className="text-center">
-              <div className="w-14 h-14 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center mx-auto mb-4">
-                <Users className="w-7 h-7 text-[var(--casita-orange)]" />
-              </div>
-              <div className="text-3xl font-bold text-[var(--casita-gray-900)]">99.4%</div>
-              <div className="text-[var(--casita-gray-600)]">Occupancy</div>
-            </div>
-            <div className="text-center">
-              <div className="w-14 h-14 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center mx-auto mb-4">
-                <Award className="w-7 h-7 text-[var(--casita-orange)]" />
-              </div>
-              <div className="text-3xl font-bold text-[var(--casita-gray-900)]">$50M+</div>
-              <div className="text-[var(--casita-gray-600)]">Gross Revenue</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Values */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-[var(--casita-gray-900)] mb-12 text-center">
-              Our Values
-            </h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-full bg-[var(--casita-turquoise)]/10 flex items-center justify-center mx-auto mb-4">
-                  <Heart className="w-8 h-8 text-[var(--casita-turquoise)]" />
+            <div className="bg-gradient-to-br from-[var(--casita-orange)]/5 to-[var(--casita-turquoise)]/5 rounded-2xl p-8">
+              <p className="text-xl text-center text-[var(--casita-gray-700)] leading-relaxed mb-6 font-medium">
+                To redefine boutique hospitality by creating unforgettable stays that blend the warmth
+                of home with the excellence of a luxury hotel—while maximizing returns for property owners.
+              </p>
+              <div className="grid md:grid-cols-3 gap-6 pt-6 border-t border-[var(--casita-gray-300)]/30">
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-[var(--casita-turquoise)]/10 flex items-center justify-center mx-auto mb-3">
+                    <Heart className="w-6 h-6 text-[var(--casita-turquoise)]" />
+                  </div>
+                  <h4 className="font-semibold text-[var(--casita-gray-900)] mb-1">For Guests</h4>
+                  <p className="text-sm text-[var(--casita-gray-600)]">
+                    Curated stays with hotel-quality service and the comfort of home
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold text-[var(--casita-gray-900)] mb-3">Guest First</h3>
-                <p className="text-[var(--casita-gray-600)]">
-                  Every decision we make prioritizes the guest experience, from seamless check-ins
-                  to responsive 24/7 support.
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-full bg-[var(--casita-coral)]/10 flex items-center justify-center mx-auto mb-4">
-                  <Award className="w-8 h-8 text-[var(--casita-coral)]" />
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center mx-auto mb-3">
+                    <Home className="w-6 h-6 text-[var(--casita-orange)]" />
+                  </div>
+                  <h4 className="font-semibold text-[var(--casita-gray-900)] mb-1">For Owners</h4>
+                  <p className="text-sm text-[var(--casita-gray-600)]">
+                    Hassle-free property management with industry-leading returns
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold text-[var(--casita-gray-900)] mb-3">Excellence</h3>
-                <p className="text-[var(--casita-gray-600)]">
-                  We maintain Superhost status through meticulous attention to detail and
-                  consistently exceeding expectations.
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 text-[var(--casita-orange)]" />
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-[var(--casita-coral)]/10 flex items-center justify-center mx-auto mb-3">
+                    <Users className="w-6 h-6 text-[var(--casita-coral)]" />
+                  </div>
+                  <h4 className="font-semibold text-[var(--casita-gray-900)] mb-1">For Communities</h4>
+                  <p className="text-sm text-[var(--casita-gray-600)]">
+                    Responsible hosting that respects neighborhoods and local regulations
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold text-[var(--casita-gray-900)] mb-3">Partnership</h3>
-                <p className="text-[var(--casita-gray-600)]">
-                  We treat every property owner as a partner, providing transparent reporting
-                  and flexible month-to-month agreements.
-                </p>
               </div>
             </div>
           </div>
@@ -240,49 +207,6 @@ export default function AboutPage() {
                 <a href="mailto:reservations@hellocasita.com" className="hover:text-[var(--casita-orange)] transition-colors">
                   reservations@hellocasita.com
                 </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Our Mission */}
-      <section className="py-16 bg-gradient-to-br from-[var(--casita-orange)]/5 to-[var(--casita-turquoise)]/5">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center">
-                <Target className="w-6 h-6 text-[var(--casita-orange)]" />
-              </div>
-              <h2 className="text-3xl font-bold text-[var(--casita-gray-900)]">
-                Our Mission
-              </h2>
-            </div>
-            <div className="bg-white rounded-2xl p-8 shadow-sm">
-              <p className="text-xl text-center text-[var(--casita-gray-700)] leading-relaxed mb-6">
-                To redefine boutique hospitality by creating unforgettable stays that blend the warmth
-                of home with the excellence of a luxury hotel—while maximizing returns for property owners
-                and setting new standards for the short-term rental industry.
-              </p>
-              <div className="grid md:grid-cols-3 gap-6 pt-6 border-t border-[var(--casita-gray-200)]">
-                <div className="text-center">
-                  <h4 className="font-semibold text-[var(--casita-gray-900)] mb-2">For Guests</h4>
-                  <p className="text-sm text-[var(--casita-gray-600)]">
-                    Curated stays with hotel-quality service and the comfort of home
-                  </p>
-                </div>
-                <div className="text-center">
-                  <h4 className="font-semibold text-[var(--casita-gray-900)] mb-2">For Owners</h4>
-                  <p className="text-sm text-[var(--casita-gray-600)]">
-                    Hassle-free property management with industry-leading returns
-                  </p>
-                </div>
-                <div className="text-center">
-                  <h4 className="font-semibold text-[var(--casita-gray-900)] mb-2">For Communities</h4>
-                  <p className="text-sm text-[var(--casita-gray-600)]">
-                    Responsible hosting that respects neighborhoods and local regulations
-                  </p>
-                </div>
               </div>
             </div>
           </div>

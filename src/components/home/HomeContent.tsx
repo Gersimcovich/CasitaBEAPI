@@ -278,6 +278,7 @@ function LowestPricesSection({ properties, formatPrice }: { properties: Property
 export default function HomeContent({ properties }: HomeContentProps) {
   const { t, formatPrice } = useLocale();
   const [totalGuestsHosted, setTotalGuestsHosted] = useState(182331);
+  const [totalReviews, setTotalReviews] = useState(60777);
 
   // Fetch hosted guests stats
   useEffect(() => {
@@ -285,8 +286,13 @@ export default function HomeContent({ properties }: HomeContentProps) {
       try {
         const response = await fetch('/api/stats');
         const data = await response.json();
-        if (data.success && data.data.totalGuestsHosted) {
-          setTotalGuestsHosted(data.data.totalGuestsHosted);
+        if (data.success) {
+          if (data.data.totalGuestsHosted) {
+            setTotalGuestsHosted(data.data.totalGuestsHosted);
+          }
+          if (data.data.totalReviews) {
+            setTotalReviews(data.data.totalReviews);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch stats:', error);
@@ -417,7 +423,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12.001 18.275c-1.353-1.697-2.148-3.184-2.413-4.457-.263-1.267-.057-2.32.614-3.134.395-.479.894-.806 1.449-.954.275-.073.547-.11.814-.11.932 0 1.728.457 2.175 1.17.263.423.39.91.39 1.402 0 .736-.234 1.56-.713 2.448-.36.665-.871 1.433-1.52 2.282-.424.555-.874 1.113-1.343 1.67l-.453.566-.453-.566c-.469-.557-.919-1.115-1.343-1.67-.649-.849-1.16-1.617-1.52-2.282-.479-.888-.713-1.712-.713-2.448 0-.492.127-.979.39-1.402.447-.713 1.243-1.17 2.175-1.17.267 0 .539.037.814.11.555.148 1.054.475 1.449.954.671.814.877 1.867.614 3.134-.265 1.273-1.06 2.76-2.413 4.457z"/>
             </svg>
-            See All 60,000+ Reviews on Airbnb
+            See All {totalReviews.toLocaleString()}+ Reviews on Airbnb
             <ExternalLink className="w-4 h-4" />
           </a>
         </div>
