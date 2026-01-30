@@ -1391,8 +1391,32 @@ export async function searchListings(params: {
 }
 
 /**
+ * Generate a synthetic calendar with all dates available.
+ * Used when all APIs are rate limited and no cached data exists.
+ * Actual availability is verified at booking time via getQuote.
+ */
+function generateSyntheticCalendar(from: string, to: string): CalendarDay[] {
+  const days: CalendarDay[] = [];
+  const current = new Date(from);
+  const end = new Date(to);
+
+  while (current < end) {
+    days.push({
+      date: current.toISOString().split('T')[0],
+      status: 'available',
+      price: 0, // Price unknown — frontend uses property base price
+      minNights: undefined,
+      currency: 'USD',
+    });
+    current.setDate(current.getDate() + 1);
+  }
+
+  return days;
+}
+
+/**
  * Get calendar availability for a listing
- * STRATEGY: Memory cache -> Disk cache -> BEAPI (best availability) -> Open API -> Stale cache
+ * STRATEGY: Memory cache -> Disk cache -> BEAPI (best availability) -> Open API -> Stale cache -> Synthetic
  * BEAPI has proper availability status, Open API availability-pricing may not be accurate
  */
 export async function getCalendar(
@@ -1400,9 +1424,9 @@ export async function getCalendar(
   from: string,
   to: string
 ): Promise<CalendarDay[]> {
-  // If fallback mode, return empty calendar (all dates available)
+  // If fallback mode, return synthetic calendar (all dates available)
   if (USE_FALLBACK_ONLY) {
-    return [];
+    return generateSyntheticCalendar(from, to);
   }
 
   const cacheKey = `${listingId}-${from}-${to}`;
@@ -1541,7 +1565,16 @@ export async function getCalendar(
     return staleDiskCalendar;
   }
 
-  throw new Error('All APIs unavailable - calendar data not found');
+  // STEP 7: Generate synthetic calendar when all APIs fail
+  // All dates shown as available - actual availability is verified at booking time via getQuote
+  console.warn(`⚠️ All APIs rate limited, no cache for ${listingId} — returning synthetic calendar`);
+  const synthetic = generateSyntheticCalendar(from, to);
+  // Cache with short TTL so we retry APIs soon
+  calendarCache.set(cacheKey, {
+    data: synthetic,
+    expiresAt: Date.now() + (2 * 60 * 1000), // 2 min
+  });
+  return synthetic;
 }
 
 /**
