@@ -2,7 +2,7 @@
 
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { Star, Home, Award, Target } from 'lucide-react';
+import { Star, TrendingUp, Award, Target } from 'lucide-react';
 
 export default function AboutPage() {
   return (
@@ -54,16 +54,16 @@ export default function AboutPage() {
               </p>
               <div className="bg-[var(--casita-orange)]/5 rounded-2xl p-8 text-left space-y-4">
                 <div className="flex items-start gap-3">
-                  <Award className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Airbnb Superhost Advisory Panel Members</strong> — Selected among elite hosts worldwide to shape the future of hospitality</p>
-                </div>
-                <div className="flex items-start gap-3">
                   <Star className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Pioneers of the Airbnb Hotel Concept</strong> — Launched Miami Beach's first Airbnb hotel in 2018, revolutionizing how travelers experience boutique hospitality</p>
+                  <p className="m-0"><strong>Miami Beach&apos;s First Exclusive Airbnb Hotel</strong> — In 2018, we opened a boutique hotel on Ocean Drive built entirely around Airbnb—no front desk, just a welcoming bar, app-based check-in, and 24/7 digital concierge. It changed everything.</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Home className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Industry-Leading Hotel Transformation</strong> — First operators to successfully convert traditional hotels into Airbnb boutique experiences, consistently outperforming competitors by <strong className="text-[var(--casita-orange)]">over 33%</strong> in revenue generation</p>
+                  <TrendingUp className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
+                  <p className="m-0"><strong>Industry-Leading Performance</strong> — Proved that the boutique Airbnb hotel model consistently outperforms traditional operators by <strong className="text-[var(--casita-orange)]">over 33%</strong> in revenue, setting a new standard for the industry</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Award className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
+                  <p className="m-0"><strong>Airbnb Superhost Advisory Panel</strong> — Selected among elite hosts worldwide to shape the future of hospitality alongside Airbnb leadership</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <Target className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
