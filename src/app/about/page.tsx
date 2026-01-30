@@ -55,7 +55,7 @@ export default function AboutPage() {
               <div className="bg-[var(--casita-orange)]/5 rounded-2xl p-8 text-left space-y-4">
                 <div className="flex items-start gap-3">
                   <Star className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Miami Beach&apos;s First Exclusive Airbnb Hotel</strong> — In 2018, we opened a boutique hotel on Ocean Drive built entirely around Airbnb—no front desk, just a welcoming bar, app-based check-in, and 24/7 digital concierge. It changed everything.</p>
+                  <p className="m-0"><strong>Miami Beach&apos;s First Exclusive Airbnb Hotel</strong> — In 2018, we opened a boutique hotel on Ocean Drive built entirely around Airbnb—no front desk, just a welcoming bar, app-based check-in, and 24/7 digital concierge. It changed everything. Local operators and international brands soon followed, adopting the model Casita pioneered.</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <TrendingUp className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
