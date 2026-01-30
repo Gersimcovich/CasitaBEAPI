@@ -1,1 +1,427 @@
-{}
+{
+  "5e0328add5ffff001fcbaebf": {
+    "days": [
+      {
+        "date": "2026-01-30",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-01-31",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-01",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-02",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-03",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-04",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-05",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-06",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-07",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-08",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-09",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-10",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-11",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-12",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-13",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-14",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-15",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-16",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-17",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-18",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-19",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-20",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-21",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-22",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-23",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-24",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-25",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-26",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-27",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-02-28",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-01",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-02",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-03",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-04",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-05",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-06",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-07",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-08",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-09",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-10",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-11",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-12",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-13",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-14",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-15",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-16",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-17",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-18",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-19",
+        "status": "available",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-20",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-21",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-22",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-23",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-24",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-25",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-26",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-27",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-28",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-29",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-03-30",
+        "status": "booked",
+        "price": 0,
+        "minNights": 1,
+        "currency": "USD"
+      }
+    ],
+    "savedAt": "2026-01-30T19:02:45.313Z"
+  }
+}

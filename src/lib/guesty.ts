@@ -109,7 +109,8 @@ async function saveCalendarToDisk(listingId: string, days: CalendarDay[]): Promi
 
 // Load calendar data from persistent storage
 // maxAgeMs controls how old cached data can be (default 1h fresh, up to 24h stale fallback)
-async function loadCalendarFromDisk(listingId: string, maxAgeMs?: number): Promise<CalendarDay[] | null> {
+// from/to: if provided, validates cached dates overlap with requested range
+async function loadCalendarFromDisk(listingId: string, maxAgeMs?: number, from?: string, to?: string): Promise<CalendarDay[] | null> {
   try {
     const filePath = path.join(DATA_DIR, 'calendar.json');
     const fileContent = await fs.readFile(filePath, 'utf-8');
@@ -123,6 +124,18 @@ async function loadCalendarFromDisk(listingId: string, maxAgeMs?: number): Promi
         console.log(`📂 Disk calendar for ${listingId} expired (saved: ${calendarData.savedAt}, maxAge: ${Math.round(maxAge / 60000)}m)`);
         return null;
       }
+
+      // Validate cached dates overlap with requested range
+      if (from && to && calendarData.days.length > 0) {
+        const cachedFrom = calendarData.days[0].date;
+        const cachedTo = calendarData.days[calendarData.days.length - 1].date;
+        // If cached range doesn't overlap requested range, reject it
+        if (cachedTo < from || cachedFrom > to) {
+          console.log(`📂 Disk calendar for ${listingId} has wrong date range (cached: ${cachedFrom}→${cachedTo}, requested: ${from}→${to})`);
+          return null;
+        }
+      }
+
       console.log(`📂 Loaded calendar for ${listingId} from disk (saved: ${calendarData.savedAt})`);
       return calendarData.days;
     }
@@ -1401,8 +1414,8 @@ export async function getCalendar(
     return cached.data;
   }
 
-  // STEP 2: Check disk cache
-  const diskCalendar = await loadCalendarFromDisk(listingId);
+  // STEP 2: Check disk cache (validate date range matches)
+  const diskCalendar = await loadCalendarFromDisk(listingId, undefined, from, to);
   if (diskCalendar && diskCalendar.length > 0) {
     // Load to memory cache
     calendarCache.set(cacheKey, {
@@ -1517,7 +1530,7 @@ export async function getCalendar(
   // STEP 6: Last resort - try stale disk cache (up to 24h old)
   // Stale availability data is far better than blocking all dates
   const STALE_DISK_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
-  const staleDiskCalendar = await loadCalendarFromDisk(listingId, STALE_DISK_MAX_AGE);
+  const staleDiskCalendar = await loadCalendarFromDisk(listingId, STALE_DISK_MAX_AGE, from, to);
   if (staleDiskCalendar && staleDiskCalendar.length > 0) {
     console.warn(`⚠️ Using stale disk cache for ${listingId} (all APIs failed)`);
     // Refresh memory cache with stale data so subsequent requests don't hit disk
