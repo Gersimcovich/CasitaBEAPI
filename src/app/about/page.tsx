@@ -132,7 +132,7 @@ export default function AboutPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-3xl font-bold text-[var(--casita-gray-900)] mb-10 text-center">
-              The Transformation
+              Design Curation
             </h2>
             <div className="grid md:grid-cols-2 gap-8">
               {/* Before */}
