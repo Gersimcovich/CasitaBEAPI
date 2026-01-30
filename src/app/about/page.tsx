@@ -106,19 +106,44 @@ export default function AboutPage() {
               <div className="bg-[var(--casita-orange)]/5 rounded-2xl p-8 text-left space-y-4">
                 <div className="flex items-start gap-3">
                   <Star className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Miami Beach&apos;s First Exclusive Airbnb Hotel</strong> — In 2018, we opened a boutique hotel on Ocean Drive built entirely around Airbnb—no front desk, just a welcoming bar, app-based check-in, and 24/7 digital concierge. It changed everything. Local operators and international brands soon followed, adopting the model Casita pioneered.</p>
+                  <p className="m-0"><strong>Miami Beach&apos;s First Exclusive Airbnb Hotel</strong> — In 2018, we transformed a historic Art Deco boutique hotel in Miami Beach into the first property built entirely around Airbnb—no front desk, just a welcoming bar, app-based check-in, and 24/7 digital concierge. It changed everything. Local operators and international brands soon followed, adopting the model Casita pioneered.</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <TrendingUp className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
                   <p className="m-0"><strong>Reinventing the Hotel Experience</strong> — We took a conventional hotel and transformed it with next-generation hospitality software, smart technology hardware, and a warm, design-driven interior that feels like home—outperforming traditional operators by <strong className="text-[var(--casita-orange)]">over 33%</strong> in revenue</p>
                 </div>
+
+                {/* Before & After */}
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="relative rounded-xl overflow-hidden">
+                    <img
+                      src="/hotel-before.jpg"
+                      alt="Historic Art Deco hotel before Casita"
+                      className="w-full h-48 md:h-56 object-cover"
+                    />
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                      <span className="text-white text-sm font-semibold">Before</span>
+                    </div>
+                  </div>
+                  <div className="relative rounded-xl overflow-hidden">
+                    <img
+                      src="/hotel-after.jpg"
+                      alt="The Clifton after Casita transformation"
+                      className="w-full h-48 md:h-56 object-cover"
+                    />
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                      <span className="text-white text-sm font-semibold">After — <span className="text-[var(--casita-orange)]">+40% revenue</span></span>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex items-start gap-3">
                   <Award className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
                   <p className="m-0"><strong>Airbnb Superhost Advisory Panel</strong> — Selected among elite hosts worldwide to shape the future of hospitality alongside Airbnb leadership</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <Target className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Our Mission</strong> — Curating a global collection of boutique hotels rooted in the culture and character of each destination, so every stay feels like discovering a place like a true local</p>
+                  <p className="m-0"><strong>Our Mission</strong> — Curating a global collection of boutique hotels rooted in the culture and character of each destination — because a room is never the destination, it&apos;s the gateway to experiencing a place like a true local</p>
                 </div>
               </div>
             </div>
