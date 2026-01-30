@@ -41,41 +41,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Founders */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-[var(--casita-gray-900)] mb-6 text-center">
-              Our Founders
-            </h2>
-            <div className="prose prose-lg mx-auto text-[var(--casita-gray-600)] text-center">
-              <p className="mb-6 text-xl">
-                Founded by <strong className="text-[var(--casita-gray-900)]">German Daniel Simcovich</strong> & <strong className="text-[var(--casita-gray-900)]">Georgia Whalen</strong>
-              </p>
-              <div className="bg-[var(--casita-orange)]/5 rounded-2xl p-8 text-left space-y-4">
-                <div className="flex items-start gap-3">
-                  <Star className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Miami Beach&apos;s First Exclusive Airbnb Hotel</strong> — In 2018, we opened a boutique hotel on Ocean Drive built entirely around Airbnb—no front desk, just a welcoming bar, app-based check-in, and 24/7 digital concierge. It changed everything. Local operators and international brands soon followed, adopting the model Casita pioneered.</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <TrendingUp className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Industry-Leading Performance</strong> — Proved that the boutique Airbnb hotel model consistently outperforms traditional operators by <strong className="text-[var(--casita-orange)]">over 33%</strong> in revenue, setting a new standard for the industry</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Award className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Airbnb Superhost Advisory Panel</strong> — Selected among elite hosts worldwide to shape the future of hospitality alongside Airbnb leadership</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Target className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Our Mission</strong> — Curating a global collection of boutique accommodations where architecture, design, and hospitality are shaped by the culture, nature, and spirit of each destination—spaces that immerse travelers in the authentic story of a place, not just a room to sleep in</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Press & Recognition */}
+      {/* Industry Recognition - after About hero */}
       <section className="py-16 bg-[var(--casita-gray-50)]">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
@@ -119,6 +85,40 @@ export default function AboutPage() {
                     Featured by Guesty, one of the world's largest property management platforms,
                     in an exclusive interview recognizing Casita as top operators in Miami Beach.
                   </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Founders */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-[var(--casita-gray-900)] mb-6 text-center">
+              Our Founders
+            </h2>
+            <div className="prose prose-lg mx-auto text-[var(--casita-gray-600)] text-center">
+              <p className="mb-6 text-xl">
+                Founded by <strong className="text-[var(--casita-gray-900)]">German Daniel Simcovich</strong> & <strong className="text-[var(--casita-gray-900)]">Georgia Whalen</strong>
+              </p>
+              <div className="bg-[var(--casita-orange)]/5 rounded-2xl p-8 text-left space-y-4">
+                <div className="flex items-start gap-3">
+                  <Star className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
+                  <p className="m-0"><strong>Miami Beach&apos;s First Exclusive Airbnb Hotel</strong> — In 2018, we opened a boutique hotel on Ocean Drive built entirely around Airbnb—no front desk, just a welcoming bar, app-based check-in, and 24/7 digital concierge. It changed everything. Local operators and international brands soon followed, adopting the model Casita pioneered.</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
+                  <p className="m-0"><strong>Reinventing the Hotel Experience</strong> — We took a conventional hotel and transformed it with next-generation hospitality software, smart technology hardware, and a warm, design-driven interior that feels like home—outperforming traditional operators by <strong className="text-[var(--casita-orange)]">over 33%</strong> in revenue</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Award className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
+                  <p className="m-0"><strong>Airbnb Superhost Advisory Panel</strong> — Selected among elite hosts worldwide to shape the future of hospitality alongside Airbnb leadership</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Target className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
+                  <p className="m-0"><strong>Our Mission</strong> — Curating a global collection of boutique hotels rooted in the culture and character of each destination, so every stay feels like discovering a place like a true local</p>
                 </div>
               </div>
             </div>
