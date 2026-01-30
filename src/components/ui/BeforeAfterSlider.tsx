@@ -60,16 +60,15 @@ export default function BeforeAfterSlider({
         draggable={false}
       />
 
-      {/* Before image (clipped) */}
+      {/* Before image (clipped — image stays fixed, only the clip moves) */}
       <div
         className="absolute inset-0 overflow-hidden"
-        style={{ width: `${position}%` }}
+        style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
       >
         <img
           src={beforeSrc}
           alt={beforeAlt}
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '100vw' }}
           draggable={false}
         />
       </div>

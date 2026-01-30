@@ -114,13 +114,15 @@ export default function AboutPage() {
                   <p className="m-0"><strong>Reinventing the Hotel Experience</strong> — We took a conventional hotel and transformed it with next-generation hospitality software, smart technology hardware, and a warm, design-driven interior that feels like home—outperforming traditional operators by <strong className="text-[var(--casita-orange)]">over 40%</strong> in revenue</p>
                 </div>
 
-                {/* Before & After Slider */}
-                <BeforeAfterSlider
-                  beforeSrc="/hotel-before.jpg"
-                  afterSrc="/hotel-after.jpg"
-                  beforeAlt="Historic Art Deco hotel before Casita"
-                  afterAlt="The hotel after Casita transformation"
-                />
+                {/* Before & After Slider — aligned with text (offset by icon + gap) */}
+                <div className="ml-9">
+                  <BeforeAfterSlider
+                    beforeSrc="/hotel-before.jpg"
+                    afterSrc="/hotel-after.jpg"
+                    beforeAlt="Historic Art Deco hotel before Casita"
+                    afterAlt="The hotel after Casita transformation"
+                  />
+                </div>
 
                 <div className="flex items-start gap-3">
                   <Award className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
