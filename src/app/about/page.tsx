@@ -67,7 +67,7 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-start gap-3">
                   <Target className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Our Mission</strong> — To build a curated global network of boutique hotels that unlock the local adventure of each destination for the modern traveler</p>
+                  <p className="m-0"><strong>Our Mission</strong> — To build a curated global network of unique, culturally authentic boutique hotels that unlock the local adventure of each destination for the modern traveler</p>
                 </div>
               </div>
             </div>
