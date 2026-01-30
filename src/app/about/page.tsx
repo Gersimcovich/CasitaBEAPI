@@ -147,8 +147,7 @@ export default function AboutPage() {
                     Before Casita
                   </div>
                   <p className="text-[var(--casita-gray-600)] text-sm leading-relaxed">
-                    A classic Art Deco boutique hotel in Miami Beach — traditional operations,
-                    conventional front desk, and standard hospitality management.
+                    A traditional boutique hotel with conventional management
                   </p>
                 </div>
               </div>
@@ -166,8 +165,7 @@ export default function AboutPage() {
                     After Casita — +40% Revenue
                   </div>
                   <p className="text-[var(--casita-gray-600)] text-sm leading-relaxed">
-                    Reimagined with next-generation hospitality software, smart technology hardware,
-                    and a warm, design-driven interior — outperforming traditional operators.
+                    Redesigned with smart technology and curated interiors
                   </p>
                 </div>
               </div>
