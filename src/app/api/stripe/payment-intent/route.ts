@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-12-15.clover',
-});
+// Lazy initialization — avoid crashing at build time when env vars aren't available
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+      apiVersion: '2025-12-15.clover',
+    });
+  }
+  return _stripe;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     // Create a PaymentIntent with all available payment methods
     // Using automatic_payment_methods lets Stripe show applicable methods based on currency/region
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await getStripe().paymentIntents.create({
       amount: Math.round(amount * 100), // Convert to cents
       currency: currency.toLowerCase(),
       // Enable automatic payment methods - Stripe will show all applicable methods

@@ -6,10 +6,16 @@ import Stripe from 'stripe';
 // Host email for notifications (can be moved to env var)
 const HOST_EMAIL = process.env.HOST_EMAIL || 'bookings@hellocasita.com';
 
-// Initialize Stripe for payment capture
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-12-15.clover',
-});
+// Lazy Stripe initialization — avoid crashing at build time
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+      apiVersion: '2025-12-15.clover',
+    });
+  }
+  return _stripe;
+}
 
 export async function POST(request: Request) {
   try {
@@ -110,7 +116,7 @@ export async function POST(request: Request) {
       // Step 1: Capture the Stripe payment (it was authorized with manual capture)
       let paymentIntent;
       try {
-        paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
+        paymentIntent = await getStripe().paymentIntents.capture(paymentIntentId);
 
         if (paymentIntent.status !== 'succeeded') {
           return NextResponse.json({

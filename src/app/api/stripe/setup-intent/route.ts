@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-12-15.clover',
-});
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+      apiVersion: '2025-12-15.clover',
+    });
+  }
+  return _stripe;
+}
 
 export async function POST() {
   try {
@@ -12,7 +18,7 @@ export async function POST() {
     // The payment method ID will be passed to Guesty as ccToken
     // Note: Klarna and Affirm require PaymentIntents with an amount, not SetupIntents
     // For now, we support card payments. BNPL options can be added when using PaymentIntents.
-    const setupIntent = await stripe.setupIntents.create({
+    const setupIntent = await getStripe().setupIntents.create({
       payment_method_types: ['card'],
       usage: 'off_session', // Allow the payment method to be used later by Guesty
     });
