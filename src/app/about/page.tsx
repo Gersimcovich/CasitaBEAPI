@@ -3,6 +3,7 @@
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Star, TrendingUp, Award, Target } from 'lucide-react';
+import BeforeAfterSlider from '@/components/ui/BeforeAfterSlider';
 
 export default function AboutPage() {
   return (
@@ -110,32 +111,16 @@ export default function AboutPage() {
                 </div>
                 <div className="flex items-start gap-3">
                   <TrendingUp className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
-                  <p className="m-0"><strong>Reinventing the Hotel Experience</strong> — We took a conventional hotel and transformed it with next-generation hospitality software, smart technology hardware, and a warm, design-driven interior that feels like home—outperforming traditional operators by <strong className="text-[var(--casita-orange)]">over 33%</strong> in revenue</p>
+                  <p className="m-0"><strong>Reinventing the Hotel Experience</strong> — We took a conventional hotel and transformed it with next-generation hospitality software, smart technology hardware, and a warm, design-driven interior that feels like home—outperforming traditional operators by <strong className="text-[var(--casita-orange)]">over 40%</strong> in revenue</p>
                 </div>
 
-                {/* Before & After */}
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="relative rounded-xl overflow-hidden">
-                    <img
-                      src="/hotel-before.jpg"
-                      alt="Historic Art Deco hotel before Casita"
-                      className="w-full h-48 md:h-56 object-cover"
-                    />
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-                      <span className="text-white text-sm font-semibold">Before</span>
-                    </div>
-                  </div>
-                  <div className="relative rounded-xl overflow-hidden">
-                    <img
-                      src="/hotel-after.jpg"
-                      alt="The Clifton after Casita transformation"
-                      className="w-full h-48 md:h-56 object-cover"
-                    />
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-                      <span className="text-white text-sm font-semibold">After — <span className="text-[var(--casita-orange)]">+40% revenue</span></span>
-                    </div>
-                  </div>
-                </div>
+                {/* Before & After Slider */}
+                <BeforeAfterSlider
+                  beforeSrc="/hotel-before.jpg"
+                  afterSrc="/hotel-after.jpg"
+                  beforeAlt="Historic Art Deco hotel before Casita"
+                  afterAlt="The hotel after Casita transformation"
+                />
 
                 <div className="flex items-start gap-3">
                   <Award className="w-6 h-6 text-[var(--casita-orange)] flex-shrink-0 mt-1" />
