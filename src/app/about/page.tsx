@@ -2,7 +2,7 @@
 
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { Star, Home, Users, Award, Heart, MapPin, Phone, Mail, Target } from 'lucide-react';
+import { Star, Home, Award, Target } from 'lucide-react';
 
 export default function AboutPage() {
   return (
@@ -120,99 +120,6 @@ export default function AboutPage() {
                     in an exclusive interview recognizing Casita as top operators in Miami Beach.
                   </p>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Our Story & Mission */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center">
-                <Target className="w-6 h-6 text-[var(--casita-orange)]" />
-              </div>
-              <h2 className="text-3xl font-bold text-[var(--casita-gray-900)]">
-                Our Story
-              </h2>
-            </div>
-            <div className="prose prose-lg mx-auto text-[var(--casita-gray-600)] text-center mb-10">
-              <p className="mb-6">
-                What started as a vision to reimagine hospitality has grown into Florida&apos;s largest
-                Airbnb Superhost operation. Based in the heart of Miami Beach, we pioneered the
-                concept of bringing the personalized Airbnb experience to full-service hotels.
-              </p>
-              <p>
-                Our team provides 24/7 bilingual guest support, ensuring every guest feels at home
-                from the moment they book until the day they check out. We handle everything—from
-                listing optimization to maintenance coordination—so property owners can enjoy
-                passive income without the hassle.
-              </p>
-            </div>
-            <div className="bg-gradient-to-br from-[var(--casita-orange)]/5 to-[var(--casita-turquoise)]/5 rounded-2xl p-8">
-              <p className="text-xl text-center text-[var(--casita-gray-700)] leading-relaxed mb-6 font-medium">
-                To redefine boutique hospitality by creating unforgettable stays that blend the warmth
-                of home with the excellence of a luxury hotel—while maximizing returns for property owners.
-              </p>
-              <div className="grid md:grid-cols-3 gap-6 pt-6 border-t border-[var(--casita-gray-300)]/30">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-[var(--casita-turquoise)]/10 flex items-center justify-center mx-auto mb-3">
-                    <Heart className="w-6 h-6 text-[var(--casita-turquoise)]" />
-                  </div>
-                  <h4 className="font-semibold text-[var(--casita-gray-900)] mb-1">For Guests</h4>
-                  <p className="text-sm text-[var(--casita-gray-600)]">
-                    Curated stays with hotel-quality service and the comfort of home
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center mx-auto mb-3">
-                    <Home className="w-6 h-6 text-[var(--casita-orange)]" />
-                  </div>
-                  <h4 className="font-semibold text-[var(--casita-gray-900)] mb-1">For Owners</h4>
-                  <p className="text-sm text-[var(--casita-gray-600)]">
-                    Hassle-free property management with industry-leading returns
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-[var(--casita-coral)]/10 flex items-center justify-center mx-auto mb-3">
-                    <Users className="w-6 h-6 text-[var(--casita-coral)]" />
-                  </div>
-                  <h4 className="font-semibold text-[var(--casita-gray-900)] mb-1">For Communities</h4>
-                  <p className="text-sm text-[var(--casita-gray-600)]">
-                    Responsible hosting that respects neighborhoods and local regulations
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Info */}
-      <section className="py-16 bg-[var(--casita-gray-50)]">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-[var(--casita-gray-900)] mb-8">
-              Get in Touch
-            </h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-center gap-3 text-[var(--casita-gray-600)]">
-                <MapPin className="w-5 h-5 text-[var(--casita-orange)]" />
-                <span>436 Ocean Dr, Miami Beach, FL 33139</span>
-              </div>
-              <div className="flex items-center justify-center gap-3 text-[var(--casita-gray-600)]">
-                <Phone className="w-5 h-5 text-[var(--casita-orange)]" />
-                <a href="tel:+17866947577" className="hover:text-[var(--casita-orange)] transition-colors">
-                  (786) 694-7577
-                </a>
-              </div>
-              <div className="flex items-center justify-center gap-3 text-[var(--casita-gray-600)]">
-                <Mail className="w-5 h-5 text-[var(--casita-orange)]" />
-                <a href="mailto:reservations@hellocasita.com" className="hover:text-[var(--casita-orange)] transition-colors">
-                  reservations@hellocasita.com
-                </a>
               </div>
             </div>
           </div>
