@@ -5,6 +5,7 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
+import { getDatabase } from './mongodb';
 
 // Set to true to skip API calls and use only fallback data (useful during development)
 const USE_FALLBACK_ONLY = process.env.GUESTY_USE_FALLBACK_ONLY === 'true';
@@ -504,6 +505,35 @@ async function saveBeapiTokenToFile(apiIndex: number, token: string, expiresAt: 
   }
 }
 
+// MongoDB token persistence - survives across ALL Vercel serverless instances
+const MONGO_TOKEN_COLLECTION = 'api_tokens';
+
+async function loadTokenFromMongo(key: string): Promise<{ token: string; expiresAt: number } | null> {
+  try {
+    const db = await getDatabase();
+    const doc = await db.collection(MONGO_TOKEN_COLLECTION).findOne({ key });
+    if (doc && doc.expiresAt > Date.now() + 5 * 60 * 1000) {
+      return { token: doc.token, expiresAt: doc.expiresAt };
+    }
+  } catch (err) {
+    console.warn(`MongoDB token load failed for ${key}:`, err instanceof Error ? err.message : err);
+  }
+  return null;
+}
+
+async function saveTokenToMongo(key: string, token: string, expiresAt: number): Promise<void> {
+  try {
+    const db = await getDatabase();
+    await db.collection(MONGO_TOKEN_COLLECTION).updateOne(
+      { key },
+      { $set: { key, token, expiresAt, updatedAt: new Date() } },
+      { upsert: true }
+    );
+  } catch (err) {
+    console.warn(`MongoDB token save failed for ${key}:`, err instanceof Error ? err.message : err);
+  }
+}
+
 // AGGRESSIVE CACHING to minimize API calls and prevent rate limiting
 // Listings cache - 24 hours (properties rarely change, this is the main data)
 let cachedListings: { data: GuestyListing[]; expiresAt: number } | null = null;
@@ -562,12 +592,21 @@ async function getOpenApiAccessToken(): Promise<string> {
     return openApiToken.token;
   }
 
-  // Check file cache (persists across serverless cold starts)
+  // Check file cache (persists across serverless cold starts on same instance)
   const fileToken = await loadOpenApiTokenFromFile();
   if (fileToken) {
     openApiToken = fileToken;
     console.log('🔑 Open API token loaded from file cache');
     return fileToken.token;
+  }
+
+  // Check MongoDB (persists across ALL serverless instances)
+  const mongoToken = await loadTokenFromMongo('open_api_token');
+  if (mongoToken) {
+    openApiToken = mongoToken;
+    await saveOpenApiTokenToFile(mongoToken.token, mongoToken.expiresAt);
+    console.log('🔑 Open API token loaded from MongoDB');
+    return mongoToken.token;
   }
 
   if (!hasOpenApi()) {
@@ -601,10 +640,11 @@ async function getOpenApiAccessToken(): Promise<string> {
     expiresAt,
   };
 
-  // Save to file for persistence
+  // Save to file + MongoDB for persistence
   await saveOpenApiTokenToFile(data.access_token, expiresAt);
+  await saveTokenToMongo('open_api_token', data.access_token, expiresAt);
 
-  console.log('✅ Open API token cached (memory + file)');
+  console.log('✅ Open API token cached (memory + file + MongoDB)');
   return data.access_token;
 }
 
@@ -789,12 +829,22 @@ async function getAccessToken(retryCount = 0, attemptedApis: Set<number> = new S
     return cachedToken.token;
   }
 
-  // Check file cache (persists across serverless cold starts)
+  // Check file cache (persists across serverless cold starts within same instance)
   const fileToken = await loadBeapiTokenFromFile(activeApiIndex);
   if (fileToken) {
     cachedTokens[activeApiIndex] = fileToken;
     console.log(`🔑 BEAPI token ${activeApiIndex} loaded from file cache`);
     return fileToken.token;
+  }
+
+  // Check MongoDB (persists across ALL serverless instances)
+  const mongoToken = await loadTokenFromMongo(`beapi_token_${activeApiIndex}`);
+  if (mongoToken) {
+    cachedTokens[activeApiIndex] = mongoToken;
+    // Also save to file for faster access next time on this instance
+    await saveBeapiTokenToFile(activeApiIndex, mongoToken.token, mongoToken.expiresAt);
+    console.log(`🔑 BEAPI token ${activeApiIndex} loaded from MongoDB`);
+    return mongoToken.token;
   }
 
   const { clientId, clientSecret } = getCredentials(activeApiIndex);
@@ -864,11 +914,14 @@ async function getAccessToken(retryCount = 0, attemptedApis: Set<number> = new S
 
     cachedTokens[activeApiIndex] = tokenData;
 
-    // Save to file for persistence across serverless cold starts
+    // Save to file for persistence across serverless cold starts on same instance
     await saveBeapiTokenToFile(activeApiIndex, data.access_token, expiresAt);
 
+    // Save to MongoDB for persistence across ALL serverless instances
+    await saveTokenToMongo(`beapi_token_${activeApiIndex}`, data.access_token, expiresAt);
+
     const apiNames = { 1: 'primary', 2: 'secondary', 3: 'tertiary' };
-    console.log(`✅ BEAPI ${apiNames[activeApiIndex as keyof typeof apiNames]} token cached (memory + file)`);
+    console.log(`✅ BEAPI ${apiNames[activeApiIndex as keyof typeof apiNames]} token cached (memory + file + MongoDB)`);
     return data.access_token;
   } catch (error) {
     // Network error - try other API if available
