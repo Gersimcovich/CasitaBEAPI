@@ -214,9 +214,9 @@ async function loadRatesFromDisk(
   }
 }
 
-// Primary BEAPI credentials
-const GUESTY_BEAPI_CLIENT_ID = process.env.GUESTY_BEAPI_CLIENT_ID || '';
-const GUESTY_BEAPI_CLIENT_SECRET = process.env.GUESTY_BEAPI_CLIENT_SECRET || '';
+// Primary BEAPI credentials (Request to Book — for browsing, calendar, quotes, inquiries)
+const GUESTY_BEAPI_CLIENT_ID = process.env.GUESTY_BEAPI_CLIENT_ID || process.env.GUESTY_BEAPI_CLIENT_ID_REQUEST_TO_BOOK || '';
+const GUESTY_BEAPI_CLIENT_SECRET = process.env.GUESTY_BEAPI_CLIENT_SECRET || process.env.GUESTY_BEAPI_CLIENT_SECRET_REQUEST_TO_BOOK || '';
 
 // Secondary BEAPI credentials (failover)
 const GUESTY_BEAPI_CLIENT_ID_2 = process.env.GUESTY_BEAPI_CLIENT_ID_2 || '';

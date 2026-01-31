@@ -22,10 +22,10 @@ const BEAPI_AUTH_URL = 'https://booking.guesty.com/oauth2/token';
 // BEAPI has TWO instances with separate credentials:
 // 1. Request to Book (RTB) - for browsing, calendar, quotes, and inquiries
 // 2. Instant Booking - for confirmed reservations with payment
-const BEAPI_RTB_CLIENT_ID = process.env.GUESTY_BEAPI_CLIENT_ID || '';
-const BEAPI_RTB_CLIENT_SECRET = process.env.GUESTY_BEAPI_CLIENT_SECRET || '';
-const BEAPI_INSTANT_CLIENT_ID = process.env.GUESTY_BEAPI_INSTANT_CLIENT_ID || '';
-const BEAPI_INSTANT_CLIENT_SECRET = process.env.GUESTY_BEAPI_INSTANT_CLIENT_SECRET || '';
+const BEAPI_RTB_CLIENT_ID = process.env.GUESTY_BEAPI_CLIENT_ID || process.env.GUESTY_BEAPI_CLIENT_ID_REQUEST_TO_BOOK || '';
+const BEAPI_RTB_CLIENT_SECRET = process.env.GUESTY_BEAPI_CLIENT_SECRET || process.env.GUESTY_BEAPI_CLIENT_SECRET_REQUEST_TO_BOOK || '';
+const BEAPI_INSTANT_CLIENT_ID = process.env.GUESTY_BEAPI_INSTANT_CLIENT_ID || process.env.GUESTY_BEAPI_CLIENT_ID_INSTANT_BOOKINGS || '';
+const BEAPI_INSTANT_CLIENT_SECRET = process.env.GUESTY_BEAPI_INSTANT_CLIENT_SECRET || process.env.GUESTY_BEAPI_CLIENT_SECRET_INSTANT_BOOKINGS || '';
 
 export type BeapiInstance = 'rtb' | 'instant';
 
