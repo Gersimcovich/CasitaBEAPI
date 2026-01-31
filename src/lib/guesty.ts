@@ -218,9 +218,9 @@ async function loadRatesFromDisk(
 const GUESTY_BEAPI_CLIENT_ID = process.env.GUESTY_BEAPI_CLIENT_ID || process.env.GUESTY_BEAPI_CLIENT_ID_REQUEST_TO_BOOK || '';
 const GUESTY_BEAPI_CLIENT_SECRET = process.env.GUESTY_BEAPI_CLIENT_SECRET || process.env.GUESTY_BEAPI_CLIENT_SECRET_REQUEST_TO_BOOK || '';
 
-// Secondary BEAPI credentials (failover)
-const GUESTY_BEAPI_CLIENT_ID_2 = process.env.GUESTY_BEAPI_CLIENT_ID_2 || '';
-const GUESTY_BEAPI_CLIENT_SECRET_2 = process.env.GUESTY_BEAPI_CLIENT_SECRET_2 || '';
+// Secondary BEAPI credentials (failover — uses Instant Bookings credentials which have separate rate limits)
+const GUESTY_BEAPI_CLIENT_ID_2 = process.env.GUESTY_BEAPI_CLIENT_ID_2 || process.env.GUESTY_BEAPI_INSTANT_CLIENT_ID || process.env.GUESTY_BEAPI_CLIENT_ID_INSTANT_BOOKINGS || '';
+const GUESTY_BEAPI_CLIENT_SECRET_2 = process.env.GUESTY_BEAPI_CLIENT_SECRET_2 || process.env.GUESTY_BEAPI_INSTANT_CLIENT_SECRET || process.env.GUESTY_BEAPI_CLIENT_SECRET_INSTANT_BOOKINGS || '';
 
 // Tertiary BEAPI credentials (third fallback)
 const GUESTY_BEAPI_CLIENT_ID_3 = process.env.GUESTY_BEAPI_CLIENT_ID_3 || '';
@@ -264,7 +264,7 @@ async function saveOpenApiTokenToFile(token: string, expiresAt: number): Promise
 let activeApiIndex = 1;
 // Track when each API was rate limited (to try switching back later)
 let apiRateLimitedAt: { [key: number]: number | null } = { 1: null, 2: null, 3: null };
-const RATE_LIMIT_COOLDOWN = 5 * 60 * 1000; // 5 minutes before trying an API again
+const RATE_LIMIT_COOLDOWN = 15 * 60 * 1000; // 15 minutes before trying a rate-limited API again
 
 // Global rate limit check - if all APIs are rate limited, don't even try
 function areAllApisRateLimited(): boolean {
