@@ -52,7 +52,7 @@ export default function BottomTabBar() {
             >
               <Icon className={`w-5 h-5 ${active ? 'stroke-[2.5]' : ''}`} />
               <span className={`text-[10px] mt-0.5 ${active ? 'font-semibold' : 'font-medium'}`}>
-                {tab.href === '/account' && !isAuthenticated ? 'Log in' : tab.label}
+                {tab.label}
               </span>
             </Link>
           );
