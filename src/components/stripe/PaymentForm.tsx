@@ -72,7 +72,7 @@ export default function PaymentForm({
     <div className="space-y-4">
       <PaymentElement
         options={{
-          layout: 'tabs',
+          layout: 'accordion',
         }}
       />
 
