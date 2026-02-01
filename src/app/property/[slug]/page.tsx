@@ -10,6 +10,7 @@ import Button from '@/components/ui/Button';
 import { Property, PropertyReview } from '@/types';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useCart } from '@/contexts/CartContext';
+import { useCapacitor } from '@/hooks/useCapacitor';
 import {
   ShoppingCart,
   Share2,
@@ -237,6 +238,7 @@ export default function PropertyPage() {
   const [showGallery, setShowGallery] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
   const { cartItem, hasCartItem } = useCart();
+  const { isCapacitor, isIOS } = useCapacitor();
 
   // Fetch property from API
   useEffect(() => {
@@ -268,12 +270,12 @@ export default function PropertyPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-white">
-        <Header />
-        <div className="pt-24 flex flex-col items-center justify-center min-h-[60vh]">
+        {!isCapacitor && <Header />}
+        <div className={`${isCapacitor ? 'pt-16' : 'pt-24'} flex flex-col items-center justify-center min-h-[60vh]`}>
           <Loader2 className="w-10 h-10 text-[var(--casita-orange)] animate-spin mb-4" />
           <p className="text-[var(--casita-gray-600)]">{t.common.loading}</p>
         </div>
-        <Footer />
+        {!isCapacitor && <Footer />}
       </main>
     );
   }
@@ -281,8 +283,8 @@ export default function PropertyPage() {
   if (error || !property) {
     return (
       <main className="min-h-screen bg-white">
-        <Header />
-        <div className="pt-24 flex flex-col items-center justify-center min-h-[60vh]">
+        {!isCapacitor && <Header />}
+        <div className={`${isCapacitor ? 'pt-16' : 'pt-24'} flex flex-col items-center justify-center min-h-[60vh]`}>
           <p className="text-red-500 mb-4">{error || t.common.error}</p>
           <Link href="/properties">
             <Button>
@@ -291,7 +293,7 @@ export default function PropertyPage() {
             </Button>
           </Link>
         </div>
-        <Footer />
+        {!isCapacitor && <Footer />}
       </main>
     );
   }
@@ -309,20 +311,45 @@ export default function PropertyPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
-      <Header />
+    <main className={`min-h-screen bg-white ${isCapacitor ? 'pb-20' : ''}`}>
+      {!isCapacitor && <Header />}
+
+      {/* App-style compact header with back button */}
+      {isCapacitor && (
+        <div
+          className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-[var(--casita-gray-100)]"
+          style={isIOS ? { paddingTop: 'env(safe-area-inset-top, 0px)' } : undefined}
+        >
+          <div className="flex items-center justify-between px-4 py-3">
+            <button
+              onClick={() => window.history.back()}
+              className="w-9 h-9 rounded-full bg-[var(--casita-gray-100)] flex items-center justify-center"
+            >
+              <ArrowLeft className="w-5 h-5 text-[var(--casita-gray-700)]" />
+            </button>
+            <h1 className="text-sm font-semibold text-[var(--casita-gray-900)] truncate max-w-[60%]">
+              {property.name}
+            </h1>
+            <button className="w-9 h-9 rounded-full bg-[var(--casita-gray-100)] flex items-center justify-center">
+              <Share2 className="w-4 h-4 text-[var(--casita-gray-700)]" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Image Gallery */}
-      <section className="pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {/* Back Link */}
-          <Link
-            href="/properties"
-            className="inline-flex items-center gap-2 text-[var(--casita-gray-600)] hover:text-[var(--casita-gray-900)] mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t.property.backToAll}
-          </Link>
+      <section className={isCapacitor ? 'pt-0' : 'pt-20'} style={isCapacitor && isIOS ? { paddingTop: 'calc(env(safe-area-inset-top, 0px) + 52px)' } : isCapacitor ? { paddingTop: '52px' } : undefined}>
+        <div className={`max-w-7xl mx-auto ${isCapacitor ? 'px-0' : 'px-4 sm:px-6 lg:px-8 py-6'}`}>
+          {/* Back Link - web only */}
+          {!isCapacitor && (
+            <Link
+              href="/properties"
+              className="inline-flex items-center gap-2 text-[var(--casita-gray-600)] hover:text-[var(--casita-gray-900)] mb-4"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {t.property.backToAll}
+            </Link>
+          )}
 
           {/* Desktop Gallery Grid */}
           {property.images.length > 0 ? (
@@ -372,7 +399,7 @@ export default function PropertyPage() {
 
           {/* Mobile Carousel */}
           {property.images.length > 0 ? (
-            <div className="md:hidden relative h-[300px] rounded-2xl overflow-hidden">
+            <div className={`md:hidden relative ${isCapacitor ? 'h-[280px]' : 'h-[300px] rounded-2xl'} overflow-hidden`}>
               <Image
                 src={property.images[currentImageIndex]}
                 alt={property.name}
@@ -426,17 +453,17 @@ export default function PropertyPage() {
       </section>
 
       {/* Content */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <section className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isCapacitor ? 'py-4' : 'py-8'}`}>
         <div className="grid lg:grid-cols-3 gap-12">
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Header */}
-            <div className="mb-8">
+            <div className={isCapacitor ? 'mb-4' : 'mb-8'}>
               <div className="flex items-center gap-2 text-[var(--casita-gray-500)] mb-2">
                 <MapPin className="w-4 h-4" />
-                <span>{property.location.city}, {property.location.country}</span>
+                <span className={isCapacitor ? 'text-sm' : ''}>{property.location.city}, {property.location.country}</span>
               </div>
-              <h1 className="font-serif text-4xl md:text-5xl font-bold text-[var(--casita-gray-900)] mb-4">
+              <h1 className={`font-serif font-bold text-[var(--casita-gray-900)] mb-3 ${isCapacitor ? 'text-2xl' : 'text-4xl md:text-5xl mb-4'}`}>
                 {property.name}
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-[var(--casita-gray-600)]">
@@ -750,7 +777,7 @@ export default function PropertyPage() {
         </div>
       )}
 
-      <Footer />
+      {!isCapacitor && <Footer />}
     </main>
   );
 }
