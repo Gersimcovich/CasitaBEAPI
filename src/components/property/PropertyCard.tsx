@@ -219,13 +219,13 @@ export default function PropertyCard({ property, showMap = false, onPreviewClick
             <>
               <button
                 onClick={prevImage}
-                className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white transition-all shadow-md opacity-0 group-hover:opacity-100"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white transition-all shadow-md opacity-0 group-hover:opacity-100 flex items-center justify-center"
               >
                 <ChevronLeft className="w-4 h-4 text-[var(--casita-gray-700)]" />
               </button>
               <button
                 onClick={nextImage}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white transition-all shadow-md opacity-0 group-hover:opacity-100"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white transition-all shadow-md opacity-0 group-hover:opacity-100 flex items-center justify-center"
               >
                 <ChevronRight className="w-4 h-4 text-[var(--casita-gray-700)]" />
               </button>

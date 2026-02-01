@@ -414,11 +414,39 @@ function CheckoutContent() {
           <div className="grid lg:grid-cols-5 gap-8">
             {/* Left Column - Guest Info & Payment */}
             <div className="lg:col-span-3 space-y-6">
-              {/* Trip Summary Card */}
+              {/* Trip Summary Card — with property preview integrated */}
               <div className="bg-white rounded-2xl shadow-sm p-6">
                 <h2 className="text-xl font-semibold text-[var(--casita-gray-900)] mb-4">
                   Your Trip
                 </h2>
+
+                {/* Property Preview — visible on mobile (hidden on lg where right column shows) */}
+                <div className="lg:hidden flex gap-4 pb-4 mb-4 border-b border-[var(--casita-gray-100)]">
+                  {property.images[0] && (
+                    <Image
+                      src={property.images[0]}
+                      alt={property.name}
+                      width={100}
+                      height={75}
+                      className="rounded-xl object-cover flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-[var(--casita-gray-900)] line-clamp-2 text-sm">
+                      {property.name}
+                    </h3>
+                    <p className="text-sm text-[var(--casita-gray-600)] mt-1">
+                      {property.location.city}
+                    </p>
+                    {property.rating && property.reviewCount && property.reviewCount > 0 && (
+                      <p className="text-sm text-[var(--casita-gray-600)] flex items-center gap-1 mt-0.5">
+                        <Star className="w-3.5 h-3.5 fill-[var(--casita-orange)] text-[var(--casita-orange)]" />
+                        {property.rating.toFixed(1)} ({property.reviewCount} reviews)
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="flex items-start gap-3">
                     <Calendar className="w-5 h-5 text-[var(--casita-orange)] mt-0.5" />
@@ -627,13 +655,12 @@ function CheckoutContent() {
                     <h3 className="font-semibold text-[var(--casita-gray-900)] line-clamp-2">
                       {property.name}
                     </h3>
-                    <p className="text-sm text-[var(--casita-gray-600)] flex items-center gap-1 mt-1">
-                      <MapPin className="w-3 h-3" />
+                    <p className="text-sm text-[var(--casita-gray-600)] mt-1">
                       {property.location.city}
                     </p>
                     {property.rating && property.reviewCount && property.reviewCount > 0 && (
                       <p className="text-sm text-[var(--casita-gray-600)] flex items-center gap-1 mt-1">
-                        <Star className="w-3 h-3 fill-[var(--casita-orange)] text-[var(--casita-orange)]" />
+                        <Star className="w-3.5 h-3.5 fill-[var(--casita-orange)] text-[var(--casita-orange)]" />
                         {property.rating.toFixed(1)} ({property.reviewCount} reviews)
                       </p>
                     )}
