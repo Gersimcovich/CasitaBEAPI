@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useUser } from '@/contexts/UserContext';
+import { useCapacitor } from '@/hooks/useCapacitor';
 
 interface Reservation {
   id: string;
@@ -43,6 +44,7 @@ interface Reservation {
 
 export default function ManageReservationPage() {
   const { user, isAuthenticated } = useUser();
+  const { isCapacitor } = useCapacitor();
   const [lastName, setLastName] = useState('');
   const [confirmationCode, setConfirmationCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -262,7 +264,7 @@ export default function ManageReservationPage() {
     <main className="min-h-screen bg-[var(--casita-gray-50)]">
       <Header />
 
-      <div className="pt-24 pb-16">
+      <div className={`${isCapacitor ? 'pt-40' : 'pt-24'} pb-16`}>
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-8">
