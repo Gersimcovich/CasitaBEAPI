@@ -269,6 +269,7 @@ export default function PropertyPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showGallery, setShowGallery] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
+  const [fullscreenImageIndex, setFullscreenImageIndex] = useState<number | null>(null);
   const { cartItem, hasCartItem } = useCart();
   const { isCapacitor, isIOS } = useCapacitor();
 
@@ -365,7 +366,7 @@ export default function PropertyPage() {
               <ArrowLeft className="w-5 h-5 text-[var(--casita-gray-700)]" />
             </button>
             <h1 className="text-sm font-semibold text-[var(--casita-gray-900)] truncate max-w-[60%]">
-              {property.name}
+              {property.location.city}, {getCountryAbbreviation(property.location.country)}
             </h1>
             <button className="w-9 h-9 rounded-full bg-[var(--casita-gray-100)] flex items-center justify-center">
               <Share2 className="w-4 h-4 text-[var(--casita-gray-700)]" />
@@ -495,42 +496,28 @@ export default function PropertyPage() {
           <div className="lg:col-span-2">
             {/* Header */}
             <div className={isCapacitor ? 'mb-4' : 'mb-8'}>
-              <div className="flex items-center gap-2 text-[var(--casita-gray-500)] mb-1">
-                <MapPin className="w-4 h-4" />
-                <span className={isCapacitor ? 'text-sm' : ''}>{property.location.city}, {getCountryAbbreviation(property.location.country)}</span>
-              </div>
-              <p className={`text-[var(--casita-gray-400)] mb-2 ${isCapacitor ? 'text-xs' : 'text-sm'}`}>
-                {getPropertyTypeLabel(property.type)}
-              </p>
-              <h1 className={`font-serif font-bold text-[var(--casita-gray-900)] mb-3 ${isCapacitor ? 'text-2xl' : 'text-4xl md:text-5xl mb-4'}`}>
+              <h1 className={`font-serif font-bold text-[var(--casita-gray-900)] mb-1 ${isCapacitor ? 'text-xl' : 'text-3xl md:text-4xl mb-2'}`}>
                 {property.name}
               </h1>
-              <div className="flex flex-wrap items-center gap-4 text-[var(--casita-gray-600)]">
-                {property.reviewCount > 0 && (
-                  <>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-5 h-5 text-[var(--casita-orange)] fill-[var(--casita-orange)]" />
-                      <span className="font-semibold text-[var(--casita-gray-900)]">{property.rating}</span>
-                      <span>({property.reviewCount} {t.property.reviews})</span>
-                    </div>
-                    <span>•</span>
-                  </>
-                )}
-                <div className="flex items-center gap-1">
-                  <Bed className="w-5 h-5" />
-                  <span>{property.bedrooms} {property.bedrooms !== 1 ? t.properties.bedrooms : t.properties.bedroom}</span>
+              {/* Airbnb-style: type + location */}
+              <p className={`text-[var(--casita-gray-600)] ${isCapacitor ? 'text-sm' : 'text-base'}`}>
+                {getPropertyTypeLabel(property.type)} in {property.location.city}, {getCountryAbbreviation(property.location.country)}
+              </p>
+              {/* Airbnb-style: details line */}
+              <p className={`text-[var(--casita-gray-500)] ${isCapacitor ? 'text-xs' : 'text-sm'}`}>
+                {property.maxGuests} {t.properties.guests} · {property.bedrooms} {property.bedrooms !== 1 ? t.properties.bedrooms : t.properties.bedroom} · {property.bathrooms} {property.bathrooms !== 1 ? t.properties.bathrooms : t.properties.bathroom}
+              </p>
+              {/* Rating */}
+              {property.reviewCount > 0 && (
+                <div className={`flex items-center gap-3 mt-2 ${isCapacitor ? 'text-sm' : ''}`}>
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 text-[var(--casita-gray-900)] fill-[var(--casita-gray-900)]" />
+                    <span className="font-semibold text-[var(--casita-gray-900)]">{property.rating}</span>
+                  </div>
+                  <span className="text-[var(--casita-gray-400)]">·</span>
+                  <span className="text-[var(--casita-gray-600)] underline">{property.reviewCount} {t.property.reviews}</span>
                 </div>
-                <span>•</span>
-                <div className="flex items-center gap-1">
-                  <Bath className="w-5 h-5" />
-                  <span>{property.bathrooms} {property.bathrooms !== 1 ? t.properties.bathrooms : t.properties.bathroom}</span>
-                </div>
-                <span>•</span>
-                <div className="flex items-center gap-1">
-                  <Users className="w-5 h-5" />
-                  <span>{property.maxGuests} {t.properties.guests}</span>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Booking Widget - Mobile/App: inline above content */}
@@ -759,7 +746,7 @@ export default function PropertyPage() {
         </div>
       </section>
 
-      {/* Fullscreen Gallery Modal — Airbnb-style stacked photos */}
+      {/* Fullscreen Gallery Modal — Airbnb-style alternating layout */}
       {showGallery && property.images.length > 0 && (
         <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
           {/* Sticky header */}
@@ -771,25 +758,127 @@ export default function PropertyPage() {
               onClick={() => setShowGallery(false)}
               className="w-9 h-9 rounded-full hover:bg-[var(--casita-gray-100)] flex items-center justify-center transition-colors"
             >
-              <X className="w-5 h-5 text-[var(--casita-gray-700)]" />
+              <ArrowLeft className="w-5 h-5 text-[var(--casita-gray-700)]" />
             </button>
             <span className="ml-3 text-sm font-medium text-[var(--casita-gray-600)]">
               {property.images.length} photos
             </span>
           </div>
-          {/* Stacked full-width photos */}
-          <div className="max-w-3xl mx-auto px-0 md:px-4 py-4 space-y-2">
-            {property.images.map((image, index) => (
-              <div key={index} className="relative w-full aspect-[4/3]">
-                <Image
-                  src={image}
-                  alt={`${property.name} ${index + 1}`}
-                  fill
-                  className="object-cover md:rounded-lg"
-                  sizes="(max-width: 768px) 100vw, 768px"
-                />
-              </div>
-            ))}
+          {/* Alternating grid: 2 small side-by-side, then 1 full-width */}
+          <div className="max-w-3xl mx-auto py-2">
+            {(() => {
+              const rows: React.ReactNode[] = [];
+              let i = 0;
+              while (i < property.images.length) {
+                // Row of 2 small photos side by side
+                if (i + 1 < property.images.length) {
+                  rows.push(
+                    <div key={`pair-${i}`} className="grid grid-cols-2 gap-0.5 mb-0.5">
+                      <div
+                        className="relative aspect-square cursor-pointer"
+                        onClick={() => setFullscreenImageIndex(i)}
+                      >
+                        <Image
+                          src={property.images[i]}
+                          alt={`${property.name} ${i + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="50vw"
+                        />
+                      </div>
+                      <div
+                        className="relative aspect-square cursor-pointer"
+                        onClick={() => setFullscreenImageIndex(i + 1)}
+                      >
+                        <Image
+                          src={property.images[i + 1]}
+                          alt={`${property.name} ${i + 2}`}
+                          fill
+                          className="object-cover"
+                          sizes="50vw"
+                        />
+                      </div>
+                    </div>
+                  );
+                  i += 2;
+                } else {
+                  // Odd photo at end — show full width
+                  rows.push(
+                    <div
+                      key={`single-end-${i}`}
+                      className="relative w-full aspect-[4/3] mb-0.5 cursor-pointer"
+                      onClick={() => setFullscreenImageIndex(i)}
+                    >
+                      <Image
+                        src={property.images[i]}
+                        alt={`${property.name} ${i + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="100vw"
+                      />
+                    </div>
+                  );
+                  i += 1;
+                  break;
+                }
+                // Full-width photo
+                if (i < property.images.length) {
+                  rows.push(
+                    <div
+                      key={`full-${i}`}
+                      className="relative w-full aspect-[4/3] mb-0.5 cursor-pointer"
+                      onClick={() => setFullscreenImageIndex(i)}
+                    >
+                      <Image
+                        src={property.images[i]}
+                        alt={`${property.name} ${i + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="100vw"
+                      />
+                    </div>
+                  );
+                  i += 1;
+                }
+              }
+              return rows;
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Individual Photo Fullscreen View */}
+      {fullscreenImageIndex !== null && property.images[fullscreenImageIndex] && (
+        <div className="fixed inset-0 bg-black z-[60] flex items-center justify-center">
+          <button
+            onClick={() => setFullscreenImageIndex(null)}
+            className="absolute top-4 left-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-10"
+            style={isCapacitor && isIOS ? { top: 'calc(env(safe-area-inset-top, 0px) + 8px)' } : undefined}
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <button
+            onClick={() => setFullscreenImageIndex((fullscreenImageIndex - 1 + property.images.length) % property.images.length)}
+            className="absolute left-4 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+          >
+            <ChevronLeft className="w-8 h-8" />
+          </button>
+          <div className="relative w-full max-w-5xl h-[80vh]">
+            <Image
+              src={property.images[fullscreenImageIndex]}
+              alt={`${property.name} ${fullscreenImageIndex + 1}`}
+              fill
+              className="object-contain"
+            />
+          </div>
+          <button
+            onClick={() => setFullscreenImageIndex((fullscreenImageIndex + 1) % property.images.length)}
+            className="absolute right-4 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+          >
+            <ChevronRight className="w-8 h-8" />
+          </button>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm">
+            {fullscreenImageIndex + 1} / {property.images.length}
           </div>
         </div>
       )}
