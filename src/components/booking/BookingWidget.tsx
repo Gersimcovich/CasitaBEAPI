@@ -200,6 +200,7 @@ export default function BookingWidget({
     const fetchQuote = async () => {
       if (!checkIn || !checkOut) {
         setQuote(null);
+        setQuoteError(null);
         return;
       }
 
