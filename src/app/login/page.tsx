@@ -4,13 +4,15 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Button from '@/components/ui/Button';
-import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, X } from 'lucide-react';
+import { useCapacitor } from '@/hooks/useCapacitor';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { isCapacitor, isIOS } = useCapacitor();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,32 +56,49 @@ export default function LoginPage() {
 
       {/* Right Side - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
-        <div className="w-full max-w-md">
-          {/* Mobile Logo */}
-          <div className="lg:hidden mb-8">
-            <Link href="/" className="flex items-center gap-2 text-[var(--casita-gray-600)] mb-6">
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back to home</span>
-            </Link>
-            <Image
-              src="/logo.png"
-              alt="Casita"
-              width={140}
-              height={45}
-              className="h-10 w-auto"
-            />
-          </div>
+        <div
+          className="w-full max-w-md"
+          style={isCapacitor && isIOS ? { paddingTop: 'env(safe-area-inset-top, 0px)' } : undefined}
+        >
+          {/* App close button */}
+          {isCapacitor ? (
+            <div className="mb-6">
+              <button
+                onClick={() => window.history.back()}
+                className="w-9 h-9 rounded-full bg-[var(--casita-gray-100)] flex items-center justify-center"
+              >
+                <X className="w-5 h-5 text-[var(--casita-gray-700)]" />
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Mobile Logo */}
+              <div className="lg:hidden mb-8">
+                <Link href="/" className="flex items-center gap-2 text-[var(--casita-gray-600)] mb-6">
+                  <ArrowLeft className="w-5 h-5" />
+                  <span>Back to home</span>
+                </Link>
+                <Image
+                  src="/logo.png"
+                  alt="Casita"
+                  width={140}
+                  height={45}
+                  className="h-10 w-auto"
+                />
+              </div>
 
-          {/* Desktop back link */}
-          <Link
-            href="/"
-            className="hidden lg:flex items-center gap-2 text-[var(--casita-gray-600)] mb-8 hover:text-[var(--casita-gray-900)] transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to home</span>
-          </Link>
+              {/* Desktop back link */}
+              <Link
+                href="/"
+                className="hidden lg:flex items-center gap-2 text-[var(--casita-gray-600)] mb-8 hover:text-[var(--casita-gray-900)] transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span>Back to home</span>
+              </Link>
+            </>
+          )}
 
-          <h2 className="font-serif text-3xl font-bold text-[var(--casita-gray-900)] mb-2">
+          <h2 className={`font-serif font-bold text-[var(--casita-gray-900)] mb-2 ${isCapacitor ? 'text-2xl' : 'text-3xl'}`}>
             Log in to your account
           </h2>
           <p className="text-[var(--casita-gray-600)] mb-8">

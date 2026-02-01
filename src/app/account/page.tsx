@@ -23,6 +23,7 @@ import {
   ChevronRight,
   Home,
 } from 'lucide-react';
+import { useCapacitor } from '@/hooks/useCapacitor';
 
 // Translations
 const translations = {
@@ -182,6 +183,7 @@ export default function AccountPage() {
   const router = useRouter();
   const { user, reservations, isLoading, isAuthenticated, logout, updateProfile } = useUser();
   const { locale, setLocale } = useLocale();
+  const { isCapacitor } = useCapacitor();
   const t = translations[locale];
 
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
@@ -350,7 +352,7 @@ export default function AccountPage() {
                           <Award className="w-6 h-6" />
                           <span className="font-medium">{t.casitaPoints}</span>
                         </div>
-                        <div className="text-4xl sm:text-5xl font-bold mb-2">
+                        <div className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-2">
                           {user.casitaPoints.toLocaleString()}
                         </div>
                         <p className="text-white/80 text-sm">

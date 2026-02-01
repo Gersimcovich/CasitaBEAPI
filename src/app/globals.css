@@ -126,12 +126,12 @@ html {
    MOBILE OPTIMIZATION - iOS & Android
    ============================================ */
 
-/* Safe area insets for iPhone notch/Dynamic Island */
+/* Safe area insets for landscape mode */
 body {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+  /* Note: top/bottom safe areas are handled per-component (Header, BottomTabBar)
+     to avoid double padding in Capacitor app mode */
 }
 
 /* Smooth momentum scrolling on iOS */
