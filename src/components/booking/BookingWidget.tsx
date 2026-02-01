@@ -225,6 +225,24 @@ export default function BookingWidget({
         } else {
           setQuoteError(data.error || 'These dates are already booked. Try adjusting your stay!');
           setQuote(null);
+          // If quote reveals dates are actually booked, immediately add them
+          // to the blocked dates list so the calendar updates visually
+          if (data.unavailableDates?.length > 0) {
+            const newBlocked = data.unavailableDates.map((d: string) => new Date(d));
+            setBlockedDates(prev => {
+              const existing = new Set(prev.map(d => d.toISOString().split('T')[0]));
+              const merged = [...prev];
+              for (const d of newBlocked) {
+                if (!existing.has(d.toISOString().split('T')[0])) {
+                  merged.push(d);
+                }
+              }
+              return merged;
+            });
+            // Clear the selected dates since they're booked
+            setCheckIn(null);
+            setCheckOut(null);
+          }
         }
       } catch (error) {
         console.error('Error fetching quote:', error);

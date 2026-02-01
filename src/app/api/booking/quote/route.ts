@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createQuote as createQuoteBeapi, isConfigured as isBeapiConfigured, getListings as getListingsBeapi } from '@/lib/guesty-beapi';
-import { getQuote as getQuoteLegacy, getListings as getListingsLegacy } from '@/lib/guesty';
+import { getQuote as getQuoteLegacy, getListings as getListingsLegacy, invalidateCalendarForDates } from '@/lib/guesty';
 import { guestyProperties } from '@/data/guestyData';
 
 export async function POST(request: Request) {
@@ -96,6 +96,11 @@ export async function POST(request: Request) {
       });
 
       if (!quoteResult.available) {
+        // Invalidate stale calendar cache for these dates so the widget updates
+        if (quoteResult.unavailableDates?.length > 0) {
+          invalidateCalendarForDates(listingId, quoteResult.unavailableDates);
+        }
+
         return NextResponse.json({
           success: false,
           available: false,

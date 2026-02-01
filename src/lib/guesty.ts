@@ -545,7 +545,7 @@ const LISTING_CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
 
 // Calendar cache - 4 hours (balance between freshness and API calls)
 const calendarCache = new Map<string, { data: CalendarDay[]; expiresAt: number }>();
-const CALENDAR_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+const CALENDAR_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
 // Quote cache - 2 hours (quotes valid for 24h in Guesty, but prices can change)
 const quoteCache = new Map<string, { data: ReservationQuote; expiresAt: number }>();
@@ -1484,6 +1484,64 @@ async function saveCalendarToMongo(listingId: string, from: string, to: string, 
   } catch (err) {
     console.warn('MongoDB calendar save failed:', err instanceof Error ? err.message : err);
   }
+}
+
+/**
+ * Invalidate calendar cache entries that contain the given dates.
+ * Called when a quote check reveals dates are actually booked,
+ * so the calendar widget gets fresh data on next load.
+ */
+export function invalidateCalendarForDates(listingId: string, unavailableDates: string[]): void {
+  if (!unavailableDates || unavailableDates.length === 0) return;
+
+  // Invalidate ALL memory cache entries for this listing
+  // (different date ranges may contain these dates)
+  for (const [key, entry] of calendarCache.entries()) {
+    if (key.startsWith(listingId)) {
+      // Mark the unavailable dates as booked in cached data
+      let modified = false;
+      const updatedDays = entry.data.map(day => {
+        if (unavailableDates.includes(day.date) && day.status === 'available') {
+          modified = true;
+          return { ...day, status: 'booked' as const };
+        }
+        return day;
+      });
+      if (modified) {
+        calendarCache.set(key, { data: updatedDays, expiresAt: entry.expiresAt });
+        console.log(`📅 Invalidated ${unavailableDates.length} dates in cache key: ${key}`);
+      }
+    }
+  }
+
+  // Also update MongoDB cache entries (async, fire-and-forget)
+  (async () => {
+    try {
+      const db = await getDatabase();
+      const col = db.collection(MONGO_CALENDAR_COLLECTION);
+      // Find all entries for this listing
+      const docs = await col.find({ listingId }).toArray();
+      for (const doc of docs) {
+        if (!doc.days || !Array.isArray(doc.days)) continue;
+        let modified = false;
+        const updatedDays = doc.days.map((day: CalendarDay) => {
+          if (unavailableDates.includes(day.date) && day.status === 'available') {
+            modified = true;
+            return { ...day, status: 'booked' };
+          }
+          return day;
+        });
+        if (modified) {
+          await col.updateOne(
+            { _id: doc._id },
+            { $set: { days: updatedDays, updatedAt: new Date() } }
+          );
+        }
+      }
+    } catch (err) {
+      console.warn('MongoDB calendar invalidation failed:', err instanceof Error ? err.message : err);
+    }
+  })();
 }
 
 /**

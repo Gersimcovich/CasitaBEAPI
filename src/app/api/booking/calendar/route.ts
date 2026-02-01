@@ -57,7 +57,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Tries: memory cache -> disk cache -> BEAPI -> Open API -> stale disk cache (24h)
+    // Tries: memory cache -> disk cache -> MongoDB -> BEAPI -> Open API -> stale disk cache (24h)
     // Only throws if ALL sources fail (including stale cache)
     const calendar = await getCalendarLegacy(listingId, from, to);
 
