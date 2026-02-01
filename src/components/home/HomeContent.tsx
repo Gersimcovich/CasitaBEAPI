@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Property } from '@/types';
+import { useCapacitor } from '@/hooks/useCapacitor';
 
 interface HomeContentProps {
   properties: Property[];
@@ -277,6 +278,7 @@ function LowestPricesSection({ properties, formatPrice }: { properties: Property
 
 export default function HomeContent({ properties }: HomeContentProps) {
   const { t, formatPrice } = useLocale();
+  const { isCapacitor } = useCapacitor();
   const [totalGuestsHosted, setTotalGuestsHosted] = useState(182331);
   const [totalReviews, setTotalReviews] = useState(60777);
 
@@ -306,7 +308,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
       {/* Hero Section - Clean white background */}
       <section className="relative flex items-center justify-center bg-white overflow-visible z-20">
         {/* Content */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 pb-10 md:pb-12 text-center overflow-visible">
+        <div className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 md:pb-12 text-center overflow-visible ${isCapacitor ? 'pt-32' : 'pt-24 md:pt-28'}`}>
           <div className="animate-fade-in">
             <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--casita-gray-900)] mb-4 leading-tight">
               {t.hero.title}
