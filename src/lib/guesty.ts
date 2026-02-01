@@ -1504,7 +1504,6 @@ export async function getCalendar(
   }
 
   // STEP 3: Try BEAPI FIRST (has proper availability status)
-  console.log(`🔑 BEAPI config: primary=${!!GUESTY_BEAPI_CLIENT_ID}, secondary=${hasSecondaryApi()}, activeApi=${activeApiIndex}`);
   if (!areBothApisRateLimited()) {
     try {
       console.log('📅 Trying BEAPI for calendar...');
