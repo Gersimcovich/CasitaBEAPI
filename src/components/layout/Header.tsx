@@ -146,6 +146,24 @@ export default function Header() {
                           <HelpCircle className="w-4 h-4" />
                           {t.footer.helpCenter}
                         </Link>
+                        <div className="flex items-center gap-3 px-4 py-2.5">
+                          <Globe className="w-4 h-4 text-[var(--casita-gray-500)]" />
+                          <div className="flex gap-1">
+                            {([['en', 'EN'], ['es', 'ES'], ['pt', 'PT']] as const).map(([code, label]) => (
+                              <button
+                                key={code}
+                                onClick={() => setLocale(code)}
+                                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                                  locale === code
+                                    ? 'bg-[var(--casita-gray-900)] text-white'
+                                    : 'text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-100)]'
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                       <hr className="my-1 border-[var(--casita-gray-100)]" />
                       <div className="py-1">
@@ -195,6 +213,24 @@ export default function Header() {
                           <HelpCircle className="w-4 h-4" />
                           {t.footer.helpCenter}
                         </Link>
+                        <div className="flex items-center gap-3 px-4 py-2.5">
+                          <Globe className="w-4 h-4 text-[var(--casita-gray-500)]" />
+                          <div className="flex gap-1">
+                            {([['en', 'EN'], ['es', 'ES'], ['pt', 'PT']] as const).map(([code, label]) => (
+                              <button
+                                key={code}
+                                onClick={() => setLocale(code)}
+                                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                                  locale === code
+                                    ? 'bg-[var(--casita-gray-900)] text-white'
+                                    : 'text-[var(--casita-gray-600)] hover:bg-[var(--casita-gray-100)]'
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </>
                   )}
