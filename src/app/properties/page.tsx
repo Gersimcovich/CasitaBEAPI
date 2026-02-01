@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import PropertyCard from '@/components/property/PropertyCard';
-import PropertyPreviewModal from '@/components/property/PropertyPreviewModal';
 import Button from '@/components/ui/Button';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -87,7 +86,6 @@ function PropertiesContent() {
   const [checkInDate, setCheckInDate] = useState<Date | null>(urlCheckIn ? new Date(urlCheckIn) : null);
   const [checkOutDate, setCheckOutDate] = useState<Date | null>(urlCheckOut ? new Date(urlCheckOut) : null);
   const [allCities, setAllCities] = useState<string[]>([]);
-  const [previewPropertyId, setPreviewPropertyId] = useState<string | null>(null);
   const [showGuestPicker, setShowGuestPicker] = useState(false);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
@@ -1122,7 +1120,6 @@ function PropertiesContent() {
                   <PropertyCard
                     key={property.id}
                     property={property}
-                    onPreviewClick={() => setPreviewPropertyId(property.id)}
                     checkIn={checkInDate}
                     checkOut={checkOutDate}
                   />
@@ -1148,13 +1145,6 @@ function PropertiesContent() {
         </div>
       </div>
 
-      {/* Property Preview Modal */}
-      <PropertyPreviewModal
-        propertyId={previewPropertyId}
-        onClose={() => setPreviewPropertyId(null)}
-        initialCheckIn={checkInDate}
-        initialCheckOut={checkOutDate}
-      />
     </>
   );
 }
