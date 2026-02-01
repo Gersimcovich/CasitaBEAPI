@@ -338,7 +338,7 @@ function PropertiesContent() {
           {selectedLocation ? (
             <button
               onClick={clearLocation}
-              className="flex items-center gap-1.5 px-3 py-2 bg-[var(--casita-orange)] text-white rounded-full text-sm font-medium whitespace-nowrap"
+              className="flex shrink-0 items-center gap-1.5 px-3 py-2 bg-[var(--casita-orange)] text-white rounded-full text-sm font-medium whitespace-nowrap"
             >
               <MapPin className="w-4 h-4" />
               {selectedLocation}
@@ -347,7 +347,7 @@ function PropertiesContent() {
           ) : (
             <button
               onClick={() => setShowFilters(true)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] rounded-full text-sm font-medium whitespace-nowrap"
+              className="flex shrink-0 items-center gap-1.5 px-3 py-2 bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] rounded-full text-sm font-medium whitespace-nowrap"
             >
               <MapPin className="w-4 h-4" />
               Location
@@ -358,7 +358,7 @@ function PropertiesContent() {
           {/* Dates filter */}
           <button
             onClick={() => setShowFilters(true)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+            className={`flex shrink-0 items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
               checkInDate && checkOutDate
                 ? 'bg-[var(--casita-orange)] text-white'
                 : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)]'
@@ -376,7 +376,7 @@ function PropertiesContent() {
               setShowGuestPicker(!showGuestPicker);
               setShowSortDropdown(false);
             }}
-            className="flex items-center gap-1.5 px-3 py-2 bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] rounded-full text-sm font-medium whitespace-nowrap"
+            className="flex shrink-0 items-center gap-1.5 px-3 py-2 bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)] rounded-full text-sm font-medium whitespace-nowrap"
           >
             <Users className="w-4 h-4" />
             {guests} guests
@@ -384,7 +384,7 @@ function PropertiesContent() {
 
           {/* Bedrooms */}
           <button
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+            className={`flex shrink-0 items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
               minBedrooms > 0
                 ? 'bg-[var(--casita-orange)] text-white'
                 : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)]'
@@ -398,7 +398,7 @@ function PropertiesContent() {
           {/* Pet Friendly */}
           <button
             onClick={() => setPetFriendlyFilter(!petFriendlyFilter)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+            className={`flex shrink-0 items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
               petFriendlyFilter
                 ? 'bg-[var(--casita-orange)] text-white'
                 : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)]'
@@ -411,7 +411,7 @@ function PropertiesContent() {
           {/* Beachfront */}
           <button
             onClick={() => setBeachfrontOnly(!beachfrontOnly)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+            className={`flex shrink-0 items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
               beachfrontOnly
                 ? 'bg-[var(--casita-orange)] text-white'
                 : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)]'
@@ -424,7 +424,7 @@ function PropertiesContent() {
           {/* More Filters */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+            className={`flex shrink-0 items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
               activeFiltersCount > 0
                 ? 'bg-[var(--casita-gray-900)] text-white'
                 : 'bg-[var(--casita-gray-100)] text-[var(--casita-gray-700)]'
