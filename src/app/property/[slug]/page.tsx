@@ -64,6 +64,38 @@ import {
 } from 'lucide-react';
 import BookingWidget from '@/components/booking/BookingWidget';
 import dynamic from 'next/dynamic';
+
+// Country name to common abbreviation
+const countryAbbreviations: Record<string, string> = {
+  'united states': 'USA',
+  'united states of america': 'USA',
+  'united kingdom': 'UK',
+  'dominican republic': 'DR',
+  'costa rica': 'CR',
+  'puerto rico': 'PR',
+  'el salvador': 'SV',
+  'new zealand': 'NZ',
+  'south africa': 'ZA',
+  'united arab emirates': 'UAE',
+};
+
+function getCountryAbbreviation(country: string): string {
+  return countryAbbreviations[country.toLowerCase()] || country;
+}
+
+// Property type to display label
+const propertyTypeLabels: Record<string, string> = {
+  'boutique-hotel': 'Boutique Hotel',
+  'luxury-villa': 'Villa',
+  'beach-house': 'Beach House',
+  'mountain-retreat': 'Mountain Retreat',
+  'city-apartment': 'Apartment',
+  'historic-estate': 'Estate',
+};
+
+function getPropertyTypeLabel(type: string): string {
+  return propertyTypeLabels[type] || 'Property';
+}
 import PointsOfInterest from '@/components/property/PointsOfInterest';
 
 // Dynamic import for map to avoid SSR issues with Leaflet
@@ -317,8 +349,13 @@ export default function PropertyPage() {
       {/* App-style compact header with back button */}
       {isCapacitor && (
         <div
-          className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-[var(--casita-gray-100)]"
-          style={isIOS ? { paddingTop: 'env(safe-area-inset-top, 0px)' } : undefined}
+          className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[var(--casita-gray-100)]"
+          style={{
+            ...(isIOS ? { paddingTop: 'env(safe-area-inset-top, 0px)' } : {}),
+            transform: 'translateZ(0)',
+            WebkitBackfaceVisibility: 'hidden',
+            backfaceVisibility: 'hidden',
+          }}
         >
           <div className="flex items-center justify-between px-4 py-3">
             <button
@@ -436,19 +473,21 @@ export default function PropertyPage() {
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-4 mt-4">
-            <button className="flex items-center gap-2 text-[var(--casita-gray-700)] hover:text-[var(--casita-gray-900)]">
-              <Share2 className="w-5 h-5" />
-              <span>{t.property.share}</span>
-            </button>
-            {hasCartItem && cartItem?.propertyId === property.id && (
-              <div className="flex items-center gap-2 text-[var(--casita-orange)]">
-                <ShoppingCart className="w-5 h-5" />
-                <span>In Your Cart</span>
-              </div>
-            )}
-          </div>
+          {/* Action Buttons - hidden on Capacitor (share is in the app header) */}
+          {!isCapacitor && (
+            <div className="flex justify-end gap-4 mt-4">
+              <button className="flex items-center gap-2 text-[var(--casita-gray-700)] hover:text-[var(--casita-gray-900)]">
+                <Share2 className="w-5 h-5" />
+                <span>{t.property.share}</span>
+              </button>
+              {hasCartItem && cartItem?.propertyId === property.id && (
+                <div className="flex items-center gap-2 text-[var(--casita-orange)]">
+                  <ShoppingCart className="w-5 h-5" />
+                  <span>In Your Cart</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
@@ -459,10 +498,13 @@ export default function PropertyPage() {
           <div className="lg:col-span-2">
             {/* Header */}
             <div className={isCapacitor ? 'mb-4' : 'mb-8'}>
-              <div className="flex items-center gap-2 text-[var(--casita-gray-500)] mb-2">
+              <div className="flex items-center gap-2 text-[var(--casita-gray-500)] mb-1">
                 <MapPin className="w-4 h-4" />
-                <span className={isCapacitor ? 'text-sm' : ''}>{property.location.city}, {property.location.country}</span>
+                <span className={isCapacitor ? 'text-sm' : ''}>{property.location.city}, {getCountryAbbreviation(property.location.country)}</span>
               </div>
+              <p className={`text-[var(--casita-gray-400)] mb-2 ${isCapacitor ? 'text-xs' : 'text-sm'}`}>
+                {getPropertyTypeLabel(property.type)}
+              </p>
               <h1 className={`font-serif font-bold text-[var(--casita-gray-900)] mb-3 ${isCapacitor ? 'text-2xl' : 'text-4xl md:text-5xl mb-4'}`}>
                 {property.name}
               </h1>
@@ -506,7 +548,7 @@ export default function PropertyPage() {
                 propertyName={property.name}
                 propertyImage={property.images[0] || ''}
                 propertySlug={property.slug || property.id}
-                propertyLocation={`${property.location.city}, ${property.location.country}`}
+                propertyLocation={`${property.location.city}, ${getCountryAbbreviation(property.location.country)}`}
               />
             </div>
 
@@ -714,7 +756,7 @@ export default function PropertyPage() {
               propertyName={property.name}
               propertyImage={property.images[0] || ''}
               propertySlug={property.slug || property.id}
-              propertyLocation={`${property.location.city}, ${property.location.country}`}
+              propertyLocation={`${property.location.city}, ${getCountryAbbreviation(property.location.country)}`}
             />
           </div>
         </div>
