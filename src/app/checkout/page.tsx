@@ -481,6 +481,19 @@ function CheckoutContent() {
                     </div>
                   )}
                 </div>
+
+                {/* Price summary — mobile only (desktop shows in right column) */}
+                <div className="lg:hidden mt-4 pt-4 border-t border-[var(--casita-gray-100)]">
+                  <div className="flex justify-between text-sm text-[var(--casita-gray-600)] mb-2">
+                    <span>{formatCurrency(Math.round(quote.total / quote.nightsCount))} x {quote.nightsCount} night{quote.nightsCount > 1 ? 's' : ''}</span>
+                    <span>{formatCurrency(quote.total)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-[var(--casita-gray-900)]">Total</span>
+                    <span className="text-lg font-bold text-[var(--casita-gray-900)]">{formatCurrency(quote.total)}</span>
+                  </div>
+                  <p className="text-xs text-[var(--casita-gray-500)] mt-1">All taxes and fees included</p>
+                </div>
               </div>
 
               {/* Guest Information */}
@@ -637,8 +650,8 @@ function CheckoutContent() {
               </div>
             </div>
 
-            {/* Right Column - Price Summary */}
-            <div className="lg:col-span-2">
+            {/* Right Column - Price Summary (desktop only, mobile shows in Your Trip) */}
+            <div className="hidden lg:block lg:col-span-2">
               <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-28">
                 {/* Property Preview */}
                 <div className="flex gap-4 pb-6 border-b border-[var(--casita-gray-100)]">
