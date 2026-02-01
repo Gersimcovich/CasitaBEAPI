@@ -160,21 +160,22 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
   // Hero variant - Full width bar with progressive disclosure
   return (
     <div className="w-full max-w-4xl mx-auto px-4 relative z-20" ref={searchBarRef}>
-      <div className="bg-white rounded-full shadow-2xl border border-[var(--casita-gray-100)] transition-all duration-300">
-        <div className="flex items-center h-[72px] min-w-0">
+      <div className="bg-white rounded-2xl md:rounded-full shadow-2xl border border-[var(--casita-gray-100)] transition-all duration-300">
+        {/* Desktop: horizontal layout */}
+        <div className="hidden md:flex items-center h-[72px] min-w-0">
           {/* Left section: Pills for completed selections */}
           {step !== 'destination' && (
-            <div className="flex items-center gap-2 pl-3 sm:pl-6 min-w-0 flex-shrink overflow-hidden">
+            <div className="flex items-center gap-2 pl-6 min-w-0 flex-shrink overflow-hidden">
               {/* Destination Pill */}
               <button
                 onClick={() => {
                   setStep('destination');
                   setShowCityDropdown(true);
                 }}
-                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors min-w-0"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors min-w-0"
               >
                 <MapPin className="w-4 h-4 text-[var(--casita-orange)] flex-shrink-0" />
-                <span className="text-sm font-medium text-[var(--casita-gray-900)] truncate max-w-[80px] sm:max-w-[150px]">{destination}</span>
+                <span className="text-sm font-medium text-[var(--casita-gray-900)] truncate max-w-[150px]">{destination}</span>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -186,11 +187,11 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                 </button>
               </button>
 
-              {/* Dates Pill - shown when on guests step, hidden on mobile to save space */}
+              {/* Dates Pill */}
               {step === 'guests' && checkIn && checkOut && (
                 <button
                   onClick={() => setStep('dates')}
-                  className="hidden sm:flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--casita-gray-50)] rounded-full border border-[var(--casita-gray-200)] hover:border-[var(--casita-orange)] transition-colors"
                 >
                   <Calendar className="w-4 h-4 text-[var(--casita-orange)] flex-shrink-0" />
                   <span className="text-sm font-medium text-[var(--casita-gray-900)] whitespace-nowrap">{formatDateRange()}</span>
@@ -210,7 +211,6 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
 
           {/* Center section: Current input */}
           <div className="flex-1 relative">
-            {/* Step 1: Large destination input */}
             {step === 'destination' && (
               <div className="relative">
                 <div
@@ -234,14 +234,10 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                     className="flex-1 bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-2xl font-semibold tracking-tight"
                   />
                 </div>
-
-                {/* City Dropdown */}
                 {showCityDropdown && (
                   <div className="absolute top-full left-0 right-0 mt-4 bg-white rounded-2xl shadow-2xl border border-[var(--casita-gray-100)] max-h-80 overflow-y-auto z-30 animate-scale-in">
                     {isLoadingCities ? (
-                      <div className="p-4 text-center text-[var(--casita-gray-500)]">
-                        Loading cities...
-                      </div>
+                      <div className="p-4 text-center text-[var(--casita-gray-500)]">Loading cities...</div>
                     ) : filteredCities.length > 0 ? (
                       <ul className="py-2">
                         {filteredCities.map((city) => (
@@ -257,16 +253,12 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                         ))}
                       </ul>
                     ) : (
-                      <div className="p-4 text-center text-[var(--casita-gray-500)]">
-                        No cities found
-                      </div>
+                      <div className="p-4 text-center text-[var(--casita-gray-500)]">No cities found</div>
                     )}
                   </div>
                 )}
               </div>
             )}
-
-            {/* Step 2: Date Pickers */}
             {step === 'dates' && (
               <div className="flex items-center gap-2 px-6">
                 <Calendar className="w-5 h-5 text-[var(--casita-orange)] flex-shrink-0" />
@@ -304,7 +296,6 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                       selected={checkOut}
                       onChange={(date: Date | null) => {
                         setCheckOut(date);
-                        // Auto-advance to guests step when both dates are selected
                         if (date && checkIn) {
                           setTimeout(() => setStep('guests'), 300);
                         }
@@ -321,8 +312,6 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                 </div>
               </div>
             )}
-
-            {/* Step 3: Guests */}
             {step === 'guests' && (
               <div className="flex items-center gap-4 px-6">
                 <div className="relative">
@@ -336,77 +325,28 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                     </span>
                     <ChevronDown className="w-4 h-4 text-[var(--casita-gray-500)]" />
                   </button>
-
-                  {/* Guest Picker Dropdown */}
                   {showGuestPicker && (
                     <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-[var(--casita-gray-100)] p-4 z-30 animate-scale-in w-64">
                       <div className="space-y-4">
-                        {/* Guests Row */}
                         <div className="flex items-center justify-between">
                           <p className="font-semibold text-[var(--casita-gray-900)]">Guests</p>
                           <div className="flex items-center gap-3">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setGuests(Math.max(1, guests - 1));
-                              }}
-                              className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] hover:border-[var(--casita-orange)] flex items-center justify-center transition-colors disabled:opacity-40"
-                              disabled={guests <= 1}
-                            >
-                              <Minus className="w-4 h-4 text-[var(--casita-gray-700)]" />
-                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); setGuests(Math.max(1, guests - 1)); }} className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] hover:border-[var(--casita-orange)] flex items-center justify-center transition-colors disabled:opacity-40" disabled={guests <= 1}><Minus className="w-4 h-4 text-[var(--casita-gray-700)]" /></button>
                             <span className="w-6 text-center text-lg font-semibold">{guests}</span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setGuests(guests + 1);
-                              }}
-                              className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] hover:border-[var(--casita-orange)] flex items-center justify-center transition-colors"
-                            >
-                              <Plus className="w-4 h-4 text-[var(--casita-gray-700)]" />
-                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); setGuests(guests + 1); }} className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] hover:border-[var(--casita-orange)] flex items-center justify-center transition-colors"><Plus className="w-4 h-4 text-[var(--casita-gray-700)]" /></button>
                           </div>
                         </div>
-
                         <div className="border-t border-[var(--casita-gray-100)]" />
-
-                        {/* Rooms Row */}
                         <div className="flex items-center justify-between">
                           <p className="font-semibold text-[var(--casita-gray-900)]">Rooms</p>
                           <div className="flex items-center gap-3">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setRooms(Math.max(1, rooms - 1));
-                              }}
-                              className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] hover:border-[var(--casita-orange)] flex items-center justify-center transition-colors disabled:opacity-40"
-                              disabled={rooms <= 1}
-                            >
-                              <Minus className="w-4 h-4 text-[var(--casita-gray-700)]" />
-                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); setRooms(Math.max(1, rooms - 1)); }} className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] hover:border-[var(--casita-orange)] flex items-center justify-center transition-colors disabled:opacity-40" disabled={rooms <= 1}><Minus className="w-4 h-4 text-[var(--casita-gray-700)]" /></button>
                             <span className="w-6 text-center text-lg font-semibold">{rooms}</span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setRooms(rooms + 1);
-                              }}
-                              className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] hover:border-[var(--casita-orange)] flex items-center justify-center transition-colors"
-                            >
-                              <Plus className="w-4 h-4 text-[var(--casita-gray-700)]" />
-                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); setRooms(rooms + 1); }} className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] hover:border-[var(--casita-orange)] flex items-center justify-center transition-colors"><Plus className="w-4 h-4 text-[var(--casita-gray-700)]" /></button>
                           </div>
                         </div>
                       </div>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowGuestPicker(false);
-                        }}
-                        className="w-full mt-4 py-2.5 bg-[var(--casita-orange)] text-white rounded-lg font-semibold hover:bg-[var(--casita-orange-dark)] transition-colors"
-                      >
-                        Done
-                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); setShowGuestPicker(false); }} className="w-full mt-4 py-2.5 bg-[var(--casita-orange)] text-white rounded-lg font-semibold hover:bg-[var(--casita-orange-dark)] transition-colors">Done</button>
                     </div>
                   )}
                 </div>
@@ -414,17 +354,184 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
             )}
           </div>
 
-          {/* Right section: Search Button */}
-          <div className="pr-2 sm:pr-3 flex-shrink-0">
+          {/* Search Button */}
+          <div className="pr-3 flex-shrink-0">
             <button
               onClick={handleSearch}
               disabled={!destination}
-              className="flex items-center justify-center gap-2 bg-[var(--casita-orange)] text-white px-4 sm:px-6 py-3 sm:py-4 rounded-full font-bold hover:bg-[var(--casita-orange-dark)] transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 bg-[var(--casita-orange)] text-white px-6 py-4 rounded-full font-bold hover:bg-[var(--casita-orange-dark)] transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Search className="w-5 h-5" />
-              <span className="hidden sm:inline">{t.search.search}</span>
+              <span>{t.search.search}</span>
             </button>
           </div>
+        </div>
+
+        {/* Mobile: stacked vertical layout */}
+        <div className="md:hidden p-4 space-y-3">
+          {/* Destination */}
+          <div className="relative">
+            <div
+              className="flex items-center gap-3 px-4 py-3 bg-[var(--casita-gray-50)] rounded-xl border border-[var(--casita-gray-200)] cursor-text"
+              onClick={() => {
+                setStep('destination');
+                setShowCityDropdown(true);
+                destinationInputRef.current?.focus();
+              }}
+            >
+              <MapPin className="w-5 h-5 text-[var(--casita-orange)] flex-shrink-0" />
+              <input
+                ref={destinationInputRef}
+                type="text"
+                placeholder={t.search.destinationPlaceholder}
+                value={destination}
+                onChange={(e) => {
+                  setDestination(e.target.value);
+                  setShowCityDropdown(true);
+                  setStep('destination');
+                }}
+                onFocus={() => {
+                  setShowCityDropdown(true);
+                  setStep('destination');
+                }}
+                className="flex-1 bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-base font-medium"
+              />
+              {destination && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearDestination();
+                  }}
+                  className="p-1 hover:bg-[var(--casita-gray-200)] rounded-full transition-colors"
+                >
+                  <X className="w-4 h-4 text-[var(--casita-gray-500)]" />
+                </button>
+              )}
+            </div>
+            {/* City Dropdown - Mobile */}
+            {showCityDropdown && step === 'destination' && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-[var(--casita-gray-100)] max-h-60 overflow-y-auto z-30">
+                {isLoadingCities ? (
+                  <div className="p-4 text-center text-[var(--casita-gray-500)]">Loading cities...</div>
+                ) : filteredCities.length > 0 ? (
+                  <ul className="py-1">
+                    {filteredCities.map((city) => (
+                      <li key={city}>
+                        <button
+                          onClick={() => {
+                            handleCitySelect(city);
+                            setShowCityDropdown(false);
+                          }}
+                          className="w-full px-4 py-3 text-left hover:bg-[var(--casita-gray-50)] flex items-center gap-3 transition-colors"
+                        >
+                          <MapPin className="w-4 h-4 text-[var(--casita-orange)]" />
+                          <span className="text-[var(--casita-gray-800)] font-medium">{city}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="p-4 text-center text-[var(--casita-gray-500)]">No cities found</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Dates Row */}
+          <div className="flex gap-3">
+            <div className="flex-1 px-4 py-3 bg-[var(--casita-gray-50)] rounded-xl border border-[var(--casita-gray-200)]">
+              <label className="block text-xs font-medium text-[var(--casita-gray-500)] mb-1">Check-in</label>
+              <DatePicker
+                selected={checkIn}
+                onChange={(date: Date | null) => {
+                  setCheckIn(date);
+                  if (date && checkOut && checkOut <= date) {
+                    const nextDay = new Date(date);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    setCheckOut(nextDay);
+                  }
+                  if (date && !checkOut) {
+                    const nextDay = new Date(date);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    setCheckOut(nextDay);
+                  }
+                }}
+                selectsStart
+                startDate={checkIn}
+                endDate={checkOut}
+                minDate={new Date()}
+                placeholderText="Add date"
+                className="w-full bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-sm font-medium cursor-pointer"
+                dateFormat="MMM d"
+              />
+            </div>
+            <div className="flex-1 px-4 py-3 bg-[var(--casita-gray-50)] rounded-xl border border-[var(--casita-gray-200)]">
+              <label className="block text-xs font-medium text-[var(--casita-gray-500)] mb-1">Check-out</label>
+              <DatePicker
+                selected={checkOut}
+                onChange={(date: Date | null) => {
+                  setCheckOut(date);
+                }}
+                selectsEnd
+                startDate={checkIn}
+                endDate={checkOut}
+                minDate={checkIn || new Date()}
+                placeholderText="Add date"
+                className="w-full bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-sm font-medium cursor-pointer"
+                dateFormat="MMM d"
+              />
+            </div>
+          </div>
+
+          {/* Guests Row */}
+          <div className="relative">
+            <button
+              onClick={() => setShowGuestPicker(!showGuestPicker)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-[var(--casita-gray-50)] rounded-xl border border-[var(--casita-gray-200)]"
+            >
+              <div className="flex items-center gap-3">
+                <Users className="w-5 h-5 text-[var(--casita-orange)]" />
+                <span className="text-sm font-medium text-[var(--casita-gray-900)]">
+                  {guests} {guests !== 1 ? 'guests' : 'guest'}, {rooms} {rooms !== 1 ? 'rooms' : 'room'}
+                </span>
+              </div>
+              <ChevronDown className="w-4 h-4 text-[var(--casita-gray-500)]" />
+            </button>
+            {showGuestPicker && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-2xl border border-[var(--casita-gray-100)] p-4 z-30">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-[var(--casita-gray-900)]">Guests</p>
+                    <div className="flex items-center gap-3">
+                      <button onClick={(e) => { e.stopPropagation(); setGuests(Math.max(1, guests - 1)); }} className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] hover:border-[var(--casita-orange)] flex items-center justify-center transition-colors disabled:opacity-40" disabled={guests <= 1}><Minus className="w-4 h-4 text-[var(--casita-gray-700)]" /></button>
+                      <span className="w-6 text-center text-lg font-semibold">{guests}</span>
+                      <button onClick={(e) => { e.stopPropagation(); setGuests(guests + 1); }} className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] hover:border-[var(--casita-orange)] flex items-center justify-center transition-colors"><Plus className="w-4 h-4 text-[var(--casita-gray-700)]" /></button>
+                    </div>
+                  </div>
+                  <div className="border-t border-[var(--casita-gray-100)]" />
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-[var(--casita-gray-900)]">Rooms</p>
+                    <div className="flex items-center gap-3">
+                      <button onClick={(e) => { e.stopPropagation(); setRooms(Math.max(1, rooms - 1)); }} className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] hover:border-[var(--casita-orange)] flex items-center justify-center transition-colors disabled:opacity-40" disabled={rooms <= 1}><Minus className="w-4 h-4 text-[var(--casita-gray-700)]" /></button>
+                      <span className="w-6 text-center text-lg font-semibold">{rooms}</span>
+                      <button onClick={(e) => { e.stopPropagation(); setRooms(rooms + 1); }} className="w-8 h-8 rounded-full border border-[var(--casita-gray-300)] hover:border-[var(--casita-orange)] flex items-center justify-center transition-colors"><Plus className="w-4 h-4 text-[var(--casita-gray-700)]" /></button>
+                    </div>
+                  </div>
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); setShowGuestPicker(false); }} className="w-full mt-4 py-2.5 bg-[var(--casita-orange)] text-white rounded-lg font-semibold hover:bg-[var(--casita-orange-dark)] transition-colors">Done</button>
+              </div>
+            )}
+          </div>
+
+          {/* Search Button - Full width */}
+          <button
+            onClick={handleSearch}
+            disabled={!destination}
+            className="w-full flex items-center justify-center gap-2 bg-[var(--casita-orange)] text-white py-3.5 rounded-xl font-bold hover:bg-[var(--casita-orange-dark)] transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Search className="w-5 h-5" />
+            <span>{t.search.search}</span>
+          </button>
         </div>
       </div>
     </div>
