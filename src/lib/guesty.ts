@@ -1443,43 +1443,62 @@ export async function searchListings(params: {
   }
 }
 
-/**
- * Generate a synthetic calendar with all dates available.
- * Used when all APIs are rate limited and no cached data exists.
- * Actual availability is verified at booking time via getQuote.
- */
-function generateSyntheticCalendar(from: string, to: string): CalendarDay[] {
-  const days: CalendarDay[] = [];
-  const current = new Date(from);
-  const end = new Date(to);
+// MongoDB calendar cache - persists real calendar data across ALL Vercel instances
+const MONGO_CALENDAR_COLLECTION = 'calendar_cache';
 
-  while (current < end) {
-    days.push({
-      date: current.toISOString().split('T')[0],
-      status: 'available',
-      price: 0, // Price unknown — frontend uses property base price
-      minNights: undefined,
-      currency: 'USD',
+async function loadCalendarFromMongo(listingId: string, from: string, to: string): Promise<CalendarDay[] | null> {
+  try {
+    const db = await getDatabase();
+    const doc = await db.collection(MONGO_CALENDAR_COLLECTION).findOne({
+      listingId,
+      from,
+      to,
+      expiresAt: { $gt: Date.now() },
     });
-    current.setDate(current.getDate() + 1);
+    if (doc && doc.days && doc.days.length > 0) {
+      return doc.days as CalendarDay[];
+    }
+  } catch (err) {
+    console.warn('MongoDB calendar load failed:', err instanceof Error ? err.message : err);
   }
+  return null;
+}
 
-  return days;
+async function saveCalendarToMongo(listingId: string, from: string, to: string, days: CalendarDay[]): Promise<void> {
+  try {
+    const db = await getDatabase();
+    await db.collection(MONGO_CALENDAR_COLLECTION).updateOne(
+      { listingId, from, to },
+      {
+        $set: {
+          listingId,
+          from,
+          to,
+          days,
+          expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
+          updatedAt: new Date(),
+        },
+      },
+      { upsert: true }
+    );
+  } catch (err) {
+    console.warn('MongoDB calendar save failed:', err instanceof Error ? err.message : err);
+  }
 }
 
 /**
  * Get calendar availability for a listing
- * STRATEGY: Memory cache -> Disk cache -> BEAPI (best availability) -> Open API -> Stale cache -> Synthetic
- * BEAPI has proper availability status, Open API availability-pricing may not be accurate
+ * STRATEGY: Memory cache -> Disk cache -> MongoDB cache -> BEAPI -> Open API -> Stale caches -> Error
+ * NEVER returns fake/synthetic data. Only real Guesty data.
  */
 export async function getCalendar(
   listingId: string,
   from: string,
   to: string
 ): Promise<CalendarDay[]> {
-  // If fallback mode, return synthetic calendar (all dates available)
+  // If fallback mode, throw error - we never return fake data
   if (USE_FALLBACK_ONLY) {
-    return generateSyntheticCalendar(from, to);
+    throw new Error('GUESTY_USE_FALLBACK_ONLY is set but no cached data available');
   }
 
   const cacheKey = `${listingId}-${from}-${to}`;
@@ -1501,6 +1520,17 @@ export async function getCalendar(
     });
     console.log(`📂 Calendar for ${listingId} loaded from disk`);
     return diskCalendar;
+  }
+
+  // STEP 2.5: Check MongoDB cache (shared across all Vercel instances)
+  const mongoCalendar = await loadCalendarFromMongo(listingId, from, to);
+  if (mongoCalendar && mongoCalendar.length > 0) {
+    calendarCache.set(cacheKey, {
+      data: mongoCalendar,
+      expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
+    });
+    console.log(`🔑 Calendar for ${listingId} loaded from MongoDB`);
+    return mongoCalendar;
   }
 
   // STEP 3: Try BEAPI FIRST (has proper availability status)
@@ -1572,6 +1602,9 @@ export async function getCalendar(
       // Save to disk for persistence
       await saveCalendarToDisk(listingId, calendar);
 
+      // Save to MongoDB for cross-instance persistence
+      await saveCalendarToMongo(listingId, from, to, calendar);
+
       return calendar;
     } catch (beapiError) {
       console.warn('BEAPI calendar failed:', beapiError);
@@ -1589,8 +1622,9 @@ export async function getCalendar(
         const uniquePrices = new Set(openApiCalendar.map(d => d.price));
         console.log(`✅ Open API: ${openApiCalendar.length} days, ${uniquePrices.size} unique prices`);
 
-        // Save to disk for persistence
+        // Save to disk + MongoDB for persistence
         await saveCalendarToDisk(listingId, openApiCalendar);
+        await saveCalendarToMongo(listingId, from, to, openApiCalendar);
         return openApiCalendar;
       }
     } catch (openApiError) {
@@ -1618,16 +1652,8 @@ export async function getCalendar(
     return staleDiskCalendar;
   }
 
-  // STEP 7: Generate synthetic calendar when all APIs fail
-  // All dates shown as available - actual availability is verified at booking time via getQuote
-  console.warn(`⚠️ All APIs rate limited, no cache for ${listingId} — returning synthetic calendar`);
-  const synthetic = generateSyntheticCalendar(from, to);
-  // Cache with short TTL so we retry APIs soon
-  calendarCache.set(cacheKey, {
-    data: synthetic,
-    expiresAt: Date.now() + (2 * 60 * 1000), // 2 min
-  });
-  return synthetic;
+  // STEP 7: No real data available - throw error (never return fake data)
+  throw new Error('All APIs unavailable - calendar data not found');
 }
 
 /**
