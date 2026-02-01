@@ -12,6 +12,9 @@ export default function WhatsAppButton() {
   const [isDismissed, setIsDismissed] = useState(false);
   const { isCapacitor } = useCapacitor();
 
+  // Hide in mobile app
+  if (isCapacitor) return null;
+
   const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;
 
   // Show tooltip after 3 seconds, but only once
