@@ -12,13 +12,9 @@ export default function WhatsAppButton() {
   const [isDismissed, setIsDismissed] = useState(false);
   const { isCapacitor } = useCapacitor();
 
-  // Hide in mobile app
-  if (isCapacitor) return null;
-
-  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;
-
   // Show tooltip after 3 seconds, but only once
   useEffect(() => {
+    if (isCapacitor) return; // Don't run tooltip timer in app mode
     const timer = setTimeout(() => {
       if (!isDismissed) {
         setIsTooltipVisible(true);
@@ -27,10 +23,13 @@ export default function WhatsAppButton() {
       }
     }, 3000);
     return () => clearTimeout(timer);
-  }, [isDismissed]);
+  }, [isDismissed, isCapacitor]);
 
-  // In app mode, position above the bottom tab bar
-  const bottomClass = isCapacitor ? 'bottom-24' : 'bottom-6';
+  // Hide in mobile app (after all hooks)
+  if (isCapacitor) return null;
+
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;
+  const bottomClass = 'bottom-6';
 
   return (
     <div className={`fixed ${bottomClass} right-6 z-50 flex items-end gap-3`}>
