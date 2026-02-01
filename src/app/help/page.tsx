@@ -114,13 +114,13 @@ export default function HelpPage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-28 pb-16 bg-gradient-to-br from-[var(--casita-gray-50)] to-white">
+      <section className="pt-24 pb-10 md:pt-28 md:pb-16 bg-gradient-to-br from-[var(--casita-gray-50)] to-white">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-[var(--casita-gray-900)] mb-6">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--casita-gray-900)] mb-4 md:mb-6">
               Help <span className="text-[var(--casita-orange)]">Center</span>
             </h1>
-            <p className="text-xl text-[var(--casita-gray-600)]">
+            <p className="text-lg md:text-xl text-[var(--casita-gray-600)]">
               Find answers to common questions or reach out to our 24/7 support team.
             </p>
           </div>
@@ -154,7 +154,7 @@ export default function HelpPage() {
       </section>
 
       {/* FAQs */}
-      <section className="py-16">
+      <section className="py-10 md:py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl font-bold text-[var(--casita-gray-900)] mb-8 text-center">
@@ -213,7 +213,7 @@ export default function HelpPage() {
       </section>
 
       {/* Still Need Help */}
-      <section className="py-16 bg-[var(--casita-gray-50)]">
+      <section className="py-10 md:py-16 bg-[var(--casita-gray-50)]">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-2xl font-bold text-[var(--casita-gray-900)] mb-4">

@@ -388,7 +388,7 @@ export default function HomeContent({ properties }: HomeContentProps) {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 relative overflow-hidden">
+      <section className="py-12 md:py-20 relative overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <img
@@ -407,11 +407,11 @@ export default function HomeContent({ properties }: HomeContentProps) {
             <span className="text-sm font-semibold text-white">Verified Superhost</span>
           </div>
 
-          <h2 className="font-serif text-4xl md:text-5xl font-bold text-white mb-4 flex items-center justify-center gap-3">
-            <Shield className="w-10 h-10 md:w-12 md:h-12 text-[var(--casita-orange)]" />
+          <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 flex items-center justify-center gap-3">
+            <Shield className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-[var(--casita-orange)]" />
             Book in Confidence
           </h2>
-          <p className="text-white text-xl md:text-2xl mb-8 max-w-2xl mx-auto font-medium">
+          <p className="text-white text-lg md:text-xl lg:text-2xl mb-8 max-w-2xl mx-auto font-medium">
             {t.cta.subtitle}
           </p>
           <a

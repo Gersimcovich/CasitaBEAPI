@@ -2,15 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, User, HelpCircle } from 'lucide-react';
+import { Home, Search, User, CalendarCheck } from 'lucide-react';
 import { useCapacitor } from '@/hooks/useCapacitor';
 import { useUser } from '@/contexts/UserContext';
 
 const tabs = [
   { href: '/', icon: Home, label: 'Home' },
   { href: '/properties', icon: Search, label: 'Search' },
+  { href: '/reservation', icon: CalendarCheck, label: 'My Stay' },
   { href: '/account', icon: User, label: 'Account' },
-  { href: '/help', icon: HelpCircle, label: 'Help' },
 ];
 
 export default function BottomTabBar() {
@@ -32,7 +32,12 @@ export default function BottomTabBar() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[var(--casita-gray-100)]"
-      style={isIOS ? { paddingBottom: 'env(safe-area-inset-bottom, 0px)' } : undefined}
+      style={{
+        ...(isIOS ? { paddingBottom: 'env(safe-area-inset-bottom, 0px)' } : {}),
+        transform: 'translateZ(0)',
+        WebkitBackfaceVisibility: 'hidden',
+        backfaceVisibility: 'hidden',
+      }}
     >
       <div className="flex items-center justify-around h-14">
         {tabs.map((tab) => {

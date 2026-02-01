@@ -494,8 +494,24 @@ export default function PropertyPage() {
               </div>
             </div>
 
+            {/* Booking Widget - Mobile/App: inline above content */}
+            <div className="lg:hidden mb-6">
+              <BookingWidget
+                listingId={property.id}
+                pricePerNight={property.price.perNight}
+                currency={property.price.currency || 'USD'}
+                maxGuests={property.maxGuests}
+                rating={property.rating}
+                reviewCount={property.reviewCount}
+                propertyName={property.name}
+                propertyImage={property.images[0] || ''}
+                propertySlug={property.slug || property.id}
+                propertyLocation={`${property.location.city}, ${property.location.country}`}
+              />
+            </div>
+
             {/* Cute House Divider */}
-            <div className="flex items-center justify-center my-8">
+            <div className={`flex items-center justify-center ${isCapacitor ? 'my-4' : 'my-8'}`}>
               <div className="h-px bg-[var(--casita-gray-200)] flex-1" />
               <Image
                 src="/house-icon.png"
@@ -509,11 +525,11 @@ export default function PropertyPage() {
 
             {/* Description */}
             {property.description && (
-              <div className="mb-10">
-                <h2 className="font-serif text-2xl font-semibold text-[var(--casita-gray-900)] mb-4">
+              <div className={isCapacitor ? 'mb-6' : 'mb-10'}>
+                <h2 className={`font-serif font-semibold text-[var(--casita-gray-900)] mb-3 ${isCapacitor ? 'text-xl' : 'text-2xl mb-4'}`}>
                   {t.property.about}
                 </h2>
-                <p className="text-[var(--casita-gray-600)] leading-relaxed text-lg whitespace-pre-line">
+                <p className={`text-[var(--casita-gray-600)] leading-relaxed whitespace-pre-line ${isCapacitor ? 'text-base' : 'text-lg'}`}>
                   {property.description}
                 </p>
               </div>
@@ -521,9 +537,9 @@ export default function PropertyPage() {
 
             {/* Amenities */}
             {property.amenities && property.amenities.length > 0 && (
-              <div className="mb-10">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="font-serif text-2xl font-semibold text-[var(--casita-gray-900)]">
+              <div className={isCapacitor ? 'mb-6' : 'mb-10'}>
+                <div className={`flex items-center justify-between ${isCapacitor ? 'mb-4' : 'mb-6'}`}>
+                  <h2 className={`font-serif font-semibold text-[var(--casita-gray-900)] ${isCapacitor ? 'text-xl' : 'text-2xl'}`}>
                     {t.property.amenities}
                   </h2>
                   {property.amenities.length > 12 && (
@@ -565,8 +581,8 @@ export default function PropertyPage() {
 
             {/* House Policies */}
             {property.policies && (
-              <div className="mb-10">
-                <h2 className="font-serif text-2xl font-semibold text-[var(--casita-gray-900)] mb-6">
+              <div className={isCapacitor ? 'mb-6' : 'mb-10'}>
+                <h2 className={`font-serif font-semibold text-[var(--casita-gray-900)] ${isCapacitor ? 'text-xl mb-4' : 'text-2xl mb-6'}`}>
                   {t.property.policies}
                 </h2>
                 <div className="grid md:grid-cols-3 gap-6">
@@ -588,8 +604,8 @@ export default function PropertyPage() {
 
             {/* Location & Nearby */}
             {property.location.coordinates && (
-              <div className="mb-10">
-                <h2 className="font-serif text-2xl font-semibold text-[var(--casita-gray-900)] mb-6">
+              <div className={isCapacitor ? 'mb-6' : 'mb-10'}>
+                <h2 className={`font-serif font-semibold text-[var(--casita-gray-900)] ${isCapacitor ? 'text-xl mb-4' : 'text-2xl mb-6'}`}>
                   {t.property.location || 'Location'}
                 </h2>
 
@@ -620,9 +636,9 @@ export default function PropertyPage() {
 
             {/* Guest Reviews Section */}
             {property.reviews && property.reviews.length > 0 && (
-              <div className="mb-10">
-                <div className="flex items-center gap-3 mb-6">
-                  <h2 className="font-serif text-2xl font-semibold text-[var(--casita-gray-900)]">
+              <div className={isCapacitor ? 'mb-6' : 'mb-10'}>
+                <div className={`flex items-center gap-3 ${isCapacitor ? 'mb-4' : 'mb-6'}`}>
+                  <h2 className={`font-serif font-semibold text-[var(--casita-gray-900)] ${isCapacitor ? 'text-xl' : 'text-2xl'}`}>
                     Guest Reviews
                   </h2>
                   <div className="flex items-center gap-1 bg-[var(--casita-orange)] text-white px-3 py-1 rounded-full text-sm">
@@ -686,8 +702,8 @@ export default function PropertyPage() {
             )}
           </div>
 
-          {/* Booking Sidebar */}
-          <div className="lg:col-span-1">
+          {/* Booking Sidebar - Desktop only (mobile version is inline above) */}
+          <div className="hidden lg:block lg:col-span-1">
             <BookingWidget
               listingId={property.id}
               pricePerNight={property.price.perNight}
