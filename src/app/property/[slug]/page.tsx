@@ -419,7 +419,7 @@ export default function PropertyPage() {
                     className="object-cover"
                   />
                   {index === 3 && property.images.length > 5 && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                       <span className="text-white text-lg font-medium">
                         +{property.images.length - 5} more
                       </span>
@@ -456,16 +456,13 @@ export default function PropertyPage() {
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-                {property.images.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`w-2 h-2 rounded-full ${
-                      index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                    }`}
-                  />
-                ))}
-              </div>
+              {/* Photo counter + Show all */}
+              <button
+                onClick={() => setShowGallery(true)}
+                className="absolute bottom-4 right-4 px-3 py-1.5 bg-white/90 rounded-lg shadow-md text-xs font-medium text-[var(--casita-gray-900)]"
+              >
+                {currentImageIndex + 1} / {property.images.length} — Show all
+              </button>
             </div>
           ) : (
             <div className="md:hidden h-[300px] bg-[var(--casita-gray-100)] rounded-2xl flex items-center justify-center">
@@ -762,37 +759,37 @@ export default function PropertyPage() {
         </div>
       </section>
 
-      {/* Fullscreen Gallery Modal */}
+      {/* Fullscreen Gallery Modal — Airbnb-style stacked photos */}
       {showGallery && property.images.length > 0 && (
-        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-          <button
-            onClick={() => setShowGallery(false)}
-            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+        <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
+          {/* Sticky header */}
+          <div
+            className="sticky top-0 z-10 bg-white border-b border-[var(--casita-gray-100)] flex items-center px-4 py-3"
+            style={isCapacitor && isIOS ? { paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)' } : undefined}
           >
-            <X className="w-6 h-6" />
-          </button>
-          <button
-            onClick={prevImage}
-            className="absolute left-4 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
-          >
-            <ChevronLeft className="w-8 h-8" />
-          </button>
-          <div className="relative w-full max-w-5xl h-[80vh]">
-            <Image
-              src={property.images[currentImageIndex]}
-              alt={property.name}
-              fill
-              className="object-contain"
-            />
+            <button
+              onClick={() => setShowGallery(false)}
+              className="w-9 h-9 rounded-full hover:bg-[var(--casita-gray-100)] flex items-center justify-center transition-colors"
+            >
+              <X className="w-5 h-5 text-[var(--casita-gray-700)]" />
+            </button>
+            <span className="ml-3 text-sm font-medium text-[var(--casita-gray-600)]">
+              {property.images.length} photos
+            </span>
           </div>
-          <button
-            onClick={nextImage}
-            className="absolute right-4 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
-          >
-            <ChevronRight className="w-8 h-8" />
-          </button>
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white">
-            {currentImageIndex + 1} / {property.images.length}
+          {/* Stacked full-width photos */}
+          <div className="max-w-3xl mx-auto px-0 md:px-4 py-4 space-y-2">
+            {property.images.map((image, index) => (
+              <div key={index} className="relative w-full aspect-[4/3]">
+                <Image
+                  src={image}
+                  alt={`${property.name} ${index + 1}`}
+                  fill
+                  className="object-cover md:rounded-lg"
+                  sizes="(max-width: 768px) 100vw, 768px"
+                />
+              </div>
+            ))}
           </div>
         </div>
       )}
