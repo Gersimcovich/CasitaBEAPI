@@ -286,7 +286,8 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                       minDate={new Date()}
                       placeholderText="Add date"
                       className="w-full bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-lg font-medium cursor-pointer"
-                      dateFormat="MMM d"
+                      dateFormat="MMM d, yyyy"
+                      monthsShown={1}
                     />
                   </div>
                   <div className="w-px h-10 bg-[var(--casita-gray-200)]" />
@@ -306,7 +307,8 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                       minDate={checkIn || new Date()}
                       placeholderText="Add date"
                       className="w-full bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-lg font-medium cursor-pointer"
-                      dateFormat="MMM d"
+                      dateFormat="MMM d, yyyy"
+                      monthsShown={1}
                     />
                   </div>
                 </div>
@@ -462,7 +464,8 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                 minDate={new Date()}
                 placeholderText="Add date"
                 className="w-full bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-sm font-medium cursor-pointer"
-                dateFormat="MMM d"
+                dateFormat="MMM d, yyyy"
+                monthsShown={1}
               />
             </div>
             <div className="flex-1 px-4 py-3 bg-[var(--casita-gray-50)] rounded-xl border border-[var(--casita-gray-200)]">
@@ -478,7 +481,8 @@ export default function SearchBar({ variant = 'hero', onSearch }: SearchBarProps
                 minDate={checkIn || new Date()}
                 placeholderText="Add date"
                 className="w-full bg-transparent text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none text-sm font-medium cursor-pointer"
-                dateFormat="MMM d"
+                dateFormat="MMM d, yyyy"
+                monthsShown={1}
               />
             </div>
           </div>
