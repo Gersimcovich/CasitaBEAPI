@@ -226,8 +226,8 @@ export default function BookingWidget({
         } else {
           setQuoteError(data.error || 'These dates are already booked. Try adjusting your stay!');
           setQuote(null);
-          // If quote reveals dates are actually booked, immediately add them
-          // to the blocked dates list so the calendar updates visually
+          // If quote reveals dates are actually booked, add them to blocked dates
+          // but DON'T auto-clear selection - let user see the error and adjust manually
           if (data.unavailableDates?.length > 0) {
             const newBlocked = data.unavailableDates.map((d: string) => new Date(d));
             setBlockedDates(prev => {
@@ -240,9 +240,7 @@ export default function BookingWidget({
               }
               return merged;
             });
-            // Clear the selected dates since they're booked
-            setCheckIn(null);
-            setCheckOut(null);
+            // Don't auto-clear dates - let user see error and adjust manually
           }
         }
       } catch (error) {
