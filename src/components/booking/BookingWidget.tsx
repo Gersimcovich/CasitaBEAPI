@@ -543,9 +543,19 @@ export default function BookingWidget({
             <div className="flex-shrink-0 w-8 h-8 bg-[var(--casita-orange)]/10 rounded-full flex items-center justify-center">
               <Calendar className="w-4 h-4 text-[var(--casita-orange)]" />
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-medium text-[var(--casita-gray-900)] mb-1">Let's find you the perfect dates</p>
               <p className="text-sm text-[var(--casita-gray-600)]">{quoteError}</p>
+              <button
+                onClick={() => {
+                  setCheckIn(null);
+                  setCheckOut(null);
+                  setQuoteError(null);
+                }}
+                className="mt-2 text-sm font-medium text-[var(--casita-orange)] hover:underline"
+              >
+                Clear dates and try again
+              </button>
             </div>
           </div>
         </div>
