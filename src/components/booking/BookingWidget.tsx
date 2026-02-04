@@ -130,8 +130,8 @@ export default function BookingWidget({
     }));
   };
 
-  // Fetch blocked dates
-  const fetchBlockedDates = async () => {
+  // Fetch blocked dates (with optional cache bypass)
+  const fetchBlockedDates = async (forceRefresh = false) => {
     setIsLoadingCalendar(true);
     setCalendarError(null);
     try {
@@ -142,8 +142,9 @@ export default function BookingWidget({
       const from = today.toISOString().split('T')[0];
       const to = sixMonthsLater.toISOString().split('T')[0];
 
+      const refreshParam = forceRefresh ? '&refresh=true' : '';
       const response = await fetch(
-        `/api/booking/calendar?listingId=${listingId}&from=${from}&to=${to}`
+        `/api/booking/calendar?listingId=${listingId}&from=${from}&to=${to}${refreshParam}`
       );
       const data = await response.json();
 
@@ -546,16 +547,19 @@ export default function BookingWidget({
             <div className="flex-1">
               <p className="text-sm font-medium text-[var(--casita-gray-900)] mb-1">Let's find you the perfect dates</p>
               <p className="text-sm text-[var(--casita-gray-600)]">{quoteError}</p>
-              <button
-                onClick={() => {
-                  setCheckIn(null);
-                  setCheckOut(null);
-                  setQuoteError(null);
-                }}
-                className="mt-2 text-sm font-medium text-[var(--casita-orange)] hover:underline"
-              >
-                Clear dates and try again
-              </button>
+              <div className="flex gap-3 mt-2">
+                <button
+                  onClick={() => {
+                    setCheckIn(null);
+                    setCheckOut(null);
+                    setQuoteError(null);
+                    fetchBlockedDates(true); // Refresh calendar with latest data
+                  }}
+                  className="text-sm font-medium text-[var(--casita-orange)] hover:underline"
+                >
+                  Refresh & try again
+                </button>
+              </div>
             </div>
           </div>
         </div>

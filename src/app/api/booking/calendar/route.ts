@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCalendar as getCalendarLegacy } from '@/lib/guesty';
+import { getCalendar as getCalendarLegacy, getCalendarFresh } from '@/lib/guesty';
 
 // Generate array of dates between from and to (YYYY-MM-DD format)
 function generateDateRange(from: string, to: string): string[] {
@@ -20,6 +20,7 @@ export async function GET(request: Request) {
   const listingId = searchParams.get('listingId');
   const from = searchParams.get('from');
   const to = searchParams.get('to');
+  const refresh = searchParams.get('refresh') === 'true';
 
   // Validate required fields
   if (!listingId || !from || !to) {
@@ -57,9 +58,11 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Tries: memory cache -> disk cache -> MongoDB -> BEAPI -> Open API -> stale disk cache (24h)
-    // Only throws if ALL sources fail (including stale cache)
-    const calendar = await getCalendarLegacy(listingId, from, to);
+    // If refresh=true, bypass all caches and fetch directly from Guesty
+    // Otherwise: memory cache -> disk cache -> MongoDB -> BEAPI -> Open API -> stale disk cache (24h)
+    const calendar = refresh
+      ? await getCalendarFresh(listingId, from, to)
+      : await getCalendarLegacy(listingId, from, to);
 
     if (!calendar || calendar.length === 0) {
       // No data from any source — return error so frontend can show "try again"

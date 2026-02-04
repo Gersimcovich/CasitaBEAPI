@@ -1552,7 +1552,8 @@ export function invalidateCalendarForDates(listingId: string, unavailableDates: 
 export async function getCalendar(
   listingId: string,
   from: string,
-  to: string
+  to: string,
+  options?: { skipCache?: boolean }
 ): Promise<CalendarDay[]> {
   // If fallback mode, throw error - we never return fake data
   if (USE_FALLBACK_ONLY) {
@@ -1560,35 +1561,44 @@ export async function getCalendar(
   }
 
   const cacheKey = `${listingId}-${from}-${to}`;
+  const skipCache = options?.skipCache === true;
 
-  // STEP 1: Check memory cache first (fastest)
-  const cached = calendarCache.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now()) {
-    console.log(`📦 Calendar for ${listingId} from memory cache`);
-    return cached.data;
+  if (!skipCache) {
+    // STEP 1: Check memory cache first (fastest)
+    const cached = calendarCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      console.log(`📦 Calendar for ${listingId} from memory cache`);
+      return cached.data;
+    }
+
+    // STEP 2: Check disk cache (validate date range matches)
+    const diskCalendar = await loadCalendarFromDisk(listingId, undefined, from, to);
+    if (diskCalendar && diskCalendar.length > 0) {
+      // Load to memory cache
+      calendarCache.set(cacheKey, {
+        data: diskCalendar,
+        expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
+      });
+      console.log(`📂 Calendar for ${listingId} loaded from disk`);
+      return diskCalendar;
+    }
+  } else {
+    console.log(`🔄 Calendar refresh requested for ${listingId}, skipping cache`);
   }
 
-  // STEP 2: Check disk cache (validate date range matches)
-  const diskCalendar = await loadCalendarFromDisk(listingId, undefined, from, to);
-  if (diskCalendar && diskCalendar.length > 0) {
-    // Load to memory cache
-    calendarCache.set(cacheKey, {
-      data: diskCalendar,
-      expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
-    });
-    console.log(`📂 Calendar for ${listingId} loaded from disk`);
-    return diskCalendar;
-  }
+  // Continue from here if cache miss or skipCache=true
 
-  // STEP 2.5: Check MongoDB cache (shared across all Vercel instances)
-  const mongoCalendar = await loadCalendarFromMongo(listingId, from, to);
-  if (mongoCalendar && mongoCalendar.length > 0) {
-    calendarCache.set(cacheKey, {
-      data: mongoCalendar,
-      expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
-    });
-    console.log(`🔑 Calendar for ${listingId} loaded from MongoDB`);
-    return mongoCalendar;
+  if (!skipCache) {
+    // STEP 2.5: Check MongoDB cache (shared across all Vercel instances)
+    const mongoCalendar = await loadCalendarFromMongo(listingId, from, to);
+    if (mongoCalendar && mongoCalendar.length > 0) {
+      calendarCache.set(cacheKey, {
+        data: mongoCalendar,
+        expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
+      });
+      console.log(`🔑 Calendar for ${listingId} loaded from MongoDB`);
+      return mongoCalendar;
+    }
   }
 
   // STEP 3: Try BEAPI FIRST (has proper availability status)
@@ -1712,6 +1722,18 @@ export async function getCalendar(
 
   // STEP 7: No real data available - throw error (never return fake data)
   throw new Error('All APIs unavailable - calendar data not found');
+}
+
+/**
+ * Get fresh calendar data, bypassing all caches.
+ * Use when the cached calendar is known to be stale (e.g., after a quote fails).
+ */
+export async function getCalendarFresh(
+  listingId: string,
+  from: string,
+  to: string
+): Promise<CalendarDay[]> {
+  return getCalendar(listingId, from, to, { skipCache: true });
 }
 
 /**
