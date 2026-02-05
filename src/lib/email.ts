@@ -929,7 +929,7 @@ export async function sendHostNotificationEmail(data: {
 // 2FA VERIFICATION CODE EMAIL
 // ============================================
 
-type Locale = 'en' | 'es' | 'pt';
+type Locale = 'en' | 'es' | 'pt' | 'fr' | 'de' | 'it' | 'pl';
 
 interface TwoFAEmailData {
   email: string;
@@ -966,6 +966,42 @@ const twoFATranslations = {
     expires: 'Este codigo expira em 10 minutos.',
     warning: 'Se voce nao solicitou este codigo, pode ignorar este email.',
     footer: 'Sua Casa Longe de Casa',
+  },
+  fr: {
+    subject: 'Votre Code de Vérification Casita',
+    title: 'Code de Vérification',
+    greeting: (name: string) => `Bonjour ${name},`,
+    intro: 'Utilisez ce code pour accéder à votre compte Casita :',
+    expires: 'Ce code expire dans 10 minutes.',
+    warning: 'Si vous n\'avez pas demandé ce code, vous pouvez ignorer cet email.',
+    footer: 'Votre Maison Loin de Chez Vous',
+  },
+  de: {
+    subject: 'Ihr Casita Verifizierungscode',
+    title: 'Verifizierungscode',
+    greeting: (name: string) => `Hallo ${name},`,
+    intro: 'Verwenden Sie diesen Code, um auf Ihr Casita-Konto zuzugreifen:',
+    expires: 'Dieser Code läuft in 10 Minuten ab.',
+    warning: 'Wenn Sie diesen Code nicht angefordert haben, können Sie diese E-Mail ignorieren.',
+    footer: 'Ihr Zuhause in der Ferne',
+  },
+  it: {
+    subject: 'Il tuo Codice di Verifica Casita',
+    title: 'Codice di Verifica',
+    greeting: (name: string) => `Ciao ${name},`,
+    intro: 'Usa questo codice per accedere al tuo account Casita:',
+    expires: 'Questo codice scade tra 10 minuti.',
+    warning: 'Se non hai richiesto questo codice, puoi ignorare questa email.',
+    footer: 'La Tua Casa Lontano da Casa',
+  },
+  pl: {
+    subject: 'Twój Kod Weryfikacyjny Casita',
+    title: 'Kod Weryfikacyjny',
+    greeting: (name: string) => `Cześć ${name},`,
+    intro: 'Użyj tego kodu, aby uzyskać dostęp do swojego konta Casita:',
+    expires: 'Ten kod wygasa za 10 minut.',
+    warning: 'Jeśli nie prosiłeś o ten kod, możesz zignorować tę wiadomość.',
+    footer: 'Twój Dom z Dala od Domu',
   },
 };
 

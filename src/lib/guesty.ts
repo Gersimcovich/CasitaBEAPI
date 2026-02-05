@@ -1567,9 +1567,11 @@ export async function getCalendar(
   const cacheKey = `${listingId}-${from}-${to}`;
   const skipCache = options?.skipCache === true;
 
+  // Store cached data reference for potential stale fallback
+  const cached = calendarCache.get(cacheKey);
+
   if (!skipCache) {
     // STEP 1: Check memory cache first (fastest)
-    const cached = calendarCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) {
       console.log(`📦 Calendar for ${listingId} from memory cache`);
       return cached.data;
@@ -1877,6 +1879,7 @@ export async function getQuote(params: {
     taxes: number;
     total: number;
     currency: string;
+    estimated?: boolean;
   } | null;
   unavailableDates: string[];
   listing: {

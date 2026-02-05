@@ -39,6 +39,58 @@ const PORTUGUESE_COUNTRIES = [
   'TL', // Timor-Leste
 ];
 
+// French-speaking countries
+const FRENCH_COUNTRIES = [
+  'FR', // France
+  'BE', // Belgium (French-speaking part)
+  'CH', // Switzerland (French-speaking part)
+  'CA', // Canada (French-speaking part - Quebec)
+  'LU', // Luxembourg
+  'MC', // Monaco
+  'SN', // Senegal
+  'CI', // Côte d'Ivoire
+  'ML', // Mali
+  'BF', // Burkina Faso
+  'NE', // Niger
+  'TG', // Togo
+  'BJ', // Benin
+  'MG', // Madagascar
+  'CM', // Cameroon
+  'CD', // Democratic Republic of the Congo
+  'CG', // Republic of the Congo
+  'GA', // Gabon
+  'DJ', // Djibouti
+  'CF', // Central African Republic
+  'TD', // Chad
+  'RW', // Rwanda
+  'BI', // Burundi
+  'HT', // Haiti
+  'MU', // Mauritius
+  'SC', // Seychelles
+  'KM', // Comoros
+  'MR', // Mauritania
+  'GN', // Guinea
+];
+
+// German-speaking countries
+const GERMAN_COUNTRIES = [
+  'DE', // Germany
+  'AT', // Austria
+  'LI', // Liechtenstein
+];
+
+// Italian-speaking countries
+const ITALIAN_COUNTRIES = [
+  'IT', // Italy
+  'SM', // San Marino
+  'VA', // Vatican City
+];
+
+// Polish-speaking country
+const POLISH_COUNTRIES = [
+  'PL', // Poland
+];
+
 function getLocaleFromCountry(countryCode: string | null): Locale {
   if (!countryCode) return 'en';
 
@@ -50,6 +102,22 @@ function getLocaleFromCountry(countryCode: string | null): Locale {
 
   if (PORTUGUESE_COUNTRIES.includes(upperCountry)) {
     return 'pt';
+  }
+
+  if (FRENCH_COUNTRIES.includes(upperCountry)) {
+    return 'fr';
+  }
+
+  if (GERMAN_COUNTRIES.includes(upperCountry)) {
+    return 'de';
+  }
+
+  if (ITALIAN_COUNTRIES.includes(upperCountry)) {
+    return 'it';
+  }
+
+  if (POLISH_COUNTRIES.includes(upperCountry)) {
+    return 'pl';
   }
 
   // Default to English for all other countries

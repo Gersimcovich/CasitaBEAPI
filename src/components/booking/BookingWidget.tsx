@@ -334,7 +334,7 @@ export default function BookingWidget({
           <div className="p-4 text-center">
             <p className="text-sm text-[var(--casita-gray-600)]">Unable to load availability</p>
             <button
-              onClick={fetchBlockedDates}
+              onClick={() => fetchBlockedDates(true)}
               className="mt-2 text-sm text-[var(--casita-orange)] hover:underline font-medium"
             >
               Try again

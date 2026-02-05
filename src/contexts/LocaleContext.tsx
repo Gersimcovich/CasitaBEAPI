@@ -65,7 +65,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
         const response = await fetch('/api/geolocation');
         if (response.ok) {
           const data = await response.json();
-          if (data.locale && ['en', 'es', 'pt'].includes(data.locale)) {
+          if (data.locale && ['en', 'es', 'pt', 'fr', 'de', 'it', 'pl'].includes(data.locale)) {
             setLocaleState(data.locale as Locale);
             setDetectedCountry(data.country);
             // Store in sessionStorage so we don't re-detect on every page load
