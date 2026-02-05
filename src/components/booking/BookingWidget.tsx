@@ -242,6 +242,8 @@ export default function BookingWidget({
               return merged;
             });
             // Don't auto-clear dates - let user see error and adjust manually
+            // Refresh the entire calendar in the background to get the latest blocked dates
+            fetchBlockedDates(true);
           }
         }
       } catch (error) {
@@ -382,8 +384,29 @@ export default function BookingWidget({
                 selectsEnd
                 startDate={checkIn}
                 endDate={checkOut}
-                minDate={checkIn || new Date()}
-                excludeDates={blockedDates}
+                minDate={checkIn ? new Date(checkIn.getTime() + 86400000) : new Date()}
+                filterDate={(date) => {
+                  // Checkout date is when you leave, not when you stay
+                  // So checkout is valid as long as all nights from check-in to checkout-1 are available
+                  if (!checkIn) return true;
+
+                  // Check that no blocked dates fall between check-in and checkout-1
+                  const checkInTime = checkIn.getTime();
+                  const checkOutTime = date.getTime();
+
+                  // Must be at least 1 day after check-in
+                  if (checkOutTime <= checkInTime) return false;
+
+                  // Check if any blocked date falls within the stay period (check-in to checkout-1)
+                  for (const blocked of blockedDates) {
+                    const blockedTime = blocked.getTime();
+                    // Blocked date is in the stay period if: check-in <= blocked < checkout
+                    if (blockedTime >= checkInTime && blockedTime < checkOutTime) {
+                      return false;
+                    }
+                  }
+                  return true;
+                }}
                 dayClassName={getDayClassName}
                 placeholderText="Add date"
                 className="w-full text-sm text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none cursor-pointer"

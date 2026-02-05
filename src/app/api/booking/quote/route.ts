@@ -88,12 +88,14 @@ export async function POST(request: Request) {
 
     // Strategy 2: Try legacy Guesty quote
     try {
+      console.log('Quote request:', { listingId, checkIn, checkOut, guestsCount: guestsCount || 1 });
       const quoteResult = await getQuoteLegacy({
         listingId,
         checkIn,
         checkOut,
         guestsCount: guestsCount || 1,
       });
+      console.log('Quote result:', JSON.stringify(quoteResult, null, 2));
 
       if (!quoteResult.available) {
         // Invalidate stale calendar cache for these dates so the widget updates

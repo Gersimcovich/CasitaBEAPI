@@ -120,7 +120,7 @@ async function loadCalendarFromDisk(listingId: string, maxAgeMs?: number, from?:
     const calendarData = allCalendars[listingId];
     if (calendarData) {
       const savedTime = new Date(calendarData.savedAt).getTime();
-      const maxAge = maxAgeMs ?? 60 * 60 * 1000; // default 1 hour
+      const maxAge = maxAgeMs ?? CALENDAR_CACHE_DURATION; // default 10 minutes (matches memory cache)
       if (Date.now() - savedTime > maxAge) {
         console.log(`📂 Disk calendar for ${listingId} expired (saved: ${calendarData.savedAt}, maxAge: ${Math.round(maxAge / 60000)}m)`);
         return null;
@@ -135,6 +135,10 @@ async function loadCalendarFromDisk(listingId: string, maxAgeMs?: number, from?:
           console.log(`📂 Disk calendar for ${listingId} has wrong date range (cached: ${cachedFrom}→${cachedTo}, requested: ${from}→${to})`);
           return null;
         }
+        // Filter days to only include requested date range
+        const filteredDays = calendarData.days.filter(day => day.date >= from && day.date < to);
+        console.log(`📂 Loaded calendar for ${listingId} from disk (saved: ${calendarData.savedAt}, filtered ${calendarData.days.length}→${filteredDays.length} days)`);
+        return filteredDays;
       }
 
       console.log(`📂 Loaded calendar for ${listingId} from disk (saved: ${calendarData.savedAt})`);
@@ -1884,7 +1888,16 @@ export async function getQuote(params: {
   try {
     const listing = await getListing(params.listingId);
 
-    if (params.guestsCount > listing.accommodates) {
+    // Handle null listing (fallback mode or not found)
+    if (!listing) {
+      console.error('getListing returned null for:', params.listingId);
+      throw new Error('Listing not found');
+    }
+
+    // Only check guest capacity if accommodates is defined and > 0
+    const maxGuests = listing.accommodates || 99; // Default to 99 if not set
+    console.log(`Quote check: listing.accommodates=${listing.accommodates}, maxGuests=${maxGuests}, guestsCount=${params.guestsCount}`);
+    if (params.guestsCount > maxGuests) {
       return {
         available: false,
         quote: null,
@@ -1892,7 +1905,7 @@ export async function getQuote(params: {
         listing: {
           id: listing._id,
           title: listing.title,
-          maxGuests: listing.accommodates,
+          maxGuests,
         },
       };
     }
@@ -1925,16 +1938,41 @@ export async function getQuote(params: {
       guestsCount: params.guestsCount,
     });
 
-    const ratePlan = quoteResponse.ratePlans?.[0];
+    const ratePlan = quoteResponse?.ratePlans?.[0];
     if (!ratePlan) {
+      console.warn('BEAPI createQuote returned no ratePlans for:', params.listingId);
+      // Fall back to using listing base price or checkAvailability pricing
+      const basePrice = listing.prices?.basePrice || 99;
+      const cleaningFee = listing.prices?.cleaningFee || 0;
+      const nightsCount = availability.nightsCount;
+      const accommodation = availability.totalAccommodation > 0
+        ? availability.totalAccommodation
+        : basePrice * nightsCount;
+      const taxRate = 0.13;
+      const taxes = Math.round((accommodation + cleaningFee) * taxRate);
+      const total = accommodation + cleaningFee + taxes;
+      const pricePerNight = nightsCount > 0 ? Math.round(total / nightsCount) : basePrice;
+
       return {
-        available: false,
-        quote: null,
+        available: true,
+        quote: {
+          quoteId: 'estimated',
+          ratePlanId: 'estimated',
+          nightsCount,
+          pricePerNight,
+          accommodation,
+          cleaningFee,
+          serviceFee: 0,
+          taxes,
+          total,
+          currency: listing.prices?.currency || 'USD',
+          estimated: true,
+        },
         unavailableDates: [],
         listing: {
           id: listing._id,
           title: listing.title,
-          maxGuests: listing.accommodates,
+          maxGuests: listing.accommodates || 99,
         },
       };
     }
