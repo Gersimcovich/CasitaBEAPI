@@ -91,6 +91,53 @@ const POLISH_COUNTRIES = [
   'PL', // Poland
 ];
 
+// Arabic-speaking countries
+const ARABIC_COUNTRIES = [
+  'SA', // Saudi Arabia
+  'AE', // United Arab Emirates
+  'EG', // Egypt
+  'IQ', // Iraq
+  'JO', // Jordan
+  'KW', // Kuwait
+  'LB', // Lebanon
+  'LY', // Libya
+  'MA', // Morocco
+  'OM', // Oman
+  'QA', // Qatar
+  'SY', // Syria
+  'TN', // Tunisia
+  'YE', // Yemen
+  'BH', // Bahrain
+  'DZ', // Algeria
+  'SD', // Sudan
+  'PS', // Palestine
+];
+
+// Hebrew-speaking country
+const HEBREW_COUNTRIES = [
+  'IL', // Israel
+];
+
+// Chinese-speaking countries
+const CHINESE_COUNTRIES = [
+  'CN', // China
+  'TW', // Taiwan
+  'HK', // Hong Kong
+  'MO', // Macau
+  'SG', // Singapore (significant Chinese population)
+];
+
+// Russian-speaking countries
+const RUSSIAN_COUNTRIES = [
+  'RU', // Russia
+  'BY', // Belarus
+  'KZ', // Kazakhstan
+  'KG', // Kyrgyzstan
+  'TJ', // Tajikistan
+  'UZ', // Uzbekistan
+  'TM', // Turkmenistan
+];
+
 function getLocaleFromCountry(countryCode: string | null): Locale {
   if (!countryCode) return 'en';
 
@@ -118,6 +165,22 @@ function getLocaleFromCountry(countryCode: string | null): Locale {
 
   if (POLISH_COUNTRIES.includes(upperCountry)) {
     return 'pl';
+  }
+
+  if (ARABIC_COUNTRIES.includes(upperCountry)) {
+    return 'ar';
+  }
+
+  if (HEBREW_COUNTRIES.includes(upperCountry)) {
+    return 'he';
+  }
+
+  if (CHINESE_COUNTRIES.includes(upperCountry)) {
+    return 'zh';
+  }
+
+  if (RUSSIAN_COUNTRIES.includes(upperCountry)) {
+    return 'ru';
   }
 
   // Default to English for all other countries

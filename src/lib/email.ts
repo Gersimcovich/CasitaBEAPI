@@ -929,7 +929,7 @@ export async function sendHostNotificationEmail(data: {
 // 2FA VERIFICATION CODE EMAIL
 // ============================================
 
-type Locale = 'en' | 'es' | 'pt' | 'fr' | 'de' | 'it' | 'pl';
+type Locale = 'en' | 'es' | 'pt' | 'fr' | 'de' | 'it' | 'pl' | 'ar' | 'he' | 'zh' | 'ru';
 
 interface TwoFAEmailData {
   email: string;
@@ -1002,6 +1002,42 @@ const twoFATranslations = {
     expires: 'Ten kod wygasa za 10 minut.',
     warning: 'Jeśli nie prosiłeś o ten kod, możesz zignorować tę wiadomość.',
     footer: 'Twój Dom z Dala od Domu',
+  },
+  ar: {
+    subject: 'رمز التحقق الخاص بك من Casita',
+    title: 'رمز التحقق',
+    greeting: (name: string) => `مرحباً ${name}،`,
+    intro: 'استخدم هذا الرمز للوصول إلى حسابك في Casita:',
+    expires: 'ينتهي صلاحية هذا الرمز خلال 10 دقائق.',
+    warning: 'إذا لم تطلب هذا الرمز، يمكنك تجاهل هذا البريد الإلكتروني.',
+    footer: 'بيتك بعيداً عن البيت',
+  },
+  he: {
+    subject: 'קוד האימות שלך מ-Casita',
+    title: 'קוד אימות',
+    greeting: (name: string) => `שלום ${name},`,
+    intro: 'השתמש בקוד זה כדי לגשת לחשבון Casita שלך:',
+    expires: 'קוד זה פג תוקף בעוד 10 דקות.',
+    warning: 'אם לא ביקשת את הקוד הזה, אתה יכול להתעלם מאימייל זה.',
+    footer: 'הבית שלך הרחק מהבית',
+  },
+  zh: {
+    subject: '您的Casita验证码',
+    title: '验证码',
+    greeting: (name: string) => `您好 ${name}，`,
+    intro: '使用此验证码访问您的Casita账户：',
+    expires: '此验证码将在10分钟后过期。',
+    warning: '如果您没有请求此验证码，请忽略此邮件。',
+    footer: '您的家外之家',
+  },
+  ru: {
+    subject: 'Ваш код подтверждения Casita',
+    title: 'Код подтверждения',
+    greeting: (name: string) => `Привет, ${name},`,
+    intro: 'Используйте этот код для доступа к вашему аккаунту Casita:',
+    expires: 'Этот код действителен 10 минут.',
+    warning: 'Если вы не запрашивали этот код, просто проигнорируйте это письмо.',
+    footer: 'Ваш дом вдали от дома',
   },
 };
 
