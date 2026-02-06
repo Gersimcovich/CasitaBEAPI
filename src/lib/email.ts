@@ -929,7 +929,7 @@ export async function sendHostNotificationEmail(data: {
 // 2FA VERIFICATION CODE EMAIL
 // ============================================
 
-type Locale = 'en' | 'es' | 'pt' | 'fr' | 'de' | 'it' | 'pl' | 'ar' | 'he' | 'zh' | 'ru';
+type Locale = 'en' | 'es' | 'pt' | 'fr' | 'de' | 'it' | 'ar' | 'he' | 'zh' | 'ru';
 
 interface TwoFAEmailData {
   email: string;
@@ -993,15 +993,6 @@ const twoFATranslations = {
     expires: 'Questo codice scade tra 10 minuti.',
     warning: 'Se non hai richiesto questo codice, puoi ignorare questa email.',
     footer: 'La Tua Casa Lontano da Casa',
-  },
-  pl: {
-    subject: 'Twój Kod Weryfikacyjny Casita',
-    title: 'Kod Weryfikacyjny',
-    greeting: (name: string) => `Cześć ${name},`,
-    intro: 'Użyj tego kodu, aby uzyskać dostęp do swojego konta Casita:',
-    expires: 'Ten kod wygasa za 10 minut.',
-    warning: 'Jeśli nie prosiłeś o ten kod, możesz zignorować tę wiadomość.',
-    footer: 'Twój Dom z Dala od Domu',
   },
   ar: {
     subject: 'رمز التحقق الخاص بك من Casita',

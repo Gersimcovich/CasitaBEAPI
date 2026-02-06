@@ -1,6 +1,6 @@
 // User Authentication & Account Types
 
-export type Locale = 'en' | 'es' | 'pt' | 'fr' | 'de' | 'it' | 'pl' | 'ar' | 'he' | 'zh' | 'ru';
+export type Locale = 'en' | 'es' | 'pt' | 'fr' | 'de' | 'it' | 'ar' | 'he' | 'zh' | 'ru';
 
 export interface CasitaUser {
   id: string;

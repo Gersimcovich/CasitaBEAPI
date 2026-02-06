@@ -86,11 +86,6 @@ const ITALIAN_COUNTRIES = [
   'VA', // Vatican City
 ];
 
-// Polish-speaking country
-const POLISH_COUNTRIES = [
-  'PL', // Poland
-];
-
 // Arabic-speaking countries
 const ARABIC_COUNTRIES = [
   'SA', // Saudi Arabia
@@ -161,10 +156,6 @@ function getLocaleFromCountry(countryCode: string | null): Locale {
 
   if (ITALIAN_COUNTRIES.includes(upperCountry)) {
     return 'it';
-  }
-
-  if (POLISH_COUNTRIES.includes(upperCountry)) {
-    return 'pl';
   }
 
   if (ARABIC_COUNTRIES.includes(upperCountry)) {

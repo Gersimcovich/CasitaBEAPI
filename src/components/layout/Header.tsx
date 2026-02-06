@@ -149,7 +149,7 @@ export default function Header() {
                         <div className="flex items-center gap-3 px-4 py-2.5">
                           <Globe className="w-4 h-4 text-[var(--casita-gray-500)]" />
                           <div className="flex flex-wrap gap-1">
-                            {([['en', 'EN'], ['es', 'ES'], ['pt', 'PT'], ['fr', 'FR'], ['de', 'DE'], ['it', 'IT'], ['pl', 'PL'], ['ar', 'عربي'], ['he', 'עברית'], ['zh', '中文'], ['ru', 'RU']] as const).map(([code, label]) => (
+                            {([['en', 'EN'], ['es', 'ES'], ['pt', 'PT'], ['fr', 'FR'], ['de', 'DE'], ['it', 'IT'], ['ar', 'عربي'], ['he', 'עברית'], ['zh', '中文'], ['ru', 'RU']] as const).map(([code, label]) => (
                               <button
                                 key={code}
                                 onClick={() => setLocale(code)}
@@ -216,7 +216,7 @@ export default function Header() {
                         <div className="flex items-center gap-3 px-4 py-2.5">
                           <Globe className="w-4 h-4 text-[var(--casita-gray-500)]" />
                           <div className="flex flex-wrap gap-1">
-                            {([['en', 'EN'], ['es', 'ES'], ['pt', 'PT'], ['fr', 'FR'], ['de', 'DE'], ['it', 'IT'], ['pl', 'PL'], ['ar', 'عربي'], ['he', 'עברית'], ['zh', '中文'], ['ru', 'RU']] as const).map(([code, label]) => (
+                            {([['en', 'EN'], ['es', 'ES'], ['pt', 'PT'], ['fr', 'FR'], ['de', 'DE'], ['it', 'IT'], ['ar', 'عربي'], ['he', 'עברית'], ['zh', '中文'], ['ru', 'RU']] as const).map(([code, label]) => (
                               <button
                                 key={code}
                                 onClick={() => setLocale(code)}
@@ -458,7 +458,7 @@ export default function Header() {
                         <div className="flex items-center gap-3 px-4 py-2.5">
                           <Globe className="w-4 h-4 text-[var(--casita-gray-500)]" />
                           <div className="flex flex-wrap gap-1">
-                            {([['en', 'EN'], ['es', 'ES'], ['pt', 'PT'], ['fr', 'FR'], ['de', 'DE'], ['it', 'IT'], ['pl', 'PL'], ['ar', 'عربي'], ['he', 'עברית'], ['zh', '中文'], ['ru', 'RU']] as const).map(([code, label]) => (
+                            {([['en', 'EN'], ['es', 'ES'], ['pt', 'PT'], ['fr', 'FR'], ['de', 'DE'], ['it', 'IT'], ['ar', 'عربي'], ['he', 'עברית'], ['zh', '中文'], ['ru', 'RU']] as const).map(([code, label]) => (
                               <button
                                 key={code}
                                 onClick={() => setLocale(code)}
@@ -528,7 +528,7 @@ export default function Header() {
                         <div className="flex items-center gap-3 px-4 py-2.5">
                           <Globe className="w-4 h-4 text-[var(--casita-gray-500)]" />
                           <div className="flex flex-wrap gap-1">
-                            {([['en', 'EN'], ['es', 'ES'], ['pt', 'PT'], ['fr', 'FR'], ['de', 'DE'], ['it', 'IT'], ['pl', 'PL'], ['ar', 'عربي'], ['he', 'עברית'], ['zh', '中文'], ['ru', 'RU']] as const).map(([code, label]) => (
+                            {([['en', 'EN'], ['es', 'ES'], ['pt', 'PT'], ['fr', 'FR'], ['de', 'DE'], ['it', 'IT'], ['ar', 'عربي'], ['he', 'עברית'], ['zh', '中文'], ['ru', 'RU']] as const).map(([code, label]) => (
                               <button
                                 key={code}
                                 onClick={() => setLocale(code)}
@@ -701,7 +701,7 @@ export default function Header() {
                 <div className="flex items-center gap-3 px-4 py-3 mt-2">
                   <Globe className="w-5 h-5 text-[var(--casita-gray-500)]" />
                   <div className="flex flex-wrap gap-1.5">
-                    {([['en', 'EN'], ['es', 'ES'], ['pt', 'PT'], ['fr', 'FR'], ['de', 'DE'], ['it', 'IT'], ['pl', 'PL'], ['ar', 'عربي'], ['he', 'עברית'], ['zh', '中文'], ['ru', 'RU']] as const).map(([code, label]) => (
+                    {([['en', 'EN'], ['es', 'ES'], ['pt', 'PT'], ['fr', 'FR'], ['de', 'DE'], ['it', 'IT'], ['ar', 'عربي'], ['he', 'עברית'], ['zh', '中文'], ['ru', 'RU']] as const).map(([code, label]) => (
                       <button
                         key={code}
                         onClick={() => setLocale(code)}
