@@ -1760,7 +1760,8 @@ export async function checkAvailability(
   currency: string;
   unavailableDates: string[];
 }> {
-  const calendar = await getCalendar(listingId, checkIn, checkOut);
+  // ALWAYS skip cache for availability checks - stale cache causes "available but not bookable" bug
+  const calendar = await getCalendar(listingId, checkIn, checkOut, { skipCache: true });
 
   const stayNights = calendar.filter(day => day.date !== checkOut);
 
