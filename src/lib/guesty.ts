@@ -1699,18 +1699,54 @@ export async function getCalendar(
         };
       });
 
-      // Cache to memory
+      // Check if BEAPI returned real prices or just zeros
+      const hasRealPrices = calendar.some(d => d.price > 0);
+
+      if (hasRealPrices) {
+        // BEAPI has real pricing - use it directly
+        calendarCache.set(cacheKey, {
+          data: calendar,
+          expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
+        });
+        await saveCalendarToDisk(listingId, calendar);
+        await saveCalendarToMongo(listingId, from, to, calendar);
+        return calendar;
+      }
+
+      // BEAPI returned price: 0 - try Open API for dynamic pricing
+      console.log('⚠️ BEAPI returned no prices, trying Open API for dynamic pricing...');
+      if (hasOpenApi()) {
+        try {
+          const openApiCalendar = await getCalendarFromOpenApi(listingId, from, to, cacheKey);
+          if (openApiCalendar.length > 0 && openApiCalendar.some(d => d.price > 0)) {
+            // Merge: use BEAPI availability status + Open API prices
+            const priceMap = new Map(openApiCalendar.map(d => [d.date, d.price]));
+            const mergedCalendar = calendar.map(day => ({
+              ...day,
+              price: priceMap.get(day.date) || day.price,
+            }));
+            console.log('✅ Merged BEAPI availability with Open API pricing');
+
+            calendarCache.set(cacheKey, {
+              data: mergedCalendar,
+              expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
+            });
+            await saveCalendarToDisk(listingId, mergedCalendar);
+            await saveCalendarToMongo(listingId, from, to, mergedCalendar);
+            return mergedCalendar;
+          }
+        } catch (e) {
+          console.warn('Open API pricing fetch failed:', e);
+        }
+      }
+
+      // Fall back to BEAPI data even without prices
       calendarCache.set(cacheKey, {
         data: calendar,
         expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
       });
-
-      // Save to disk for persistence
       await saveCalendarToDisk(listingId, calendar);
-
-      // Save to MongoDB for cross-instance persistence
       await saveCalendarToMongo(listingId, from, to, calendar);
-
       return calendar;
     } catch (beapiError) {
       console.warn('BEAPI calendar failed:', beapiError);
