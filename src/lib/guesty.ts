@@ -710,7 +710,14 @@ async function getCalendarFromOpenApi(
     };
   }>(`/availability-pricing/api/calendar/listings/${listingId}?startDate=${from}&endDate=${to}`);
 
-  const calendar: CalendarDay[] = (data.data?.days || []).map(day => {
+  const rawDays = data.data?.days || [];
+
+  // Log first day to see what Open API returns
+  if (rawDays.length > 0) {
+    console.log(`📅 Open API first day raw:`, JSON.stringify(rawDays[0], null, 2));
+  }
+
+  const calendar: CalendarDay[] = rawDays.map(day => {
     // Check if any block is active
     const isBlocked = day.blocks && (
       day.blocks.m || day.blocks.r || day.blocks.b ||
@@ -726,6 +733,10 @@ async function getCalendarFromOpenApi(
       currency: day.currency || 'USD',
     };
   });
+
+  // Log availability summary
+  const blockedCount = calendar.filter(d => d.status !== 'available').length;
+  console.log(`📅 Open API availability: ${calendar.length} days, ${blockedCount} blocked`);
 
   // Cache the result
   calendarCache.set(cacheKey, {
@@ -1633,6 +1644,9 @@ export async function getCalendar(
       console.log(`📅 BEAPI calendar: ${rawDays.length} days, isArray=${Array.isArray(response)}`);
 
       if (rawDays.length > 0) {
+        // Log full first day to see what fields BEAPI returns
+        console.log(`📅 BEAPI first day raw data:`, JSON.stringify(rawDays[0], null, 2));
+
         const priceSample = rawDays.slice(0, 5).map(d => `${d.date}: $${d.price}`);
         console.log(`📅 BEAPI Calendar: ${priceSample.join(', ')} ...`);
 
@@ -1641,6 +1655,18 @@ export async function getCalendar(
           console.warn(`⚠️ BEAPI: All ${rawDays.length} days have same price: $${rawDays[0]?.price} (base price)`);
         } else {
           console.log(`✅ BEAPI: Found ${uniquePrices.size} different price points`);
+        }
+
+        // Log CTA/status info to debug availability issues
+        const ctaDays = rawDays.filter(d => d.cta === true);
+        const blockedDays = rawDays.filter(d => d.status && d.status !== 'available');
+        const unavailableDays = rawDays.filter(d => d.available === false);
+        console.log(`📅 BEAPI availability: ${ctaDays.length} CTA days, ${blockedDays.length} blocked status, ${unavailableDays.length} unavailable`);
+        if (ctaDays.length > 0) {
+          console.log(`📅 CTA dates: ${ctaDays.map(d => d.date).join(', ')}`);
+        }
+        if (blockedDays.length > 0) {
+          console.log(`📅 Blocked dates: ${blockedDays.map(d => `${d.date}(${d.status})`).join(', ')}`);
         }
       }
 
@@ -1771,15 +1797,23 @@ export async function checkAvailability(
   unavailableDates: string[];
 }> {
   // ALWAYS skip cache for availability checks - stale cache causes "available but not bookable" bug
+  console.log(`🔍 checkAvailability: ${listingId} from ${checkIn} to ${checkOut}`);
   const calendar = await getCalendar(listingId, checkIn, checkOut, { skipCache: true });
 
   const stayNights = calendar.filter(day => day.date !== checkOut);
+  console.log(`🔍 checkAvailability: ${stayNights.length} stay nights, calendar has ${calendar.length} days`);
+
+  // Log each day's status for debugging
+  stayNights.forEach(day => {
+    console.log(`  📆 ${day.date}: status=${day.status}, price=$${day.price}`);
+  });
 
   const unavailableDates = stayNights
     .filter(day => day.status !== 'available')
     .map(day => day.date);
 
   const isAvailable = unavailableDates.length === 0;
+  console.log(`🔍 checkAvailability result: available=${isAvailable}, unavailableDates=${unavailableDates.join(', ') || 'none'}`);
   const nightsCount = stayNights.length;
 
   const totalAccommodation = stayNights.reduce((sum, day) => sum + day.price, 0);

@@ -549,7 +549,8 @@ export async function createQuote(params: {
 
     setCache(cacheKey, data, TTL.QUOTE);
     return data;
-  } catch {
+  } catch (error) {
+    console.error('🚫 BEAPI createQuote failed:', error);
     return null;
   }
 }
