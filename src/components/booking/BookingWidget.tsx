@@ -173,9 +173,9 @@ export default function BookingWidget({
     }
   };
 
-  // Fetch on mount
+  // Fetch on mount - ALWAYS use fresh data to avoid "available but not bookable" bug
   useEffect(() => {
-    fetchBlockedDates();
+    fetchBlockedDates(true);
   }, [listingId]);
 
   // Check if a date is blocked
