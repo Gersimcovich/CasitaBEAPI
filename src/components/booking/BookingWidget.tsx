@@ -188,10 +188,32 @@ export default function BookingWidget({
     );
   };
 
-  // Custom day class for visual styling of blocked dates
+  // Custom day class for visual styling of blocked dates (check-in picker)
   const getDayClassName = (date: Date) => {
     if (isDateBlocked(date)) {
       return 'booked-date';
+    }
+    return '';
+  };
+
+  // For checkout picker: blocked dates are still valid checkouts (you leave that morning)
+  // Only mark a date as blocked if staying there would be invalid
+  const getCheckoutDayClassName = (date: Date) => {
+    if (!checkIn) return '';
+
+    // Check if any blocked date falls between check-in and this potential checkout
+    const checkInTime = checkIn.getTime();
+    const checkOutTime = date.getTime();
+
+    // Must be after check-in
+    if (checkOutTime <= checkInTime) return '';
+
+    // Check if any blocked date is in the stay period (check-in to checkout-1)
+    for (const blocked of blockedDates) {
+      const blockedTime = blocked.getTime();
+      if (blockedTime >= checkInTime && blockedTime < checkOutTime) {
+        return 'booked-date';
+      }
     }
     return '';
   };
@@ -407,7 +429,7 @@ export default function BookingWidget({
                   }
                   return true;
                 }}
-                dayClassName={getDayClassName}
+                dayClassName={getCheckoutDayClassName}
                 placeholderText="Add date"
                 className="w-full text-sm text-[var(--casita-gray-900)] placeholder-[var(--casita-gray-400)] focus:outline-none cursor-pointer"
                 dateFormat="MMM d, yyyy"
