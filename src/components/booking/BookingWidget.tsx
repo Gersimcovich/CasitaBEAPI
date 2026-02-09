@@ -150,7 +150,10 @@ export default function BookingWidget({
 
       if (data.success) {
         if (data.blockedDates) {
-          setBlockedDates(data.blockedDates.map((d: string) => new Date(d)));
+          // Parse dates as LOCAL timezone to avoid off-by-one errors
+          // new Date("2026-02-09") = UTC midnight = Feb 8 in US timezones!
+          // new Date("2026-02-09T00:00:00") = LOCAL midnight = correct
+          setBlockedDates(data.blockedDates.map((d: string) => new Date(d + 'T00:00:00')));
         }
         // Store prices from calendar data
         if (data.availability) {
@@ -259,7 +262,8 @@ export default function BookingWidget({
           // If quote reveals dates are actually booked, add them to blocked dates
           // but DON'T auto-clear selection - let user see the error and adjust manually
           if (data.unavailableDates?.length > 0) {
-            const newBlocked = data.unavailableDates.map((d: string) => new Date(d));
+            // Parse as LOCAL timezone to avoid off-by-one errors
+            const newBlocked = data.unavailableDates.map((d: string) => new Date(d + 'T00:00:00'));
             setBlockedDates(prev => {
               const existing = new Set(prev.map(d => d.toISOString().split('T')[0]));
               const merged = [...prev];
