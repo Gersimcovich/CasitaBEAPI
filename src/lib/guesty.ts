@@ -1645,9 +1645,15 @@ export async function getCalendar(
       }
 
       // Handle both 'status' string and 'available' boolean formats
+      // ALSO check CTA (Can't Arrive) - if true, treat as blocked for check-in
       const calendar = rawDays.map(day => {
         let status: 'available' | 'booked' | 'blocked';
-        if (day.status) {
+
+        // First check CTA - if can't arrive, mark as blocked
+        // This prevents "available but not bookable" issue
+        if (day.cta === true) {
+          status = 'blocked';
+        } else if (day.status) {
           // Use status string directly (available, unavailable, reserved, booked)
           status = day.status === 'available' ? 'available' : 'booked';
         } else if (day.available !== undefined) {
