@@ -1707,23 +1707,27 @@ export async function getCalendar(
   }
 
   // STEP 5: Return stale memory cache if available
-  if (cached && cached.data.length > 0) {
+  // BUT NOT if skipCache was requested - caller wants fresh data only
+  if (!skipCache && cached && cached.data.length > 0) {
     console.warn('All calendar APIs failed, returning stale memory cache');
     return cached.data;
   }
 
   // STEP 6: Last resort - try stale disk cache (up to 24h old)
   // Stale availability data is far better than blocking all dates
-  const STALE_DISK_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
-  const staleDiskCalendar = await loadCalendarFromDisk(listingId, STALE_DISK_MAX_AGE, from, to);
-  if (staleDiskCalendar && staleDiskCalendar.length > 0) {
-    console.warn(`⚠️ Using stale disk cache for ${listingId} (all APIs failed)`);
-    // Refresh memory cache with stale data so subsequent requests don't hit disk
-    calendarCache.set(cacheKey, {
-      data: staleDiskCalendar,
-      expiresAt: Date.now() + (5 * 60 * 1000), // 5 min - short TTL for stale data
-    });
-    return staleDiskCalendar;
+  // BUT NOT if skipCache was requested - caller wants fresh data only
+  if (!skipCache) {
+    const STALE_DISK_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
+    const staleDiskCalendar = await loadCalendarFromDisk(listingId, STALE_DISK_MAX_AGE, from, to);
+    if (staleDiskCalendar && staleDiskCalendar.length > 0) {
+      console.warn(`⚠️ Using stale disk cache for ${listingId} (all APIs failed)`);
+      // Refresh memory cache with stale data so subsequent requests don't hit disk
+      calendarCache.set(cacheKey, {
+        data: staleDiskCalendar,
+        expiresAt: Date.now() + (5 * 60 * 1000), // 5 min - short TTL for stale data
+      });
+      return staleDiskCalendar;
+    }
   }
 
   // STEP 7: No real data available - throw error (never return fake data)
