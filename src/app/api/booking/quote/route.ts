@@ -103,6 +103,9 @@ export async function POST(request: Request) {
           invalidateCalendarForDates(listingId, quoteResult.unavailableDates);
         }
 
+        // Debug: log which dates are marked unavailable
+        console.log(`❌ Quote unavailable for ${listingId}: dates=${quoteResult.unavailableDates?.join(', ')}`);
+
         return NextResponse.json({
           success: false,
           available: false,
@@ -110,6 +113,11 @@ export async function POST(request: Request) {
           error: quoteResult.unavailableDates?.length > 0
             ? 'These dates are already booked. Try adjusting your stay!'
             : 'This cozy spot can\'t fit that many guests. Try a larger property!',
+          // Debug info
+          _debug: {
+            blockedDates: quoteResult.unavailableDates,
+            requestedDates: { checkIn, checkOut },
+          },
         });
       }
 
