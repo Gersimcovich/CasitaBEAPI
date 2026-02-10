@@ -88,11 +88,6 @@ export async function GET(request: Request) {
       .filter(day => day.status !== 'available')
       .map(day => day.date);
 
-    // Log what we're returning to help debug availability issues
-    console.log(`📅 Calendar API: ${calendar.length} days, ${blockedDates.length} blocked`);
-    if (blockedDates.length > 0 && blockedDates.length <= 20) {
-      console.log(`📅 Blocked dates: ${blockedDates.join(', ')}`);
-    }
 
     return NextResponse.json({
       success: true,

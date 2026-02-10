@@ -61,7 +61,7 @@ async function saveListingsToDisk(listings: GuestyListing[]): Promise<void> {
       path.join(DATA_DIR, 'listings.json'),
       JSON.stringify(data, null, 2)
     );
-    console.log(`💾 Saved ${listings.length} listings to disk`);
+    // Listings saved to disk cache
   } catch (error) {
     console.error('Failed to save listings to disk:', error);
   }
@@ -73,7 +73,7 @@ async function loadListingsFromDisk(): Promise<GuestyListing[] | null> {
     const filePath = path.join(DATA_DIR, 'listings.json');
     const fileContent = await fs.readFile(filePath, 'utf-8');
     const data: PersistedListings = JSON.parse(fileContent);
-    console.log(`📂 Loaded ${data.listings.length} listings from disk (saved: ${data.savedAt})`);
+    // Listings loaded from disk cache
     return data.listings;
   } catch {
     return null;
@@ -102,7 +102,7 @@ async function saveCalendarToDisk(listingId: string, days: CalendarDay[]): Promi
     };
 
     await fs.writeFile(filePath, JSON.stringify(allCalendars, null, 2));
-    console.log(`💾 Saved calendar for ${listingId} to disk (${days.length} days)`);
+    // Calendar saved to disk cache
   } catch (error) {
     console.error('Failed to save calendar to disk:', error);
   }
@@ -122,7 +122,7 @@ async function loadCalendarFromDisk(listingId: string, maxAgeMs?: number, from?:
       const savedTime = new Date(calendarData.savedAt).getTime();
       const maxAge = maxAgeMs ?? CALENDAR_CACHE_DURATION; // default 10 minutes (matches memory cache)
       if (Date.now() - savedTime > maxAge) {
-        console.log(`📂 Disk calendar for ${listingId} expired (saved: ${calendarData.savedAt}, maxAge: ${Math.round(maxAge / 60000)}m)`);
+        // Disk calendar expired
         return null;
       }
 
@@ -132,16 +132,16 @@ async function loadCalendarFromDisk(listingId: string, maxAgeMs?: number, from?:
         const cachedTo = calendarData.days[calendarData.days.length - 1].date;
         // If cached range doesn't overlap requested range, reject it
         if (cachedTo < from || cachedFrom > to) {
-          console.log(`📂 Disk calendar for ${listingId} has wrong date range (cached: ${cachedFrom}→${cachedTo}, requested: ${from}→${to})`);
+          // Disk calendar has wrong date range
           return null;
         }
         // Filter days to only include requested date range
         const filteredDays = calendarData.days.filter(day => day.date >= from && day.date < to);
-        console.log(`📂 Loaded calendar for ${listingId} from disk (saved: ${calendarData.savedAt}, filtered ${calendarData.days.length}→${filteredDays.length} days)`);
+        // Calendar loaded from disk cache
         return filteredDays;
       }
 
-      console.log(`📂 Loaded calendar for ${listingId} from disk (saved: ${calendarData.savedAt})`);
+      // Calendar loaded from disk cache
       return calendarData.days;
     }
     return null;
@@ -186,7 +186,7 @@ async function saveRatesToDisk(
     };
 
     await fs.writeFile(filePath, JSON.stringify(allRates, null, 2));
-    console.log(`💾 Saved rates for ${listingId} (${checkIn} - ${checkOut}) to disk`);
+    // Rates saved to disk cache
   } catch (error) {
     console.error('Failed to save rates to disk:', error);
   }
@@ -206,7 +206,7 @@ async function loadRatesFromDisk(
     const dateRange = `${checkIn}_${checkOut}`;
     const rateData = allRates[listingId]?.[dateRange];
     if (rateData) {
-      console.log(`📂 Loaded rates for ${listingId} from disk (saved: ${rateData.savedAt})`);
+      // Rates loaded from disk cache
       return {
         pricePerNight: rateData.pricePerNight,
         total: rateData.total,
@@ -564,7 +564,7 @@ const pendingRequests = new Map<string, Promise<unknown>>();
 function deduplicateRequest<T>(key: string, requestFn: () => Promise<T>): Promise<T> {
   const pending = pendingRequests.get(key);
   if (pending) {
-    console.log(`🔄 Deduplicating request: ${key}`);
+    // Deduplicating request
     return pending as Promise<T>;
   }
 
@@ -600,7 +600,7 @@ async function getOpenApiAccessToken(): Promise<string> {
   const fileToken = await loadOpenApiTokenFromFile();
   if (fileToken) {
     openApiToken = fileToken;
-    console.log('🔑 Open API token loaded from file cache');
+    // Open API token loaded from file cache
     return fileToken.token;
   }
 
@@ -609,7 +609,7 @@ async function getOpenApiAccessToken(): Promise<string> {
   if (mongoToken) {
     openApiToken = mongoToken;
     await saveOpenApiTokenToFile(mongoToken.token, mongoToken.expiresAt);
-    console.log('🔑 Open API token loaded from MongoDB');
+    // Open API token loaded from MongoDB
     return mongoToken.token;
   }
 
@@ -648,7 +648,7 @@ async function getOpenApiAccessToken(): Promise<string> {
   await saveOpenApiTokenToFile(data.access_token, expiresAt);
   await saveTokenToMongo('open_api_token', data.access_token, expiresAt);
 
-  console.log('✅ Open API token cached (memory + file + MongoDB)');
+  // Open API token cached
   return data.access_token;
 }
 
@@ -712,10 +712,6 @@ async function getCalendarFromOpenApi(
 
   const rawDays = data.data?.days || [];
 
-  // Log first day to see what Open API returns
-  if (rawDays.length > 0) {
-    console.log(`📅 Open API first day raw:`, JSON.stringify(rawDays[0], null, 2));
-  }
 
   const calendar: CalendarDay[] = rawDays.map(day => {
     // Check if any block is active
@@ -734,9 +730,6 @@ async function getCalendarFromOpenApi(
     };
   });
 
-  // Log availability summary
-  const blockedCount = calendar.filter(d => d.status !== 'available').length;
-  console.log(`📅 Open API availability: ${calendar.length} days, ${blockedCount} blocked`);
 
   // Cache the result
   calendarCache.set(cacheKey, {
@@ -744,7 +737,6 @@ async function getCalendarFromOpenApi(
     expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
   });
 
-  console.log(`✅ Got calendar with dynamic pricing from Open API for ${listingId}`);
   return calendar;
 }
 
@@ -802,7 +794,7 @@ function switchToOtherApi(): boolean {
 
     const rateLimitedAt = apiRateLimitedAt[apiIdx];
     if (!rateLimitedAt || now - rateLimitedAt >= RATE_LIMIT_COOLDOWN) {
-      console.log(`🔄 Switching to API ${apiIdx} BEAPI credentials due to rate limiting`);
+      console.log(`Switching to API ${apiIdx} due to rate limiting`);
       activeApiIndex = apiIdx;
       return true;
     }
@@ -812,7 +804,7 @@ function switchToOtherApi(): boolean {
   const availableApis = [1];
   if (hasSecondaryApi()) availableApis.push(2);
   if (hasTertiaryApi()) availableApis.push(3);
-  console.warn(`⚠️ All ${availableApis.length} APIs rate limited`);
+  console.warn(`All ${availableApis.length} APIs rate limited`);
   return false;
 }
 
@@ -831,7 +823,7 @@ async function getAccessToken(retryCount = 0, attemptedApis: Set<number> = new S
   // Periodically check if we can switch to a cooled-down API
   const now = Date.now();
   if (activeApiIndex !== 1 && apiRateLimitedAt[1] && now - apiRateLimitedAt[1] >= RATE_LIMIT_COOLDOWN) {
-    console.log('🔄 Cooldown expired, switching back to primary BEAPI credentials');
+    // Cooldown expired, switching back to primary BEAPI credentials
     activeApiIndex = 1;
     apiRateLimitedAt[1] = null;
   }
@@ -848,7 +840,7 @@ async function getAccessToken(retryCount = 0, attemptedApis: Set<number> = new S
   const fileToken = await loadBeapiTokenFromFile(activeApiIndex);
   if (fileToken) {
     cachedTokens[activeApiIndex] = fileToken;
-    console.log(`🔑 BEAPI token ${activeApiIndex} loaded from file cache`);
+    // BEAPI token loaded from file cache
     return fileToken.token;
   }
 
@@ -858,7 +850,7 @@ async function getAccessToken(retryCount = 0, attemptedApis: Set<number> = new S
     cachedTokens[activeApiIndex] = mongoToken;
     // Also save to file for faster access next time on this instance
     await saveBeapiTokenToFile(activeApiIndex, mongoToken.token, mongoToken.expiresAt);
-    console.log(`🔑 BEAPI token ${activeApiIndex} loaded from MongoDB`);
+    // BEAPI token loaded from MongoDB
     return mongoToken.token;
   }
 
@@ -896,7 +888,7 @@ async function getAccessToken(retryCount = 0, attemptedApis: Set<number> = new S
 
       // If rate limited, try switching to other API
       if (isRateLimited) {
-        console.warn(`⚠️ API ${activeApiIndex} rate limited on auth`);
+        console.warn(`API ${activeApiIndex} rate limited on auth`);
 
         // Try another API if we haven't exhausted all options
         const maxApis = 1 + (hasSecondaryApi() ? 1 : 0) + (hasTertiaryApi() ? 1 : 0);
@@ -936,7 +928,7 @@ async function getAccessToken(retryCount = 0, attemptedApis: Set<number> = new S
     await saveTokenToMongo(`beapi_token_${activeApiIndex}`, data.access_token, expiresAt);
 
     const apiNames = { 1: 'primary', 2: 'secondary', 3: 'tertiary' };
-    console.log(`✅ BEAPI ${apiNames[activeApiIndex as keyof typeof apiNames]} token cached (memory + file + MongoDB)`);
+    // BEAPI token cached
     return data.access_token;
   } catch (error) {
     // Network error - try other API if available
@@ -991,7 +983,7 @@ async function beapiFetch<T>(
 
       // Handle rate limiting (429) - try failover to other API
       if (isRateLimited) {
-        console.warn(`⚠️ API ${activeApiIndex} rate limited on ${endpoint}`);
+        console.warn(`API ${activeApiIndex} rate limited on ${endpoint}`);
 
         // Try switching to other API if we haven't already
         const maxApis = 1 + (hasSecondaryApi() ? 1 : 0) + (hasTertiaryApi() ? 1 : 0);
@@ -1001,7 +993,7 @@ async function beapiFetch<T>(
 
           if (switchToOtherApi()) {
             const apiNames = { 1: 'primary', 2: 'secondary', 3: 'tertiary' };
-            console.log(`🔄 Retrying request with ${apiNames[activeApiIndex as keyof typeof apiNames]} API`);
+            console.log(`Retrying request with API ${activeApiIndex}`);
             return beapiFetch<T>(endpoint, options, 0, true);
           }
         }
@@ -1059,7 +1051,7 @@ async function getListingsFromOpenApi(): Promise<GuestyListing[]> {
     throw new Error('Open API not configured');
   }
 
-  console.log('📡 Fetching listings from Open API (BEAPI fallback)...');
+  // Fetching listings from Open API (BEAPI fallback)
 
   const data = await openApiFetch<{
     results: Array<{
@@ -1118,7 +1110,6 @@ async function getListingsFromOpenApi(): Promise<GuestyListing[]> {
     count: number;
   }>('/listings?limit=100&fields=_id,title,nickname,propertyType,roomType,accommodates,bedrooms,bathrooms,beds,address,prices,picture,pictures,amenities,publicDescription,terms,reviews,active,type,parentId,listingRooms');
 
-  console.log(`✅ Open API returned ${data.results?.length || 0} listings`);
 
   // Convert Open API format to match BEAPI GuestyListing format
   return (data.results || []).map(listing => ({
@@ -1135,12 +1126,12 @@ let isRefreshingListings = false;
  */
 async function refreshListingsInBackground(): Promise<void> {
   if (isRefreshingListings) {
-    console.log('🔄 Background refresh already in progress, skipping');
+    // Background refresh already in progress
     return;
   }
 
   isRefreshingListings = true;
-  console.log('🔄 Starting background listings refresh...');
+  // Starting background listings refresh
 
   try {
     // Try BEAPI first
@@ -1153,11 +1144,11 @@ async function refreshListingsInBackground(): Promise<void> {
             expiresAt: Date.now() + LISTINGS_CACHE_DURATION,
           };
           await saveListingsToDisk(data.results);
-          console.log(`✅ Background refresh: ${data.results.length} listings from BEAPI`);
+          // Background refresh complete
           return;
         }
       } catch (e) {
-        console.warn('⚠️ Background BEAPI refresh failed:', e);
+        console.warn('Background BEAPI refresh failed:', e);
       }
     }
 
@@ -1171,10 +1162,10 @@ async function refreshListingsInBackground(): Promise<void> {
             expiresAt: Date.now() + LISTINGS_CACHE_DURATION,
           };
           await saveListingsToDisk(openApiListings);
-          console.log(`✅ Background refresh: ${openApiListings.length} listings from Open API`);
+          // Background refresh complete
         }
       } catch (e) {
-        console.warn('⚠️ Background Open API refresh failed:', e);
+        console.warn('Background Open API refresh failed:', e);
       }
     }
   } finally {
@@ -1226,7 +1217,7 @@ export async function getListings(params?: {
   // STEP 1: Check memory cache first (instant)
   if (useCache && cachedListings && cachedListings.data.length > 0 && !params?.skip) {
     const isExpired = cachedListings.expiresAt < Date.now();
-    console.log(`📦 Returning ${cachedListings.data.length} listings from memory${isExpired ? ' (stale, refreshing in background)' : ''}`);
+    // Returning listings from memory cache
 
     // If stale, trigger background refresh but still return cached data immediately
     if (isExpired) {
@@ -1252,11 +1243,11 @@ export async function getListings(params?: {
       const ageMs = Date.now() - stats.mtime.getTime();
       const ageHours = ageMs / (1000 * 60 * 60);
 
-      console.log(`📂 Returning ${diskListings.length} listings from disk (${ageHours.toFixed(1)}h old)`);
+      // Returning listings from disk cache
 
       // If older than 12 hours, refresh in background
       if (ageHours > 12) {
-        console.log('⏰ Data is stale, triggering background refresh...');
+        // Data is stale, triggering background refresh
         refreshListingsInBackground().catch(() => {});
       }
     } catch {
@@ -1267,7 +1258,7 @@ export async function getListings(params?: {
   }
 
   // STEP 3: NO cached data at all - we MUST fetch (first run only)
-  console.log('⚠️ No cached data found - fetching from API (first run)...');
+  // No cached data found - fetching from API (first run)
 
   // Use request deduplication for first-run scenario
   const cacheKey = `listings-first-run`;
@@ -1287,16 +1278,16 @@ export async function getListings(params?: {
 
           // SAVE TO DISK for persistence across restarts
           await saveListingsToDisk(data.results);
-          console.log(`✅ BEAPI returned ${data.results.length} listings - saved to disk`);
+          // BEAPI listings saved to disk
         }
 
         return processResults(data.results);
       } catch (beapiError) {
-        console.warn('⚠️ BEAPI failed:', beapiError);
+        console.warn('BEAPI failed:', beapiError);
         // Continue to Open API fallback
       }
     } else {
-      console.log('⚠️ All BEAPI credentials rate limited');
+      // All BEAPI credentials rate limited
     }
 
     // STEP 4: Try Open API as fallback
@@ -1311,24 +1302,24 @@ export async function getListings(params?: {
           };
           // Save Open API results to disk too
           await saveListingsToDisk(openApiListings);
-          console.log(`✅ Open API returned ${openApiListings.length} listings - saved to disk`);
+          // Open API listings saved to disk
         }
 
         return processResults(openApiListings);
       } catch (openApiError) {
-        console.warn('⚠️ Open API also failed:', openApiError);
+        console.warn('Open API also failed:', openApiError);
       }
     }
 
     // STEP 5: Return disk data as last resort (even if stale)
     if (diskListings && diskListings.length > 0) {
-      console.log('📦 All APIs failed - returning stale disk data');
+      // All APIs failed - returning stale disk data
       return processResults(diskListings);
     }
 
     // STEP 6: Return memory cache as absolute last resort
     if (cachedListings && cachedListings.data.length > 0) {
-      console.log('📦 Returning stale memory cache');
+      // Returning stale memory cache
       return processResults(cachedListings.data);
     }
 
@@ -1524,7 +1515,7 @@ export function invalidateCalendarForDates(listingId: string, unavailableDates: 
       });
       if (modified) {
         calendarCache.set(key, { data: updatedDays, expiresAt: entry.expiresAt });
-        console.log(`📅 Invalidated ${unavailableDates.length} dates in cache key: ${key}`);
+        // Invalidated dates in calendar cache
       }
     }
   }
@@ -1584,7 +1575,7 @@ export async function getCalendar(
   if (!skipCache) {
     // STEP 1: Check memory cache first (fastest)
     if (cached && cached.expiresAt > Date.now()) {
-      console.log(`📦 Calendar for ${listingId} from memory cache`);
+      // Calendar from memory cache
       return cached.data;
     }
 
@@ -1596,11 +1587,11 @@ export async function getCalendar(
         data: diskCalendar,
         expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
       });
-      console.log(`📂 Calendar for ${listingId} loaded from disk`);
+      // Calendar loaded from disk
       return diskCalendar;
     }
   } else {
-    console.log(`🔄 Calendar refresh requested for ${listingId}, skipping cache`);
+    // Calendar refresh requested, skipping cache
   }
 
   // Continue from here if cache miss or skipCache=true
@@ -1613,7 +1604,7 @@ export async function getCalendar(
         data: mongoCalendar,
         expiresAt: Date.now() + CALENDAR_CACHE_DURATION,
       });
-      console.log(`🔑 Calendar for ${listingId} loaded from MongoDB`);
+      // Calendar loaded from MongoDB
       return mongoCalendar;
     }
   }
@@ -1621,7 +1612,7 @@ export async function getCalendar(
   // STEP 3: Try BEAPI FIRST (has proper availability status)
   if (!areBothApisRateLimited()) {
     try {
-      console.log('📅 Trying BEAPI for calendar...');
+      // Trying BEAPI for calendar
       // BEAPI calendar returns a raw array of day objects
       type CalendarDayRaw = {
         date: string;
@@ -1641,34 +1632,7 @@ export async function getCalendar(
       const rawDays = Array.isArray(response)
         ? response
         : (response.data || response.days || []);
-      console.log(`📅 BEAPI calendar: ${rawDays.length} days, isArray=${Array.isArray(response)}`);
 
-      if (rawDays.length > 0) {
-        // Log full first day to see what fields BEAPI returns
-        console.log(`📅 BEAPI first day raw data:`, JSON.stringify(rawDays[0], null, 2));
-
-        const priceSample = rawDays.slice(0, 5).map(d => `${d.date}: $${d.price}`);
-        console.log(`📅 BEAPI Calendar: ${priceSample.join(', ')} ...`);
-
-        const uniquePrices = new Set(rawDays.map(d => d.price));
-        if (uniquePrices.size === 1) {
-          console.warn(`⚠️ BEAPI: All ${rawDays.length} days have same price: $${rawDays[0]?.price} (base price)`);
-        } else {
-          console.log(`✅ BEAPI: Found ${uniquePrices.size} different price points`);
-        }
-
-        // Log CTA/status info to debug availability issues
-        const ctaDays = rawDays.filter(d => d.cta === true);
-        const blockedDays = rawDays.filter(d => d.status && d.status !== 'available');
-        const unavailableDays = rawDays.filter(d => d.available === false);
-        console.log(`📅 BEAPI availability: ${ctaDays.length} CTA days, ${blockedDays.length} blocked status, ${unavailableDays.length} unavailable`);
-        if (ctaDays.length > 0) {
-          console.log(`📅 CTA dates: ${ctaDays.map(d => d.date).join(', ')}`);
-        }
-        if (blockedDays.length > 0) {
-          console.log(`📅 Blocked dates: ${blockedDays.map(d => `${d.date}(${d.status})`).join(', ')}`);
-        }
-      }
 
       // Handle both 'status' string and 'available' boolean formats
       // ALSO check CTA (Can't Arrive) - if true, treat as blocked for check-in
@@ -1714,7 +1678,7 @@ export async function getCalendar(
       }
 
       // BEAPI returned price: 0 - try Open API for dynamic pricing
-      console.log('⚠️ BEAPI returned no prices, trying Open API for dynamic pricing...');
+      // BEAPI returned no prices, trying Open API for dynamic pricing
       if (hasOpenApi()) {
         try {
           const openApiCalendar = await getCalendarFromOpenApi(listingId, from, to, cacheKey);
@@ -1725,7 +1689,7 @@ export async function getCalendar(
               ...day,
               price: priceMap.get(day.date) || day.price,
             }));
-            console.log('✅ Merged BEAPI availability with Open API pricing');
+            // Merged BEAPI availability with Open API pricing
 
             calendarCache.set(cacheKey, {
               data: mergedCalendar,
@@ -1752,17 +1716,15 @@ export async function getCalendar(
       console.warn('BEAPI calendar failed:', beapiError);
     }
   } else {
-    console.log('⚠️ All BEAPI credentials rate limited');
+    // All BEAPI credentials rate limited
   }
 
   // STEP 4: Try Open API as fallback (has dynamic pricing but may not have accurate availability)
   if (hasOpenApi()) {
     try {
-      console.log('📅 Trying Open API for calendar (fallback)...');
+      // Trying Open API for calendar (fallback)
       const openApiCalendar = await getCalendarFromOpenApi(listingId, from, to, cacheKey);
       if (openApiCalendar.length > 0) {
-        const uniquePrices = new Set(openApiCalendar.map(d => d.price));
-        console.log(`✅ Open API: ${openApiCalendar.length} days, ${uniquePrices.size} unique prices`);
 
         // Save to disk + MongoDB for persistence
         await saveCalendarToDisk(listingId, openApiCalendar);
@@ -1788,7 +1750,7 @@ export async function getCalendar(
     const STALE_DISK_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
     const staleDiskCalendar = await loadCalendarFromDisk(listingId, STALE_DISK_MAX_AGE, from, to);
     if (staleDiskCalendar && staleDiskCalendar.length > 0) {
-      console.warn(`⚠️ Using stale disk cache for ${listingId} (all APIs failed)`);
+      console.warn(`Using stale disk cache for ${listingId} (all APIs failed)`);
       // Refresh memory cache with stale data so subsequent requests don't hit disk
       calendarCache.set(cacheKey, {
         data: staleDiskCalendar,
@@ -1833,23 +1795,16 @@ export async function checkAvailability(
   unavailableDates: string[];
 }> {
   // ALWAYS skip cache for availability checks - stale cache causes "available but not bookable" bug
-  console.log(`🔍 checkAvailability: ${listingId} from ${checkIn} to ${checkOut}`);
   const calendar = await getCalendar(listingId, checkIn, checkOut, { skipCache: true });
 
   const stayNights = calendar.filter(day => day.date !== checkOut);
-  console.log(`🔍 checkAvailability: ${stayNights.length} stay nights, calendar has ${calendar.length} days`);
 
-  // Log each day's status for debugging
-  stayNights.forEach(day => {
-    console.log(`  📆 ${day.date}: status=${day.status}, price=$${day.price}`);
-  });
 
   const unavailableDates = stayNights
     .filter(day => day.status !== 'available')
     .map(day => day.date);
 
   const isAvailable = unavailableDates.length === 0;
-  console.log(`🔍 checkAvailability result: available=${isAvailable}, unavailableDates=${unavailableDates.join(', ') || 'none'}`);
   const nightsCount = stayNights.length;
 
   const totalAccommodation = stayNights.reduce((sum, day) => sum + day.price, 0);
@@ -2107,7 +2062,7 @@ export async function getQuote(params: {
     // Try to load rates from disk as fallback
     const diskRates = await loadRatesFromDisk(params.listingId, params.checkIn, params.checkOut);
     if (diskRates) {
-      console.log('📂 Using rates from disk cache as fallback');
+      // Using rates from disk cache as fallback
       // Return a partial quote from disk data
       // Note: This won't have a valid quoteId for booking, but shows pricing
       return {
@@ -2884,7 +2839,6 @@ export async function lookupReservation(
       return null;
     }
 
-    console.log(`✅ Found reservation ${confirmationCode} for ${email}`);
     return reservation;
   } catch (error) {
     console.error('Error looking up reservation:', error);
@@ -2968,7 +2922,6 @@ export async function cancelReservation(
       }
     );
 
-    console.log(`✅ Reservation ${reservationId} canceled`);
     return {
       success: true,
       message: 'Your reservation has been successfully canceled. You will receive a confirmation email shortly.'
@@ -3007,7 +2960,6 @@ export async function modifyReservationDates(
       }
     );
 
-    console.log(`✅ Reservation ${reservationId} dates modified to ${newCheckIn} - ${newCheckOut}`);
     return {
       success: true,
       reservation: data,

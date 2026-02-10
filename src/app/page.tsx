@@ -45,12 +45,12 @@ async function getFeaturedProperties(): Promise<Property[]> {
       return sortByBestReviews(properties);
     }
 
-    console.log('📦 Homepage: Using static fallback data');
+    // Using static fallback data
     return sortByBestReviews(guestyProperties);
   } catch (error) {
     console.error('Error fetching properties from Guesty:', error);
     // Use static fallback data
-    console.log('📦 Homepage: Error occurred, using static fallback data');
+    // Error occurred, using static fallback data
     return sortByBestReviews(guestyProperties);
   }
 }

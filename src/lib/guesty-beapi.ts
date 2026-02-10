@@ -51,7 +51,7 @@ const limiter = new Bottleneck({
 });
 
 limiter.on('depleted', () => {
-  console.warn('⚠️ BEAPI rate limiter depleted - requests will be queued');
+  console.warn('BEAPI rate limiter depleted - requests will be queued');
 });
 
 // ============================================================================
@@ -77,17 +77,17 @@ function checkCircuitBreaker(): boolean {
   if (!circuitBreaker.isOpen) return true;
 
   if (Date.now() >= circuitBreaker.blockedUntil) {
-    console.log('🔄 BEAPI circuit breaker half-open - allowing test request');
+    // BEAPI circuit breaker half-open - allowing test request
     return true;
   }
 
-  console.warn(`🚫 BEAPI circuit breaker OPEN - blocked until ${new Date(circuitBreaker.blockedUntil).toISOString()}`);
+  console.warn(`BEAPI circuit breaker OPEN - blocked until ${new Date(circuitBreaker.blockedUntil).toISOString()}`);
   return false;
 }
 
 function recordSuccess(): void {
   if (circuitBreaker.isOpen) {
-    console.log('✅ BEAPI circuit breaker closing after successful request');
+    // BEAPI circuit breaker closing after successful request
   }
   circuitBreaker.isOpen = false;
   circuitBreaker.failureCount = 0;
@@ -99,7 +99,7 @@ function recordFailure(is429: boolean): void {
   if (is429 || circuitBreaker.failureCount >= CIRCUIT_BREAKER_THRESHOLD) {
     circuitBreaker.isOpen = true;
     circuitBreaker.blockedUntil = Date.now() + CIRCUIT_BREAKER_TIMEOUT;
-    console.warn(`🚫 BEAPI circuit breaker OPEN (blocking for ${CIRCUIT_BREAKER_TIMEOUT / 1000}s)`);
+    console.warn(`BEAPI circuit breaker OPEN (blocking for ${CIRCUIT_BREAKER_TIMEOUT / 1000}s)`);
   }
 }
 
@@ -156,7 +156,7 @@ async function getBeapiToken(instance: BeapiInstance = 'rtb'): Promise<string> {
   const fileToken = await loadTokenFromFile(instance);
   if (fileToken) {
     cachedTokens[instance] = fileToken;
-    console.log(`🔑 BEAPI [${instance}] token loaded from file cache`);
+    // BEAPI token loaded from file cache
     return fileToken.token;
   }
 
@@ -165,7 +165,7 @@ async function getBeapiToken(instance: BeapiInstance = 'rtb'): Promise<string> {
     throw new Error(`BEAPI [${instance}] credentials not configured`);
   }
 
-  console.log(`🔑 Fetching new BEAPI [${instance}] token...`);
+  // Fetching new BEAPI token
 
   const response = await fetch(BEAPI_AUTH_URL, {
     method: 'POST',
@@ -196,7 +196,7 @@ async function getBeapiToken(instance: BeapiInstance = 'rtb'): Promise<string> {
   // Save to file for persistence
   await saveTokenToFile(instance, data.access_token, expiresAt);
 
-  console.log(`✅ BEAPI [${instance}] token cached (memory + file)`);
+  // BEAPI token cached
   return cachedTokens[instance]!.token;
 }
 
@@ -249,7 +249,7 @@ async function beapiFetch<T>(
   if (method === 'GET' && !skipCache && ttl) {
     const cached = getCached<T>(cacheKey);
     if (cached) {
-      console.log(`📦 BEAPI cache hit: ${endpoint}`);
+      // BEAPI cache hit
       return cached;
     }
   }
@@ -258,7 +258,7 @@ async function beapiFetch<T>(
   if (!checkCircuitBreaker()) {
     const staleData = cache.get(cacheKey)?.data as T;
     if (staleData) {
-      console.log(`📦 BEAPI circuit breaker open - returning stale cache: ${endpoint}`);
+      // BEAPI circuit breaker open - returning stale cache
       return staleData;
     }
     throw new Error('BEAPI circuit breaker open and no cached data available');
@@ -281,7 +281,7 @@ async function beapiFetch<T>(
       fetchOptions.body = JSON.stringify(body);
     }
 
-    console.log(`📡 BEAPI call: ${method} ${endpoint}`);
+    // BEAPI call
     const response = await fetch(`${BEAPI_URL}${endpoint}`, fetchOptions);
 
     if (!response.ok) {
@@ -289,14 +289,14 @@ async function beapiFetch<T>(
       const is429 = response.status === 429;
 
       if (is429) {
-        console.warn(`⚠️ BEAPI rate limited (429) on ${endpoint}`);
+        console.warn(`BEAPI rate limited (429) on ${endpoint}`);
       }
 
       recordFailure(is429);
 
       const staleData = cache.get(cacheKey)?.data as T;
       if (staleData) {
-        console.log(`📦 BEAPI error - returning stale cache: ${endpoint}`);
+        // BEAPI error - returning stale cache
         return staleData;
       }
 
@@ -310,7 +310,7 @@ async function beapiFetch<T>(
     // Cache successful response
     if (method === 'GET' && ttl) {
       setCache(cacheKey, data, ttl);
-      console.log(`💾 BEAPI cached: ${endpoint} (TTL: ${ttl / 1000}s)`);
+      // BEAPI response cached
     }
 
     return data as T;
@@ -550,7 +550,7 @@ export async function createQuote(params: {
     setCache(cacheKey, data, TTL.QUOTE);
     return data;
   } catch (error) {
-    console.error('🚫 BEAPI createQuote failed:', error);
+    console.error('BEAPI createQuote failed:', error);
     return null;
   }
 }

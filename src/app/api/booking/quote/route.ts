@@ -88,14 +88,12 @@ export async function POST(request: Request) {
 
     // Strategy 2: Try legacy Guesty quote
     try {
-      console.log('Quote request:', { listingId, checkIn, checkOut, guestsCount: guestsCount || 1 });
       const quoteResult = await getQuoteLegacy({
         listingId,
         checkIn,
         checkOut,
         guestsCount: guestsCount || 1,
       });
-      console.log('Quote result:', JSON.stringify(quoteResult, null, 2));
 
       if (!quoteResult.available) {
         // Invalidate stale calendar cache for these dates so the widget updates
@@ -103,8 +101,6 @@ export async function POST(request: Request) {
           invalidateCalendarForDates(listingId, quoteResult.unavailableDates);
         }
 
-        // Debug: log which dates are marked unavailable
-        console.log(`❌ Quote unavailable for ${listingId}: dates=${quoteResult.unavailableDates?.join(', ')}`);
 
         return NextResponse.json({
           success: false,
@@ -113,11 +109,6 @@ export async function POST(request: Request) {
           error: quoteResult.unavailableDates?.length > 0
             ? 'These dates are already booked. Try adjusting your stay!'
             : 'This cozy spot can\'t fit that many guests. Try a larger property!',
-          // Debug info
-          _debug: {
-            blockedDates: quoteResult.unavailableDates,
-            requestedDates: { checkIn, checkOut },
-          },
         });
       }
 

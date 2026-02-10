@@ -438,12 +438,12 @@ function CheckoutContent() {
                     <p className="text-sm text-[var(--casita-gray-600)] mt-1">
                       {property.location.city}
                     </p>
-                    {property.rating && property.reviewCount && property.reviewCount > 0 && (
+                    {property.rating && property.reviewCount && property.reviewCount > 0 ? (
                       <p className="text-sm text-[var(--casita-gray-600)] flex items-center gap-1 mt-0.5">
                         <Star className="w-3.5 h-3.5 fill-[var(--casita-orange)] text-[var(--casita-orange)]" />
                         {property.rating.toFixed(1)} ({property.reviewCount} reviews)
                       </p>
-                    )}
+                    ) : null}
                   </div>
                 </div>
 
@@ -671,12 +671,12 @@ function CheckoutContent() {
                     <p className="text-sm text-[var(--casita-gray-600)] mt-1">
                       {property.location.city}
                     </p>
-                    {property.rating && property.reviewCount && property.reviewCount > 0 && (
+                    {property.rating && property.reviewCount && property.reviewCount > 0 ? (
                       <p className="text-sm text-[var(--casita-gray-600)] flex items-center gap-1 mt-1">
                         <Star className="w-3.5 h-3.5 fill-[var(--casita-orange)] text-[var(--casita-orange)]" />
                         {property.rating.toFixed(1)} ({property.reviewCount} reviews)
                       </p>
-                    )}
+                    ) : null}
                   </div>
                 </div>
 

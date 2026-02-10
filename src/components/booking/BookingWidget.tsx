@@ -247,16 +247,10 @@ export default function BookingWidget({
 
         const data = await response.json();
 
-        // Debug: log full quote response
-        console.log('📋 Quote API response:', JSON.stringify(data, null, 2));
 
         if (data.success && data.quote) {
           setQuote(data.quote);
         } else {
-          // Debug: show blocked dates in console
-          if (data._debug) {
-            console.log('🔍 Debug info:', data._debug);
-          }
           setQuoteError(data.error || 'These dates are already booked. Try adjusting your stay!');
           setQuote(null);
           // If quote reveals dates are actually booked, add them to blocked dates

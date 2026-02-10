@@ -187,7 +187,6 @@ export async function GET(request: Request) {
     // Try BEAPI first if configured
     if (isBeapiConfigured()) {
       try {
-        console.log('📡 Trying Guesty BEAPI client...');
         // BEAPI supports filtering by availability dates - only returns listings with available units
         const beapiParams: { limit: number; checkIn?: string; checkOut?: string; minOccupancy?: number } = { limit: 100 };
         if (checkIn) beapiParams.checkIn = checkIn;
@@ -202,12 +201,11 @@ export async function GET(request: Request) {
         if (hasValidData(converted)) {
           properties = converted;
           source = 'beapi';
-          console.log(`✅ BEAPI returned ${properties.length} available listings${checkIn ? ` for ${checkIn} to ${checkOut}` : ''}`);
         } else {
-          console.log('⚠️ BEAPI returned sparse data, trying fallback...');
+          console.log('BEAPI returned sparse data, trying fallback...');
         }
       } catch (beapiError) {
-        console.warn('⚠️ BEAPI failed:', beapiError);
+        console.warn('BEAPI failed:', beapiError);
       }
     }
 
@@ -215,9 +213,7 @@ export async function GET(request: Request) {
     // Note: Legacy client does NOT filter by availability dates (would require too many API calls)
     if (!hasValidData(properties)) {
       try {
-        console.log('📡 Trying legacy Guesty client...');
         if (checkIn) {
-          console.log('⚠️ Legacy client cannot filter by availability - showing all listings');
         }
         const listings = await getListingsLegacy({ active: true, limit: 100, useCache: true });
         const converted = listings.map(convertGuestyToProperty);
@@ -225,18 +221,17 @@ export async function GET(request: Request) {
         if (hasValidData(converted)) {
           properties = converted;
           source = 'legacy';
-          console.log(`✅ Legacy client returned ${properties.length} listings (availability not filtered)`);
         } else {
-          console.log('⚠️ Legacy client returned sparse data, using static fallback...');
+          console.log('Legacy client returned sparse data, using static fallback...');
         }
       } catch (legacyError) {
-        console.warn('⚠️ Legacy client failed:', legacyError);
+        console.warn('Legacy client failed:', legacyError);
       }
     }
 
     // Final fallback to static data
     if (!hasValidData(properties)) {
-      console.log('📦 Using static fallback data from guestyData.ts');
+      // Using static fallback data
       properties = guestyProperties.map(transformStaticProperty);
       source = 'static';
     }
@@ -275,7 +270,7 @@ export async function GET(request: Request) {
     console.error('Error fetching listings:', error);
 
     // Even on error, return static fallback
-    console.log('📦 Error occurred - returning static fallback data');
+    // Error occurred - returning static fallback data
     let fallbackProperties = guestyProperties.map(transformStaticProperty);
 
     // Apply filters to fallback

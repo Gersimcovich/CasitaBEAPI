@@ -46,7 +46,7 @@ const openApiLimiter = new Bottleneck({
 
 // Log rate limit events
 openApiLimiter.on('depleted', () => {
-  console.warn('⚠️ Rate limiter depleted - requests will be queued');
+  console.warn('Rate limiter depleted - requests will be queued');
 });
 
 // ============================================================================
@@ -72,17 +72,17 @@ function checkCircuitBreaker(): boolean {
   if (!circuitBreaker.isOpen) return true;
 
   if (Date.now() >= circuitBreaker.blockedUntil) {
-    console.log('🔄 Circuit breaker half-open - allowing test request');
+    // Circuit breaker half-open - allowing test request
     return true;
   }
 
-  console.warn(`🚫 Circuit breaker OPEN - blocked until ${new Date(circuitBreaker.blockedUntil).toISOString()}`);
+  console.warn(`Circuit breaker OPEN - blocked until ${new Date(circuitBreaker.blockedUntil).toISOString()}`);
   return false;
 }
 
 function recordSuccess(): void {
   if (circuitBreaker.isOpen) {
-    console.log('✅ Circuit breaker closing after successful request');
+    // Circuit breaker closing after successful request
   }
   circuitBreaker.isOpen = false;
   circuitBreaker.failureCount = 0;
@@ -94,7 +94,7 @@ function recordFailure(is429: boolean): void {
   if (is429 || circuitBreaker.failureCount >= CIRCUIT_BREAKER_THRESHOLD) {
     circuitBreaker.isOpen = true;
     circuitBreaker.blockedUntil = Date.now() + CIRCUIT_BREAKER_TIMEOUT;
-    console.warn(`🚫 Circuit breaker OPEN - too many failures (blocking for ${CIRCUIT_BREAKER_TIMEOUT / 1000}s)`);
+    console.warn(`Circuit breaker OPEN - too many failures (blocking for ${CIRCUIT_BREAKER_TIMEOUT / 1000}s)`);
   }
 }
 
@@ -110,7 +110,7 @@ async function getOpenApiToken(): Promise<string> {
     return cachedToken.token;
   }
 
-  console.log('🔑 Fetching new Open API token...');
+  // Fetching new Open API token
 
   const response = await fetch(OPEN_API_AUTH_URL, {
     method: 'POST',
@@ -136,7 +136,7 @@ async function getOpenApiToken(): Promise<string> {
     expiresAt: Date.now() + TTL.TOKEN,
   };
 
-  console.log('✅ Open API token cached');
+  // Open API token cached
   return cachedToken.token;
 }
 
@@ -193,7 +193,7 @@ async function openApiFetch<T>(
   if (method === 'GET' && !skipCache && ttl) {
     const cached = getCached<T>(cacheKey);
     if (cached) {
-      console.log(`📦 Cache hit: ${endpoint}`);
+      // Cache hit
       return cached;
     }
   }
@@ -203,7 +203,7 @@ async function openApiFetch<T>(
     // Return cached data if available (even if stale)
     const staleData = cache.get(cacheKey)?.data as T;
     if (staleData) {
-      console.log(`📦 Circuit breaker open - returning stale cache: ${endpoint}`);
+      // Circuit breaker open - returning stale cache
       return staleData;
     }
     throw new Error('Circuit breaker open and no cached data available');
@@ -226,7 +226,7 @@ async function openApiFetch<T>(
       fetchOptions.body = JSON.stringify(body);
     }
 
-    console.log(`📡 API call: ${method} ${endpoint}`);
+    // API call
     const response = await fetch(`${OPEN_API_URL}${endpoint}`, fetchOptions);
 
     if (!response.ok) {
@@ -234,7 +234,7 @@ async function openApiFetch<T>(
       const is429 = response.status === 429;
 
       if (is429) {
-        console.warn(`⚠️ Rate limited (429) on ${endpoint}`);
+        console.warn(`Rate limited (429) on ${endpoint}`);
       }
 
       recordFailure(is429);
@@ -242,7 +242,7 @@ async function openApiFetch<T>(
       // Return cached data on error if available
       const staleData = cache.get(cacheKey)?.data as T;
       if (staleData) {
-        console.log(`📦 API error - returning stale cache: ${endpoint}`);
+        // API error - returning stale cache
         return staleData;
       }
 
@@ -256,7 +256,7 @@ async function openApiFetch<T>(
     // Cache successful response
     if (method === 'GET' && ttl) {
       setCache(cacheKey, data, ttl);
-      console.log(`💾 Cached: ${endpoint} (TTL: ${ttl / 1000}s)`);
+      // Response cached
     }
 
     return data as T;

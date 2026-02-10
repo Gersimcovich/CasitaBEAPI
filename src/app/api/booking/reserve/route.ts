@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createReservation, createQuote, getQuote, createInquiry } from '@/lib/guesty';
+import { createInstantQuote, isInstantConfigured } from '@/lib/guesty-beapi';
 import { sendBookingConfirmationEmail, sendInquiryConfirmationEmail, sendHostNotificationEmail } from '@/lib/email';
 import Stripe from 'stripe';
 
@@ -139,26 +140,39 @@ export async function POST(request: Request) {
       let finalRatePlanId = ratePlanId;
 
       if (!finalQuoteId || !finalRatePlanId || finalRatePlanId === 'estimated') {
-        // Create a fresh quote to get the IDs
-        const freshQuote = await createQuote({
-          listingId,
-          checkIn,
-          checkOut,
-          guestsCount: guestsCount || 1,
-        });
+        // Try Instant Booking quote first (more likely to return ratePlans)
+        if (isInstantConfigured()) {
+          try {
+            const instantQuote = await createInstantQuote({
+              listingId,
+              checkInDateLocalized: checkIn,
+              checkOutDateLocalized: checkOut,
+              guestsCount: guestsCount || 1,
+            });
 
-        finalQuoteId = freshQuote._id;
-        finalRatePlanId = freshQuote.ratePlans?.[0]?._id;
+            if (instantQuote) {
+              finalQuoteId = instantQuote._id;
+              finalRatePlanId = instantQuote.ratePlans?.[0]?._id || instantQuote._id;
+            }
+          } catch (e) {
+            console.warn('Instant quote failed, falling back to regular quote:', e);
+          }
+        }
 
-        if (!finalRatePlanId) {
-          // Payment was captured but Guesty has no rate plan - refund needed
-          console.error('No rate plan available after payment capture - refund may be needed');
-          return NextResponse.json({
-            success: false,
-            error: 'Unable to complete booking. Our team will contact you shortly.',
-            errorCode: 'NO_RATE_PLAN',
-            paymentCaptured: true, // Flag for manual handling
-          }, { status: 400 });
+        // Fall back to regular quote if instant quote failed
+        if (!finalQuoteId || !finalRatePlanId) {
+          const freshQuote = await createQuote({
+            listingId,
+            checkIn,
+            checkOut,
+            guestsCount: guestsCount || 1,
+          });
+
+          finalQuoteId = freshQuote._id;
+          // Try to get ratePlanId from the quote, fallback to using quoteId
+          // (BEAPI often uses quoteId as default ratePlanId when ratePlans array is empty)
+          finalRatePlanId = freshQuote.ratePlans?.[0]?._id || freshQuote._id;
+
         }
       }
 
