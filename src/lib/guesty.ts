@@ -2847,6 +2847,18 @@ export async function lookupReservation(
 }
 
 /**
+ * Clear all in-memory caches to force fresh data from Guesty API
+ */
+export function clearAllCaches(): void {
+  cachedListings = null;
+  listingCache.clear();
+  calendarCache.clear();
+  quoteCache.clear();
+  reviewsCache.clear();
+  pendingRequests.clear();
+}
+
+/**
  * Get reservations for a guest by email address
  */
 export async function getReservationsByEmail(
