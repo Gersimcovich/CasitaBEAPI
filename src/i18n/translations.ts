@@ -191,7 +191,7 @@ export const translations = {
       marriottPartnership: 'Marriott Bonvoy Partnership',
       marriottQualifying: 'Qualifying properties listed',
       // Services section
-      servicesBadge: 'Powered by AI & Software',
+      servicesBadge: 'Technology & Software',
       servicesTitle: 'Comprehensive Property Solutions',
       servicesDesc: 'Casita leverages proprietary technology and industry-leading third-party software to guarantee the best ADR and occupancy rates across our entire portfolio.',
       channelTitle: 'Airbnb & Marriott Premium Connectivity',
@@ -1207,7 +1207,7 @@ export const translations = {
       marriottPartnership: 'Marriott Bonvoy Partnerschaft',
       marriottQualifying: 'Qualifizierte Unterkünfte gelistet',
       // Services section
-      servicesBadge: 'Powered by KI & Software',
+      servicesBadge: 'Technologie & Software',
       servicesTitle: 'Umfassende Immobilienlösungen',
       servicesDesc: 'Casita nutzt proprietäre Technologie und branchenführende Software, um die besten ADR-Tarife und Auslastungsraten in unserem gesamten Portfolio zu gewährleisten.',
       channelTitle: 'Airbnb & Marriott Premium-Konnektivität',
@@ -1461,7 +1461,7 @@ export const translations = {
       marriottPartnership: 'Partnership Marriott Bonvoy',
       marriottQualifying: 'Proprietà qualificate presenti',
       // Services section
-      servicesBadge: 'Powered by IA & Software',
+      servicesBadge: 'Tecnologia & Software',
       servicesTitle: 'Soluzioni Complete per Proprietà',
       servicesDesc: 'Casita sfrutta tecnologia proprietaria e software leader del settore per garantire le migliori tariffe ADR e tassi di occupazione in tutto il nostro portfolio.',
       channelTitle: 'Connettività Premium Airbnb & Marriott',

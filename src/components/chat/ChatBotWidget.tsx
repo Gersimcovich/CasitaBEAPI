@@ -63,7 +63,7 @@ export default function ChatBotWidget() {
             ? 'bg-gray-600 hover:bg-gray-700'
             : 'bg-[var(--casita-orange)] hover:bg-[var(--casita-orange-dark)] hover:scale-110'
         }`}
-        title={isOpen ? 'Close chat' : 'Chat with Casita AI'}
+        title={isOpen ? 'Close chat' : 'Chat with Casita'}
       >
         {isOpen ? (
           <X className="w-6 h-6 text-white" />
@@ -92,7 +92,7 @@ export default function ChatBotWidget() {
                 </div>
                 <div>
                   <h3 className="font-semibold">Casita Assistant</h3>
-                  <p className="text-sm text-white/80">Ask me anything</p>
+                  <p className="text-sm text-white/80">How can we help?</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -120,24 +120,24 @@ export default function ChatBotWidget() {
             {messages.length === 0 ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 mx-auto bg-[var(--casita-orange-light)] rounded-full flex items-center justify-center mb-4">
-                  <span className="text-3xl">🏠</span>
+                  <MessageCircle className="w-8 h-8 text-[var(--casita-orange)]" />
                 </div>
-                <h4 className="font-semibold text-gray-800 mb-2">Hola! Welcome to Casita</h4>
+                <h4 className="font-semibold text-gray-800 mb-2">Welcome to Casita</h4>
                 <p className="text-sm text-gray-600 mb-4">
                   I can help you with:
                 </p>
                 <div className="space-y-2 text-sm text-left max-w-[250px] mx-auto">
                   <QuickAction onClick={() => sendMessage("I'd like to look up my reservation")}>
-                    📋 Look up my reservation
+                    Look up my reservation
                   </QuickAction>
                   <QuickAction onClick={() => sendMessage("What properties do you have available?")}>
-                    🏖️ Available properties
+                    Available properties
                   </QuickAction>
                   <QuickAction onClick={() => sendMessage("What are the check-in and check-out times?")}>
-                    ⏰ Check-in/out times
+                    Check-in/out times
                   </QuickAction>
                   <QuickAction onClick={() => sendMessage("I need to cancel my reservation")}>
-                    ❌ Cancel reservation
+                    Cancel reservation
                   </QuickAction>
                 </div>
               </div>
@@ -170,7 +170,7 @@ export default function ChatBotWidget() {
                 <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin text-[var(--casita-orange)]" />
-                    <span className="text-sm text-gray-500">Thinking...</span>
+                    <span className="text-sm text-gray-500">Loading...</span>
                   </div>
                 </div>
               </div>
@@ -198,7 +198,7 @@ export default function ChatBotWidget() {
               </button>
             </div>
             <p className="text-xs text-gray-400 text-center mt-2">
-              Powered by AI • Need human help? <a href="https://wa.me/15558767325" target="_blank" rel="noopener noreferrer" className="text-[var(--casita-orange)] hover:underline">WhatsApp us</a>
+              Need help? <a href="https://wa.me/15558767325" target="_blank" rel="noopener noreferrer" className="text-[var(--casita-orange)] hover:underline">WhatsApp us</a>
             </p>
           </form>
         </div>

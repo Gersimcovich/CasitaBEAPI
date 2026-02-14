@@ -102,7 +102,7 @@ function formatDate(dateStr: string): string {
   });
 }
 
-// Generate booking confirmation email HTML - Marriott-inspired elegant design
+// Generate booking confirmation email HTML
 function generateBookingConfirmationHTML(data: BookingConfirmationData): string {
   const {
     guestName,
@@ -171,7 +171,7 @@ function generateBookingConfirmationHTML(data: BookingConfirmationData): string 
                 <tr>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                   <td style="width: 60px; text-align: center; padding: 0 15px;">
-                    <span style="color: ${casitaOrange}; font-size: 18px;">🏠</span>
+                    <span style="color: ${casitaOrange}; font-size: 18px;">&#8226;</span>
                   </td>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                 </tr>
@@ -449,7 +449,7 @@ function generateBookingConfirmationHTML(data: BookingConfirmationData): string 
                 <tr>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                   <td style="width: 80px; text-align: center; padding: 0 15px;">
-                    <span style="color: ${casitaOrange}; font-size: 14px;">🌴 🏠 🌴</span>
+                    <span style="color: ${casitaOrange}; font-size: 14px;">&#8212;</span>
                   </td>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                 </tr>
@@ -485,7 +485,7 @@ function generateBookingConfirmationHTML(data: BookingConfirmationData): string 
   `;
 }
 
-// Generate inquiry confirmation email HTML - Marriott-inspired elegant design
+// Generate inquiry confirmation email HTML
 function generateInquiryConfirmationHTML(data: InquiryConfirmationData): string {
   const { guestName, propertyName, propertyImage, checkIn, checkOut, guestsCount, message } = data;
 
@@ -537,7 +537,7 @@ function generateInquiryConfirmationHTML(data: InquiryConfirmationData): string 
                 <tr>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                   <td style="width: 60px; text-align: center; padding: 0 15px;">
-                    <span style="color: ${casitaOrange}; font-size: 18px;">🏠</span>
+                    <span style="color: ${casitaOrange}; font-size: 18px;">&#8226;</span>
                   </td>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                 </tr>
@@ -692,7 +692,7 @@ function generateInquiryConfirmationHTML(data: InquiryConfirmationData): string 
                 <tr>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                   <td style="width: 80px; text-align: center; padding: 0 15px;">
-                    <span style="color: ${casitaOrange}; font-size: 14px;">🌴 🏠 🌴</span>
+                    <span style="color: ${casitaOrange}; font-size: 14px;">&#8212;</span>
                   </td>
                   <td style="border-bottom: 1px solid ${casitaSand};"></td>
                 </tr>
