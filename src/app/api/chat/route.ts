@@ -44,7 +44,7 @@ Personality:
 - Warm, helpful, and professional
 - Use occasional Spanish phrases like "Hola!", "Gracias", "Perfecto"
 - Keep responses concise but friendly
-- If unsure, offer to connect them with human support via WhatsApp: 786-694-7577
+- If unsure, offer to connect them with human support via WhatsApp: 555-876-7325
 
 IMPORTANT RULES:
 1. NEVER show or discuss reservation details without verification (confirmation code + email)
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
 
     if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json({
-        reply: 'The chat assistant is temporarily unavailable. Please contact us via WhatsApp at 786-694-7577.',
+        reply: 'The chat assistant is temporarily unavailable. Please contact us via WhatsApp at 555-876-7325.',
         sessionId: requestSessionId || generateSessionId(),
         error: 'API key not configured'
       } as ChatResponse);
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
           finalResponse = `${cleanedResponse}\n\n${formatReservationDetails(reservationContext)}\n\nHow can I help you with this reservation?`;
         } else {
           responseAction = 'lookup_failed';
-          finalResponse = `I couldn't find a reservation with that confirmation code and email combination. Please double-check the information or contact us via WhatsApp at 786-694-7577 for assistance.`;
+          finalResponse = `I couldn't find a reservation with that confirmation code and email combination. Please double-check the information or contact us via WhatsApp at 555-876-7325 for assistance.`;
         }
       } else if (action.type === 'cancel' && action.confirmed && session.reservation) {
         // Cancel reservation
@@ -267,7 +267,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Chat API error:', error);
     return NextResponse.json({
-      reply: 'Lo siento, something went wrong. Please try again or contact us via WhatsApp at 786-694-7577.',
+      reply: 'Lo siento, something went wrong. Please try again or contact us via WhatsApp at 555-876-7325.',
       sessionId: generateSessionId(),
       error: 'Internal error'
     } as ChatResponse);

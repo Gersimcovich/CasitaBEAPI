@@ -198,7 +198,7 @@ export default function ChatBotWidget() {
               </button>
             </div>
             <p className="text-xs text-gray-400 text-center mt-2">
-              Powered by AI • Need human help? <a href="https://wa.me/17866947577" target="_blank" rel="noopener noreferrer" className="text-[var(--casita-orange)] hover:underline">WhatsApp us</a>
+              Powered by AI • Need human help? <a href="https://wa.me/15558767325" target="_blank" rel="noopener noreferrer" className="text-[var(--casita-orange)] hover:underline">WhatsApp us</a>
             </p>
           </form>
         </div>

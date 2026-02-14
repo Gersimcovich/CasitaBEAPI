@@ -427,7 +427,7 @@ export default function ManageReservationPage() {
                 <p className="text-center text-sm text-[var(--casita-gray-600)]">
                   Need help?{' '}
                   <a
-                    href="https://wa.me/17866947577"
+                    href="https://wa.me/15558767325"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[var(--casita-orange)] hover:underline inline-flex items-center gap-1"

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useCapacitor } from '@/hooks/useCapacitor';
 
-const WHATSAPP_NUMBER = '17866947577';
+const WHATSAPP_NUMBER = '15558767325';
 const DEFAULT_MESSAGE = 'Hi! I have a question about booking a property on Casita.';
 
 export default function WhatsAppButton() {

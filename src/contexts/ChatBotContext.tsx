@@ -152,7 +152,7 @@ export function ChatBotProvider({ children }: { children: React.ReactNode }) {
       console.error('Error sending message:', error);
       addMessage({
         role: 'assistant',
-        content: 'Lo siento, I\'m having trouble connecting right now. Please try again or contact us via WhatsApp at 786-694-7577.',
+        content: 'Lo siento, I\'m having trouble connecting right now. Please try again or contact us via WhatsApp at 555-876-7325.',
         metadata: { error: true }
       });
     } finally {

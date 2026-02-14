@@ -2942,7 +2942,7 @@ export async function cancelReservation(
     console.error('Error canceling reservation:', error);
     return {
       success: false,
-      message: 'Unable to cancel reservation. Please contact support at 786-694-7577.'
+      message: 'Unable to cancel reservation. Please contact support at 555-876-7325.'
     };
   }
 }
@@ -2981,7 +2981,7 @@ export async function modifyReservationDates(
     console.error('Error modifying reservation dates:', error);
     return {
       success: false,
-      message: 'Unable to modify reservation dates. The new dates may not be available. Please contact support at 786-694-7577.'
+      message: 'Unable to modify reservation dates. The new dates may not be available. Please contact support at 555-876-7325.'
     };
   }
 }

@@ -131,11 +131,11 @@ export default function HelpPage() {
       <section className="py-8 border-b border-[var(--casita-gray-100)]">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-6 md:gap-12">
-            <a href="tel:+17866947577" className="flex items-center gap-3 text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
+            <a href="tel:+15558767325" className="flex items-center gap-3 text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
               <div className="w-10 h-10 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center">
                 <Phone className="w-5 h-5 text-[var(--casita-orange)]" />
               </div>
-              <span>(786) 694-7577</span>
+              <span>(555) 876-7325</span>
             </a>
             <a href="mailto:reservations@hellocasita.com" className="flex items-center gap-3 text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
               <div className="w-10 h-10 rounded-full bg-[var(--casita-orange)]/10 flex items-center justify-center">
@@ -224,7 +224,7 @@ export default function HelpPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="tel:+17866947577"
+                href="tel:+15558767325"
                 className="px-8 py-4 bg-[var(--casita-orange)] text-white font-semibold rounded-xl hover:bg-[var(--casita-orange)]/90 transition-all flex items-center justify-center gap-2"
               >
                 <Phone className="w-5 h-5" />

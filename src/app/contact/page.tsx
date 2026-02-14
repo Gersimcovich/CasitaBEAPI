@@ -116,8 +116,8 @@ ${formData.message}`;
                   </div>
                   <div>
                     <h3 className="font-semibold text-[var(--casita-gray-900)] mb-1">Phone</h3>
-                    <a href="tel:+17866947577" className="text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
-                      (786) 694-7577
+                    <a href="tel:+15558767325" className="text-[var(--casita-gray-600)] hover:text-[var(--casita-orange)] transition-colors">
+                      (555) 876-7325
                     </a>
                   </div>
                 </div>
@@ -204,7 +204,7 @@ ${formData.message}`;
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="w-full px-4 py-3 rounded-xl border border-[var(--casita-gray-200)] focus:border-[var(--casita-orange)] focus:ring-2 focus:ring-[var(--casita-orange)]/20 outline-none transition-all"
-                      placeholder="(786) 694-7577"
+                      placeholder="(555) 876-7325"
                     />
                   </div>
 
